@@ -1,14 +1,14 @@
 #pragma once
-#ifndef __FL_LOGGER_HPP__
-#define __FL_LOGGER_HPP__
+#ifndef __FL_LOG_HPP__
+#define __FL_LOG_HPP__
 
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Copyright Denys Misko <gdraal@gmail.com>, Final Level, 2014.
-// Distributed under GNU GENERAL PUBLIC LICENSE, Version 2.0. (See
-// accompanying file LICENSE or copy at
-// https://www.gnu.org/licenses/gpl-2.0.en.html)
+// Distributed under BSD (3-Clause) License (See
+// accompanying file LICENSE)
 //
+// Description: A logging system facilities
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef FL_LOG_LEVEL // set default log level to WARNING
@@ -39,7 +39,7 @@ namespace fl
 		class Target
 		{
 		public:
-			virtual void log(const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args) = 0;
+			virtual void log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args) = 0;
 		protected:
 			struct ProcessInfo
 			{
@@ -52,7 +52,7 @@ namespace fl
 		class ScreenTarget : public Target
 		{
 		public:
-			virtual void log(const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
+			virtual void log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
 		};
 		
 		class FileTarget : public Target
@@ -60,7 +60,7 @@ namespace fl
 		public:
 			FileTarget(const char *fileName);
 			virtual ~FileTarget();
-			virtual void log(const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
+			virtual void log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
 		private:
 			FILE *_fd;
 		};
@@ -68,39 +68,44 @@ namespace fl
 		class LogSystem
 		{
 		public:
-			static bool log(const size_t target, const int level, const char *fmt, va_list args);
+			static bool log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
 			static void addTarget(Target *target);
+			static void clearTargets();
 		private:
 			typedef std::vector<Target*> TTargetList;
 			static TTargetList _targets;
 			static ScreenTarget _defaultTarget;
+			static const char *TAG;
 		};
 		
-		template<int level>
+		template<int level, int logLevel>
 		struct NeedLog
 		{
 			enum
 			{
-				IS_NEEDED = level <=  FL_LOG_LEVEL,
+				IS_NEEDED = level <=  logLevel,
 			};
 		};
 		
-		template<bool needLogging, int level>
+		template<bool needLogging, int level, class TLogSystem>
 		class Log
 		{
 		};
 		
-		template<int level>
-		class Log<true, level>
+		template<int level, class TLogSystem>
+		class Log<true, level, TLogSystem>
 		{
 		public:
 			static inline void L(const char *fmt, ...)
 			{
+				time_t curTime = time(NULL);
+				struct tm *ct = localtime(&curTime);
+				
 				va_list args;
 				for (int target = 0; ; target++)
 				{
 					va_start(args, fmt);
-					bool res = LogSystem::log(target, level, fmt, args);
+					bool res = TLogSystem::log(target, level, curTime, ct, fmt, args);
 					va_end(args);
 					
 					if (!res)
@@ -109,8 +114,8 @@ namespace fl
 			};
 		};
 		
-		template<int level> // no need logging on current level
-		class Log<false, level>
+		template<int level, class TLogSystem> // no need logging on current level
+		class Log<false, level, TLogSystem>
 		{
 		public:
 			static inline void L(const char *fmt, ...)
@@ -119,11 +124,11 @@ namespace fl
 			}
 		};
 		
-		typedef Log<NeedLog<ELogLevel::INFO>::IS_NEEDED, ELogLevel::INFO> Info;
-		typedef Log<NeedLog<ELogLevel::WARNING>::IS_NEEDED, ELogLevel::WARNING> Warning;
-		typedef Log<NeedLog<ELogLevel::ERROR>::IS_NEEDED, ELogLevel::ERROR> Error;
-		typedef Log<NeedLog<ELogLevel::FATAL>::IS_NEEDED, ELogLevel::FATAL> Fatal;
+		typedef Log<NeedLog<ELogLevel::INFO, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::INFO, LogSystem> Info;
+		typedef Log<NeedLog<ELogLevel::WARNING, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::WARNING, LogSystem> Warning;
+		typedef Log<NeedLog<ELogLevel::ERROR, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::ERROR, LogSystem> Error;
+		typedef Log<NeedLog<ELogLevel::FATAL, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::FATAL, LogSystem> Fatal;
 	};
 };
 
-#endif //__FL_LOGGER_HPP__
+#endif //__FL_LOG_HPP__

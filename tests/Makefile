@@ -2,18 +2,23 @@ PRJ_ROOT=..
 
 include ../Makefile.inc
 
-LOGGER_OBJS=test_logger.o $(LOBJ)
+OPFLAGS = -O3
+LOG_OBJ=log_test.o $(LOBJ)
+BOST_FORMAT_TEST=boost_format_test.o
 
+TEST_LIBS=-lboost_unit_test_framework-mt -lboost_filesystem-mt
 
-PROGRAMS=$(BIN_PROGRAMS) $(TEST_PROGRAMS)
+all: log
+	./log_test
 
-all: logger
+log: $(LOG_OBJ)
+	$(LINKER) -g $(OPFLAGS) -o log_test $(LOG_OBJ) $(LIBDIRS) $(LIBS) $(TEST_LIBS) 
 
-logger: $(LOGGER_OBJS)
-	$(LINKER) -g -o test_logger $(LOGGER_OBJS) $(LIBDIRS) $(LIBS)
+boost_format_test: $(BOST_FORMAT_TEST)
+	$(LINKER) -g $(OPFLAGS) -o boost_format_test $(BOST_FORMAT_TEST) $(LIBDIRS) $(LIBS)
 
 %.o: %.cpp
-	$(CC) -c $< -o $@ $(CPPFLAGS) $(LOGFLAGS)
+	$(CC) -c $< -o $@ $(CPPFLAGS) $(OPFLAGS)
 
 include $(wildcard *.d)
 

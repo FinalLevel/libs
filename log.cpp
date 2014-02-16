@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Copyright Denys Misko <gdraal@gmail.com>, Final Level, 2014.
-// Distributed under GNU GENERAL PUBLIC LICENSE, Version 2.0. (See
-// accompanying file LICENSE or copy at
-// https://www.gnu.org/licenses/gpl-2.0.en.html)
+// Distributed under BSD (3-Clause) License (See
+// accompanying file LICENSE)
 //
+// Description: A logging system facilities
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <cstdio>
@@ -24,15 +24,15 @@ Target::ProcessInfo::ProcessInfo()
 const char *ErrorLevelTable[ELogLevel::MAX_LOG_LEVEL] =
 {
 	NULL, // Unknown level
-	"[F]", // FATAL
-	"[E]", // ERROR
-	"[W]", // WARNING
+	"F", // FATAL
+	"E", // ERROR
+	"W", // WARNING
 	"   ", // INFO
 };
 
-void ScreenTarget::log(const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
+void ScreenTarget::log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
 {
-	printf("{%u} %02i.%02i %02i:%02i:%02i %s ", _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vprintf(fmt, args);	
 }
 
@@ -51,9 +51,9 @@ FileTarget::~FileTarget()
 	fclose(_fd);
 }
 
-void FileTarget::log(const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
+void FileTarget::log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
 {
-	fprintf(_fd, "{%u} %02i.%02i %02i:%02i:%02i %s ", _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	fprintf(_fd, "{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vfprintf(_fd, fmt, args);
 	fflush(_fd);
 }
@@ -61,24 +61,20 @@ void FileTarget::log(const int level, const time_t curTime, struct tm *ct, const
 LogSystem::TTargetList LogSystem::_targets;
 ScreenTarget LogSystem::_defaultTarget;
 
-bool LogSystem::log(const size_t target, const int level, const char *fmt, va_list args)
+const char *LogSystem::TAG = "flLB";
+
+bool LogSystem::log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
 {
 	if (_targets.empty()) // log information on screen
 	{
-		time_t curTime = time(NULL);
-		struct tm *ct = localtime(&curTime);
-
-		_defaultTarget.log(level, curTime, ct, fmt, args);
+		_defaultTarget.log(level, TAG, curTime, ct, fmt, args);
 		return false;
 	}
 	else
 	{
 		if (target < _targets.size())
 		{
-			time_t curTime = time(NULL);
-			struct tm *ct = localtime(&curTime);
-
-			_targets[target]->log(level,curTime, ct, fmt, args);
+			_targets[target]->log(level, TAG, curTime, ct, fmt, args);
 			return true;
 		}
 		else
@@ -89,4 +85,11 @@ bool LogSystem::log(const size_t target, const int level, const char *fmt, va_li
 void LogSystem::addTarget(Target *target)
 {
 	_targets.push_back(target);
+}
+
+void LogSystem::clearTargets()
+{
+	for (TTargetList::iterator target = _targets.begin(); target != _targets.begin(); target++)
+		delete *target;
+	_targets.clear();
 }
