@@ -20,12 +20,10 @@
 #include <cstdio>
 #include <vector>
 
-namespace fl
-{
-	namespace log
-	{
-		namespace ELogLevel
-		{
+namespace fl {
+	namespace log {
+		
+		namespace ELogLevel {
 			enum ELogLevel
 			{
 				FATAL = 1,

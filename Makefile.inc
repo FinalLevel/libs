@@ -10,6 +10,6 @@ INCLUDEDIRS=-I/usr/include/mysql -I../ -I./
 CPPFLAGS=-DLINUX -D_THREAD_SAFE
 
 LINK=$(LINKER)
-LOBJ=$(LD)/log.o
+LOBJ=$(LD)/log.o $(LD)/event_queue.o
 
-CC=$(COMPILER) $(INCLUDEDIRS) -g -Wall
+CC=$(COMPILER) $(INCLUDEDIRS) -g -Wall -std=c++0x
