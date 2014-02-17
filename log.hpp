@@ -37,7 +37,14 @@ namespace fl {
 		class Target
 		{
 		public:
-			virtual void log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args) = 0;
+			virtual void log(
+				const int level, 
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			) = 0;
 		protected:
 			struct ProcessInfo
 			{
@@ -50,7 +57,14 @@ namespace fl {
 		class ScreenTarget : public Target
 		{
 		public:
-			virtual void log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
+			virtual void log(
+				const int level, 
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
 		};
 		
 		class FileTarget : public Target
@@ -58,7 +72,14 @@ namespace fl {
 		public:
 			FileTarget(const char *fileName);
 			virtual ~FileTarget();
-			virtual void log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
+			virtual void log(
+				const int level, 
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
 		private:
 			FILE *_fd;
 		};
@@ -66,7 +87,14 @@ namespace fl {
 		class LogSystem
 		{
 		public:
-			static bool log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args);
+			static bool log(
+				const size_t target, 
+				const int level, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
 			static void addTarget(Target *target);
 			static void clearTargets();
 		private:

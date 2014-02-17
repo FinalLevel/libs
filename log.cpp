@@ -30,19 +30,26 @@ const char *ErrorLevelTable[ELogLevel::MAX_LOG_LEVEL] =
 	"   ", // INFO
 };
 
-void ScreenTarget::log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
+void ScreenTarget::log(
+	const int level, 
+	const char *tag, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, va_list args
+) 
 {
-	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, 
+					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vprintf(fmt, args);	
 }
 
-FileTarget::FileTarget(const char *fileName)
+FileTarget::FileTarget(const char *fileName) 
 {
 	_fd = fopen(fileName, "a+");
-  if (!_fd)
+	if (!_fd)
 	{
 		printf("Cannot open log file: %s\n", fileName);
-    throw std::exception();
+		throw std::exception();
 	}
 }
 
@@ -51,9 +58,17 @@ FileTarget::~FileTarget()
 	fclose(_fd);
 }
 
-void FileTarget::log(const int level, const char *tag, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
+void FileTarget::log(
+	const int level, 
+	const char *tag, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, 
+	va_list args
+)
 {
-	fprintf(_fd, "{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	fprintf(_fd, "{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, 
+					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vfprintf(_fd, fmt, args);
 	fflush(_fd);
 }
@@ -63,7 +78,14 @@ ScreenTarget LogSystem::_defaultTarget;
 
 const char *LogSystem::TAG = "flLB";
 
-bool LogSystem::log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, va_list args)
+bool LogSystem::log(
+	const size_t target, 
+	const int level, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, 
+	va_list args
+)
 {
 	if (_targets.empty()) // log information on screen
 	{
