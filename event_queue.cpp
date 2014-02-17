@@ -58,8 +58,9 @@ bool EPoll::ctrl(Event *event)
 	return true;
 }
 
-bool EPoll::dispatch(const int timeout, bool callActive)
+bool EPoll::dispatch(const int timeout)
 {
+	_activeEventsCount = 0;
 	int res = epoll_wait(_eventFD, _events, _queueLength, timeout);
 
 	if (res == -1) 
@@ -69,19 +70,28 @@ bool EPoll::dispatch(const int timeout, bool callActive)
 		return false;
 	} 
 	_activeEventsCount = res;
-
-	if (callActive)
-		callActiveEvents();
 	return true;
 }
 
-void EPoll::callActiveEvents()
+bool EPoll::callActive(TEventVector &changedEvents, TEventVector &endedEvents)
 {
 	for (int i = 0; i < _activeEventsCount; i++) 
 	{
-		Event *ev = (Event *)_events[i].data.ptr;
-		ev->call(_events[i].events);
+		Event *ev = static_cast<Event *>(_events[i].data.ptr);
+		Event::ECallResult res = ev->call(_events[i].events);
+		switch (res)
+		{
+			case Event::CHANGE:
+				changedEvents.push_back(ev);
+			break;
+			case Event::FINISHED:
+				endedEvents.push_back(ev);
+			break;
+			case Event::SKIP:
+			break;
+		}
 	}
+	return _activeEventsCount > 0;
 }
 
 Event::Event(const TEventDescriptor descr)

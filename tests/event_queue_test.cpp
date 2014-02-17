@@ -7,10 +7,6 @@
 // Description: Event queue system unit tests
 ///////////////////////////////////////////////////////////////////////////////
 
-#define BOOST_TEST_MAIN
-#define BOOST_TEST_DYN_LINK 
-#define BOOST_TEST_MODULE FL_EVENT_QUEUE_TEST
-
 #include <boost/test/unit_test.hpp>
 #include <boost/test/output_test_stream.hpp> 
 
@@ -29,15 +25,21 @@ public:
 	{
 		_events = E_OUTPUT;
 	}
-	virtual void call(const TEvents events)
+	virtual const ECallResult call(const TEvents events)
 	{
 		output << "TestEvent::call";
+		return CHANGE;
 	}
 	output_test_stream &output;
 };
 
+BOOST_AUTO_TEST_SUITE( EPollTest )
+
 BOOST_AUTO_TEST_CASE(testEPoll)
 {
+	EPoll::TEventVector changedEvents;
+	EPoll::TEventVector endedEvents;
+
 	BOOST_TEST_MESSAGE("Test epoll creation & test event's call function calling");
 	const int QUEUE_LENGTH = 100;
 	BOOST_CHECK_NO_THROW (
@@ -45,8 +47,13 @@ BOOST_AUTO_TEST_CASE(testEPoll)
 		output_test_stream output;
 		TestEvent ev(output);
 		BOOST_CHECK(epoll.ctrl(&ev) != false);
-		BOOST_CHECK(epoll.dispatch(1, true) != false);
+		BOOST_CHECK(epoll.dispatch(1) != false);
+		BOOST_CHECK(epoll.callActive(changedEvents, endedEvents) != false);
+		BOOST_CHECK(changedEvents.empty() == false);
+		BOOST_CHECK(endedEvents.empty() == true);
 		BOOST_CHECK(output.is_equal("TestEvent::call"));
 	);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+				

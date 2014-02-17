@@ -13,6 +13,7 @@
 
 #include <sys/epoll.h>
 #include <cstdint>
+#include <vector>
 
 #include "exception.hpp"
 
@@ -23,6 +24,8 @@ namespace fl {
 		typedef uint32_t TEvents;
 		
 		const TEvents E_OUTPUT = EPOLLOUT;
+		
+		
 		
 		class EPoll
 		{
@@ -40,8 +43,11 @@ namespace fl {
 			~EPoll();
 			bool ctrl(class Event *event);
 			bool ctrl(class Event *event, const TEventDescriptor descr, const int op, const TEvents events);
-			bool dispatch(const int timeout, bool callActive);
-			void callActiveEvents();
+			
+			bool dispatch(const int timeout);
+			
+			typedef std::vector<class Event*> TEventVector;
+			bool callActive(TEventVector &changedEvents, TEventVector &endedEvents);
 			const int queueLength() const
 			{
 				return _queueLength;
@@ -85,7 +91,13 @@ namespace fl {
 			{
 				_op = op;
 			}
-			virtual void call(const TEvents events) = 0;
+			enum ECallResult
+			{
+				CHANGE,
+				FINISHED,
+				SKIP,
+			};
+			virtual const ECallResult call(const TEvents events) = 0;
 		protected:
 			TEventDescriptor _descr;
 			int _op;

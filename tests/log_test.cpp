@@ -7,10 +7,6 @@
 // Description: Logging system unit tests
 ///////////////////////////////////////////////////////////////////////////////
 
-#define BOOST_TEST_MAIN
-#define BOOST_TEST_DYN_LINK 
-#define BOOST_TEST_MODULE FL_LOG_TEST
-
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/output_test_stream.hpp> 
@@ -22,6 +18,8 @@ namespace fs = boost::filesystem;
 #include "log.hpp"
 
 using namespace fl;
+
+BOOST_AUTO_TEST_SUITE( logTest )
 
 BOOST_AUTO_TEST_CASE(testBasicLog)
 {
@@ -65,3 +63,5 @@ BOOST_AUTO_TEST_CASE(testCompositeLog)
 	unlink(testLog1);
 	unlink(testLog2);
 }
+
+BOOST_AUTO_TEST_SUITE_END()

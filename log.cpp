@@ -37,16 +37,14 @@ void ScreenTarget::log(
 	struct tm *ct, 
 	const char *fmt, va_list args
 ) {
-	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, 
-					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vprintf(fmt, args);	
 }
 
 FileTarget::FileTarget(const char *fileName) 
 {
 	_fd = fopen(fileName, "a+");
-	if (!_fd)
-	{
+	if (!_fd) {
 		printf("Cannot open log file: %s\n", fileName);
 		throw std::exception();
 	}
@@ -84,21 +82,18 @@ bool LogSystem::log(
 	const char *fmt, 
 	va_list args
 ) {
-	if (_targets.empty()) // log information on screen
-	{
+	if (_targets.empty()) { // log information on screen
 		_defaultTarget.log(level, TAG, curTime, ct, fmt, args);
 		return false;
 	}
-	else
-	{
-		if (target < _targets.size())
-		{
+	else	{
+		if (target < _targets.size()) {
 			_targets[target]->log(level, TAG, curTime, ct, fmt, args);
 			return true;
 		}
 		else
 			return false;
-	}	
+	}
 }
 
 void LogSystem::addTarget(Target *target)
