@@ -36,8 +36,7 @@ void ScreenTarget::log(
 	const time_t curTime, 
 	struct tm *ct, 
 	const char *fmt, va_list args
-) 
-{
+) {
 	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, 
 					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vprintf(fmt, args);	
@@ -65,8 +64,7 @@ void FileTarget::log(
 	struct tm *ct, 
 	const char *fmt, 
 	va_list args
-)
-{
+) {
 	fprintf(_fd, "{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, 
 					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vfprintf(_fd, fmt, args);
@@ -85,8 +83,7 @@ bool LogSystem::log(
 	struct tm *ct, 
 	const char *fmt, 
 	va_list args
-)
-{
+) {
 	if (_targets.empty()) // log information on screen
 	{
 		_defaultTarget.log(level, TAG, curTime, ct, fmt, args);
