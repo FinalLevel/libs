@@ -25,9 +25,12 @@ namespace fl {
 				return _unix;
 			};
 			void update();
+			void set(const time_t unix)
+			{
+				_unix = unix;
+			}
 		private:
 			time_t _unix;
-			struct tm _timeStruct;
 		};
 		
 	};

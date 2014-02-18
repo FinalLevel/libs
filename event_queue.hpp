@@ -24,9 +24,10 @@ namespace fl {
 		typedef uint32_t TEvents;
 		
 		const TEvents E_OUTPUT = EPOLLOUT;
-		
-		
-		
+		const TEvents E_INPUT	 = EPOLLIN;
+		const TEvents E_ERROR	 = EPOLLERR;
+		const TEvents E_HUP		 = EPOLLHUP;
+
 		class EPoll
 		{
 		public:
@@ -63,7 +64,7 @@ namespace fl {
 		{
 		public:
 			explicit Event(const TEventDescriptor descr);
-			virtual ~Event() = default;
+			virtual ~Event() {};
 			
 			void clearEvent(int mask)
 			{

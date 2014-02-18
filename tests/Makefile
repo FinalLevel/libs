@@ -2,8 +2,8 @@ PRJ_ROOT=..
 
 include ../Makefile.inc
 
-OPFLAGS = -O3
-TEST_OBJ=thread_test.o log_test.o event_queue_test.o test.o $(LOBJ)
+OPFLAGS = 
+TEST_OBJ=socket_test.o event_thread_test.o thread_test.o log_test.o event_queue_test.o test.o $(LOBJ)
 BOST_FORMAT_TEST=boost_format_test.o
 
 TEST_LIBS=-lboost_unit_test_framework-mt -lboost_filesystem-mt
