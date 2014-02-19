@@ -8,27 +8,34 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/output_test_stream.hpp> 
 
 #include <sys/timerfd.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <vector>
 
 #include "event_thread.hpp"
 #include "exception.hpp"
 
 
-using boost::test_tools::output_test_stream;
 using namespace fl::events;
 
+typedef std::vector<int> TIDList;
+
+const int STDIN_EVENT = 1;
+const int STDOUT_EVENT = 2;
 const int SOCKET_EVENT = 3;
+
+TIDList finishedTrueCalls;
+TIDList finishedFalseCalls;
+
 class WorkTestEvent : public WorkEvent
 {
 public:
 	static int unfinisedEvents;
-	WorkTestEvent(const int id, const int descr, output_test_stream *output)
-		: WorkEvent(descr, id), output(output), _id(id), _called(false), _finished(false)
+	WorkTestEvent(const int id, const int descr)
+		: WorkEvent(descr, id), _id(id), _called(false), _finished(false)
 	{
 		_events = E_OUTPUT;
 		unfinisedEvents++;
@@ -39,6 +46,7 @@ public:
 		_thread->ctrl(this);
 		unfinisedEvents--;
 	}
+	
 	virtual const ECallResult call(const TEvents events)
 	{
 		if (_id == SOCKET_EVENT) {
@@ -50,7 +58,7 @@ public:
 				return  FINISHED;
 			}
 		}
-		else {
+		else  if (_id == STDOUT_EVENT) {
 			if (!_called) {
 				_called = true;
 				_timeOutTime = time(NULL) + 100;
@@ -60,23 +68,23 @@ public:
 				return  FINISHED;
 			}
 		}	
+		else
+			return SKIP;
 	}
 	virtual bool isFinished()
 	{
-		
 		if (_finished)
 		{
-			*output << "TestEvent::isFinished: " << _id << ":true\n";
+			finishedTrueCalls.push_back(_id);
 			return true;
 		}
 		else
 		{
-			*output << "TestEvent::isFinished: " << _id << ":false\n";
+			finishedFalseCalls.push_back(_id);
 			_finished = true;
 			return false;
 		}
 	}
-	output_test_stream *output;
 	int _id;
 	bool _called;
 	bool _finished;
@@ -85,36 +93,33 @@ public:
 class MockTimeEvent : public EPollWorkerGroup::UpdateTimeEvent
 {
 public:
-	MockTimeEvent(output_test_stream *output)
-		: output(output)
+	static const int TIC_TIME = 10000000;
+	MockTimeEvent()
 	{
 		itimerspec tm;
 		bzero(&tm, sizeof(tm));
 		tm.it_value.tv_sec = 0;
-		tm.it_value.tv_nsec = 100000000;
+		tm.it_value.tv_nsec = TIC_TIME;
 		tm.it_interval.tv_sec = 0; // make call every 1/10 second
-		tm.it_interval.tv_nsec = 100000000;
+		tm.it_interval.tv_nsec = TIC_TIME;
 		if (timerfd_settime(_descr, 0, &tm, 0))
 			throw fl::exceptions::Error("Cannot call  timerfd_settime in UpdateTimeEvent");	
 	}
-		
+	
+	static int callTimes;
 	virtual const ECallResult call(const TEvents events)
 	{
-		static int callTimes = 0;
-		if (callTimes < 2)
-		{
-			*output << "MockTimeEvent::call: " << callTimes << '\n';
-			callTimes++;
-		}
+		callTimes++;
+		
 		uint64_t readBuf;
 		read(_descr, &readBuf, sizeof(readBuf));
 	
 		EPollWorkerGroup::curTime.set(EPollWorkerGroup::curTime.unix() + 1);
 		return Event::SKIP;
 	}
-	output_test_stream *output;
 };
 
+int MockTimeEvent::callTimes = 0;
 int WorkTestEvent::unfinisedEvents = 0;
 
 BOOST_AUTO_TEST_SUITE( WorkerThreadSystem )
@@ -126,34 +131,37 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		const u_int32_t WORKER_STACK_SIZE = 100000;
 		EPollWorkerThread worker(QUEUE_LENGTH, NULL, WORKER_STACK_SIZE);
 		
-		std::unique_ptr<output_test_stream> output(new output_test_stream);
-		BOOST_CHECK( worker.ctrl(static_cast<WorkEvent*>(new MockTimeEvent(output.get()))) != false);
+		BOOST_CHECK( worker.ctrl(static_cast<WorkEvent*>(new MockTimeEvent())) != false);
 
 		int fd = socket(PF_INET, SOCK_STREAM, 0);
 		BOOST_CHECK(fd > 0 );
-		BOOST_CHECK( worker.addConnection(new WorkTestEvent(SOCKET_EVENT, fd, output.get()), NULL) != false);
-
-		BOOST_CHECK( worker.addConnection(new WorkTestEvent(2, fileno(stdout), output.get()), NULL) != false);
-		BOOST_CHECK( worker.addConnection(new WorkTestEvent(1, fileno(stdin), output.get()), NULL) != false);
+		BOOST_CHECK( worker.addConnection(new WorkTestEvent(SOCKET_EVENT, fd), NULL) != false);
+		BOOST_CHECK( worker.addConnection(new WorkTestEvent(STDOUT_EVENT, fileno(stdout)), NULL) != false);
+		BOOST_CHECK( worker.addConnection(new WorkTestEvent(STDIN_EVENT, fileno(stdin)), NULL) != false);
 		
-		int c = 0;
-		while (WorkTestEvent::unfinisedEvents > 0)
+		for (int c = 0; c < 4; c++)
 		{
 			struct timespec tim;
 			tim.tv_sec = 0;
-			tim.tv_nsec = 100000000;
+			tim.tv_nsec = MockTimeEvent::TIC_TIME;
 			nanosleep(&tim , NULL);
-			c++;
-			BOOST_CHECK(c < 4);
 		}
-		BOOST_CHECK(output->is_equal(
-	"TestEvent::isFinished: 1:false\n"
-	"TestEvent::isFinished: 3:false\n"
-	"MockTimeEvent::call: 0\n"
-	"TestEvent::isFinished: 1:true\n"
-	"MockTimeEvent::call: 1\n"));
+		
+		// check allocation - deallocation
+		BOOST_CHECK(WorkTestEvent::unfinisedEvents == 0);
+		
+		// check timer calling
+		BOOST_CHECK(MockTimeEvent::callTimes >= 2);
+		
+		// check isFinish order
+		BOOST_CHECK(finishedFalseCalls.size() == 2);
+		BOOST_CHECK((finishedFalseCalls[0] == STDIN_EVENT) && (finishedFalseCalls[1] == SOCKET_EVENT));
+		BOOST_CHECK(finishedTrueCalls.size() == 1);
+		BOOST_CHECK(finishedTrueCalls[0] == STDIN_EVENT);
+		
 		worker.cancel();
 		worker.waitMe();
+		close(fd);
 	);
 }				
 
