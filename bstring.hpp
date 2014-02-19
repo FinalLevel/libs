@@ -71,10 +71,13 @@ namespace fl {
 			{
 				return _data;
 			}
-		private:
+			TDataPtr reserveBuffer(const TSize size);
+			void trim(TSize size);
+			void trimLast();
+			void reserve(const TSize newReservedSize);
+		protected:
 			bool _sprintfAdd(const char *fmt, TSize &charsAdded, va_list args);
 			bool _reserveForSprintf(const int sprintfRes, const TSize leftSpace);
-			void _reserve(const TSize newReservedSize);
 			void _fit(const TSize size);
 			TSize _size;
 			TSize _reserved;

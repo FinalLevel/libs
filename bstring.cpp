@@ -16,7 +16,7 @@
 
 using namespace fl::strings;
 
-inline void BString::_reserve(const TSize newSize)
+inline void BString::reserve(const TSize newSize)
 {
 	if (newSize == 0) {
 		free(_data);
@@ -28,7 +28,11 @@ inline void BString::_reserve(const TSize newSize)
 		if (!newData)
 			throw BString::Error("malloc failed");
 		if (_size > 0) // need copy
+		{
+			if (_size > newSize)
+				_size = newSize;
 			memcpy(newData, _data, _size);
+		}
 		free(_data);
 		_data = newData;
 		_reserved = newSize;
@@ -40,13 +44,13 @@ inline void BString::_fit(const TSize size)
 {
 	if (_size + size < _reserved)
 		return;
-	_reserve(_size + size + 1);
+	reserve(_size + size + 1);
 }
 
 BString::BString(const TSize reserved)
 	: _size(0), _reserved(reserved), _data(NULL)
 {
-	_reserve(_reserved);
+	reserve(_reserved);
 }
 
 BString::~BString()
@@ -80,7 +84,7 @@ inline bool BString::_reserveForSprintf(const int sprintfRes, const TSize leftSp
 		newReservedSize += (sprintfRes + 1);	
 	else
 		newReservedSize *= 2;
-	_reserve(newReservedSize);
+	reserve(newReservedSize);
 	return false;
 }
 
@@ -160,4 +164,29 @@ void BString::add(const char *str, TSize len)
 	memcpy(_data + _size, str, len);
 	_size += len;
 	_data[_size] = 0;
+}
+
+BString::TDataPtr BString::reserveBuffer(const TSize size)
+{
+	TSize oldSize = _size;
+	_fit(size);
+	_size += size;
+	return (_data + oldSize);
+}
+
+void BString::trim(TSize size)
+{
+	if (size > _size)
+		return;
+	_size = size;
+	_data[_size] = 0;
+}
+
+void BString::trimLast()
+{
+	if (_size > 0)
+	{
+		_size--;
+		_data[_size] = 0;
+	}
 }

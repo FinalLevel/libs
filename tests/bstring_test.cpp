@@ -163,4 +163,51 @@ BOOST_AUTO_TEST_CASE( clear )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( reserveBuffer )
+{
+	BOOST_CHECK_NO_THROW (
+		BString str;
+		char *buf = str.reserveBuffer(3);
+		memcpy(buf, "abc", 3);
+		BOOST_CHECK(str == "abc");
+		BOOST_CHECK(str.size() == 3);
+		BOOST_CHECK(str.reserved() == 4);
+	);
+}
+
+BOOST_AUTO_TEST_CASE( trim )
+{
+	BOOST_CHECK_NO_THROW (
+		BString str;
+		str << "abc";
+		BOOST_CHECK(str == "abc");
+		
+		str.trim(str.size() -1 );
+		BOOST_CHECK(str == "ab");
+		BOOST_CHECK(str.size() == 2);
+		BOOST_CHECK(str.reserved() == 4);
+		
+		str.trimLast();
+		BOOST_CHECK(str == "a");
+		BOOST_CHECK(str.size() == 1);
+		BOOST_CHECK(str.reserved() == 4);
+	);
+}
+
+BOOST_AUTO_TEST_CASE( reserve )
+{
+	BOOST_CHECK_NO_THROW (
+		BString str;
+		str << "abcd";
+		BOOST_CHECK(str == "abcd");
+		BOOST_CHECK(str.size() == 4);
+		BOOST_CHECK(str.reserved() == 5);
+		
+		str.reserve(2);
+		BOOST_CHECK(str == "ab");
+		BOOST_CHECK(str.size() == 2);
+		BOOST_CHECK(str.reserved() == 2);
+	);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
