@@ -54,6 +54,8 @@ namespace fl {
 			static ProcessInfo _process;
 		};
 		
+		typedef std::vector<Target*> TTargetList;
+		
 		class ScreenTarget : public Target
 		{
 		public:
@@ -87,6 +89,14 @@ namespace fl {
 		class LogSystem
 		{
 		public:
+			LogSystem(const char *tag)
+				: _tag(tag)
+			{
+			}
+			~LogSystem()
+			{
+				clearTargets();
+			}
 			static bool log(
 				const size_t target, 
 				const int level, 
@@ -94,14 +104,39 @@ namespace fl {
 				struct tm *ct, 
 				const char *fmt, 
 				va_list args
+			); // empty function
+			
+			void addTarget(Target *target);
+			void clearTargets();
+		protected:
+			bool _log(
+				const size_t target, 
+				const int level, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
 			);
-			static void addTarget(Target *target);
-			static void clearTargets();
-		private:
-			typedef std::vector<Target*> TTargetList;
-			static TTargetList _targets;
-			static ScreenTarget _defaultTarget;
-			static const char *TAG;
+			TTargetList _targets;
+			const char *_tag;
+		};
+		
+		class LibLogSystem : public LogSystem
+		{
+		public:
+			static bool log(
+				const size_t target, 
+				const int level, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			)
+			{
+				static ScreenTarget screenTarget;
+				screenTarget.log(level, "fLib", curTime, ct, fmt, args);
+				return false;
+			}
 		};
 		
 		template<int level, int logLevel>
@@ -150,10 +185,10 @@ namespace fl {
 			}
 		};
 		
-		typedef Log<NeedLog<ELogLevel::INFO, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::INFO, LogSystem> Info;
-		typedef Log<NeedLog<ELogLevel::WARNING, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::WARNING, LogSystem> Warning;
-		typedef Log<NeedLog<ELogLevel::ERROR, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::ERROR, LogSystem> Error;
-		typedef Log<NeedLog<ELogLevel::FATAL, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::FATAL, LogSystem> Fatal;
+		typedef Log<NeedLog<ELogLevel::INFO, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::INFO, LibLogSystem> Info;
+		typedef Log<NeedLog<ELogLevel::WARNING, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::WARNING, LibLogSystem> Warning;
+		typedef Log<NeedLog<ELogLevel::ERROR, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::ERROR, LibLogSystem> Error;
+		typedef Log<NeedLog<ELogLevel::FATAL, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::FATAL, LibLogSystem> Fatal;
 	};
 };
 

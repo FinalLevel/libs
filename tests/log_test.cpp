@@ -19,6 +19,43 @@ namespace fs = boost::filesystem;
 
 using namespace fl;
 
+namespace testLog
+{
+	const char * const testLog1 = "/tmp/fl_log_test1.txt";
+	const char * const testLog2 = "/tmp/fl_log_test2.txt";
+
+	class TestLogSystem : public log::LogSystem
+	{
+		public:
+
+			TestLogSystem()
+				: LogSystem("test_log")
+			{
+					_targets.push_back(new log::FileTarget(testLog1));
+					_targets.push_back(new log::FileTarget(testLog2));
+			}
+			static bool log(
+				const size_t target, 
+				const int level, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			)
+			{
+				static TestLogSystem testLog;
+				return testLog._log(target, level, curTime, ct, fmt, args);
+			}
+	};
+	
+	using fl::log::Log;
+	using namespace fl::log::ELogLevel;
+	typedef Log<true, ELogLevel::FATAL, TestLogSystem> Fatal;
+	typedef Log<true, ELogLevel::ERROR, TestLogSystem> Error;
+	typedef Log<true, ELogLevel::WARNING, TestLogSystem> Warning;
+};
+
+
 BOOST_AUTO_TEST_SUITE( logTest )
 
 BOOST_AUTO_TEST_CASE(testBasicLog)
@@ -48,20 +85,14 @@ BOOST_AUTO_TEST_CASE(testBasicLog)
 
 BOOST_AUTO_TEST_CASE(testCompositeLog)
 {
-	log::LogSystem::clearTargets();
-	const char * const testLog1 = "/tmp/fl_log_test1.txt";
-	const char * const testLog2 = "/tmp/fl_log_test2.txt";
-	BOOST_CHECK_NO_THROW( log::LogSystem::addTarget(new log::FileTarget(testLog1)) );
-	BOOST_CHECK_NO_THROW( log::LogSystem::addTarget(new log::FileTarget(testLog2)) );
-	
-	log::Fatal::L("FATAL_TAG_%s_%u_%s\n", "TEST", 1, "STACK");
-	log::Error::L("FATAL_TAG_%s_%u_%s\n", "TEST", 1, "STACK");
-	log::Warning::L("FATAL_TAG_%s_%u_%s\n", "TEST", 1, "STACK");
-	log::LogSystem::clearTargets();
-	
-	BOOST_CHECK( fs::file_size(testLog1) == fs::file_size(testLog2) );
-	unlink(testLog1);
-	unlink(testLog2);
+	BOOST_CHECK_NO_THROW( 
+		testLog::Fatal::L("FATAL_TAG_%s_%u_%s\n", "TEST", 1, "STACK");
+		testLog::Error::L("FATAL_TAG_%s_%u_%s\n", "TEST", 1, "STACK");
+		testLog::Warning::L("FATAL_TAG_%s_%u_%s\n", "TEST", 1, "STACK");
+	);
+	BOOST_CHECK( fs::file_size(testLog::testLog1) == fs::file_size(testLog::testLog2) );
+	unlink(testLog::testLog1);
+	unlink(testLog::testLog2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

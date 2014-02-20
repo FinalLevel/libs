@@ -69,12 +69,8 @@ void FileTarget::log(
 	fflush(_fd);
 }
 
-LogSystem::TTargetList LogSystem::_targets;
-ScreenTarget LogSystem::_defaultTarget;
 
-const char *LogSystem::TAG = "flLB";
-
-bool LogSystem::log(
+bool LogSystem::_log(
 	const size_t target, 
 	const int level, 
 	const time_t curTime, 
@@ -82,18 +78,12 @@ bool LogSystem::log(
 	const char *fmt, 
 	va_list args
 ) {
-	if (_targets.empty()) { // log information on screen
-		_defaultTarget.log(level, TAG, curTime, ct, fmt, args);
+	if (target < _targets.size()) {
+		_targets[target]->log(level, _tag, curTime, ct, fmt, args);
+		return true;
+	}
+	else
 		return false;
-	}
-	else	{
-		if (target < _targets.size()) {
-			_targets[target]->log(level, TAG, curTime, ct, fmt, args);
-			return true;
-		}
-		else
-			return false;
-	}
 }
 
 void LogSystem::addTarget(Target *target)
