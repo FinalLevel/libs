@@ -16,7 +16,7 @@
 #include <fcntl.h>
 
 namespace fl {
-	namespace io {
+	namespace fs {
 		
 		class File
 		{

@@ -71,6 +71,10 @@ namespace fl {
 			{
 				return _data;
 			}
+			TDataPtr data()
+			{
+				return _data;
+			}
 			TDataPtr reserveBuffer(const TSize size);
 			void trim(TSize size);
 			void trimLast();

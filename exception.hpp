@@ -23,7 +23,7 @@ namespace fl {
 			 : _what(what)
 			{
 			}
-			const char* what() const throw()
+			virtual const char* what() const throw()
 			{
 				return _what;
 			}

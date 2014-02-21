@@ -12,7 +12,7 @@
 
 #include "file.hpp"
 
-using namespace fl::io;
+using namespace fl::fs;
 
 BOOST_AUTO_TEST_SUITE( IO )
 

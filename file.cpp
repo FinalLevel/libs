@@ -11,7 +11,7 @@
 #include "file.hpp"
 #include "bstring.hpp"
 
-using namespace fl::io;
+using namespace fl::fs;
 using fl::strings::BString;
 
 bool File::open(const char *name, const int flags, const mode_t mode)
