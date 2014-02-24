@@ -21,7 +21,7 @@ Directory::Directory(const char* path)
 	_dir = opendir(path);
 	if (!_dir)
 		throw Error("Cannot open dir");
-	bzero(&_entry, 0);
+	bzero(&_entry, sizeof(_entry));
 }
 
 Directory::~Directory()

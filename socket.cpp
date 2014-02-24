@@ -71,7 +71,7 @@ TDescriptor Socket::acceptDescriptor()
 bool Socket::listen(const char *listenIP, int port, const int maxListenBacklog)
 {
 	sockaddr_in addr;
-	bzero(&addr, sizeof(sockaddr_in));
+	bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = inet_addr(listenIP);
 	addr.sin_port = htons(port);
