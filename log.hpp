@@ -45,6 +45,7 @@ namespace fl {
 				const char *fmt, 
 				va_list args
 			) = 0;
+			virtual ~Target() {};
 		protected:
 			struct ProcessInfo
 			{

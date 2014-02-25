@@ -29,4 +29,9 @@ BOOST_AUTO_TEST_CASE( testConvertStringTo )
 	BOOST_CHECK(convertStringTo<int>("-12") == -12);
 }
 
+BOOST_AUTO_TEST_CASE( testFileExists )
+{
+	BOOST_CHECK(fileExists("/"));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

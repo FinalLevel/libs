@@ -158,6 +158,23 @@ BString &BString::operator<<(const char ch)
 	return *this;
 }
 
+void BString::binaryAdd(const std::string &value)
+{
+	TSize size = value.size();
+	_fit(sizeof(size) + size);
+	memcpy(_data + _size, &size, sizeof(size));
+	_size += sizeof(size);
+	memcpy(_data + _size, value.c_str(), size);
+	_size += size;
+}
+
+void BString::binaryAdd(void *data, const TSize size)
+{
+	_fit(size);
+	memcpy(_data + _size, data, size);
+	_size += size;
+}
+
 void BString::add(const char *str, TSize len)
 {
 	_fit(len);

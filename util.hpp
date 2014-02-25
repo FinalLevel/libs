@@ -67,7 +67,7 @@ namespace fl {
 			return src;
 		}
 		
-		u_int32_t getCheckSum32(const char *str, u_int32_t len, u_int32_t sum = 0)
+		inline u_int32_t getCheckSum32(const char *str, u_int32_t len, u_int32_t sum = 0)
 		{
 			for (u_int32_t i = 0; i < len; i++) {
 				sum = str[i] + (sum << 5) + (sum << 12) - sum;
@@ -76,16 +76,16 @@ namespace fl {
 			return sum;
 		}
 		
-		template<class T> u_int32_t getCheckSum32Tmpl(const T& value)
+		template<class T> inline u_int32_t getCheckSum32Tmpl(const T& value)
 		{
 			return value;
 		}
 		template<>
-		u_int32_t getCheckSum32Tmpl<std::string>(const std::string& value)
+		inline u_int32_t getCheckSum32Tmpl<std::string>(const std::string& value)
 		{
 			return getCheckSum32(value.c_str(), value.size());
 		}
-
+		bool fileExists(const char *fileName);
 	};
 };
 
