@@ -81,10 +81,17 @@ namespace fl {
 				_readPos = _begin;
 				_writePos = _begin;
 			}
+			const bool empty() const
+			{
+				return (_writePos == _begin);
+			}
 			const TDataPtr begin() const
 			{
 				return _begin;
 			}
+			TDataPtr reserveBuffer(const TSize size);
+			TDataPtr mapBuffer(const TSize size);
+			void skip(const TSize size);
 		private:
 			void _fit(const TSize size);
 			TDataPtr _begin;

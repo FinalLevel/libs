@@ -59,3 +59,13 @@ ssize_t File::fileSize()
 	lseek(_descr, curPos, SEEK_SET);
 	return size;
 }
+
+off_t File::seek(off_t offset, int whence)
+{
+	return lseek(_descr, offset, whence);
+}
+
+__off64_t File::seek64(__off64_t offset, int whence)
+{
+	return lseek64(_descr, offset, whence);
+}

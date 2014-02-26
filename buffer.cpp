@@ -60,6 +60,30 @@ inline void Buffer::_fit(const TSize size)
 	reserve(newSize);
 }
 
+Buffer::TDataPtr Buffer::reserveBuffer(const TSize size)
+{
+	_fit(size);
+	TDataPtr curWritePos = _writePos;
+	_writePos += size;
+	return curWritePos;
+}
+
+Buffer::TDataPtr Buffer::mapBuffer(const TSize size)
+{
+	if ((_readPos + size) > _writePos)
+		throw Error("Read out of range");
+	TDataPtr curReadPos = _readPos;
+	_readPos += size;
+	return curReadPos;
+}
+
+void Buffer::skip(const TSize size)
+{
+	if ((_readPos + size) > _writePos)
+		throw Error("Read out of range");
+	_readPos += size;
+}
+
 void Buffer::add(const std::string &value)
 {
 	TSize size = value.size();
