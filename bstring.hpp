@@ -81,15 +81,6 @@ namespace fl {
 			void trim(TSize size);
 			void trimLast();
 			void reserve(const TSize newReservedSize);
-			
-			template<class D> void binaryAdd(const D &value)
-			{
-				_fit(sizeof(D));
-				memcpy(_data + _size, &value, sizeof(D));
-				_size += sizeof(D);
-			};
-			void binaryAdd(const std::string &value);
-			void binaryAdd(void *data, const TSize size);
 		protected:
 			bool _sprintfAdd(const char *fmt, TSize &charsAdded, va_list args);
 			bool _reserveForSprintf(const int sprintfRes, const TSize leftSpace);

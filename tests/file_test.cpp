@@ -1,6 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright Denys Misko <gdraal@gmail.com>, Final Level, 2014.
+// Copyright (c) 2014 Final Level
+// Author: Denys Misko <gdraal@gmail.com>
 // Distributed under BSD (3-Clause) License (See
 // accompanying file LICENSE)
 //
@@ -30,6 +31,15 @@ BOOST_AUTO_TEST_CASE( FileCreateTempWriteRead )
 	File file;
 	
 	BOOST_CHECK( file.createUnlinkedTmpFile("/tmp") );
+}
+
+BOOST_AUTO_TEST_CASE( FileSize )
+{
+	File file;
+	file.createUnlinkedTmpFile("/tmp");
+	file.write("1234", 4);
+	
+	BOOST_CHECK( file.fileSize() == 4 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

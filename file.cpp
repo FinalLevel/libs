@@ -51,3 +51,11 @@ bool File::createUnlinkedTmpFile(const char* tmpDir)
 	else
 		return false;
 }
+
+ssize_t File::fileSize()
+{
+	ssize_t curPos = lseek(_descr, 0, SEEK_CUR);
+	ssize_t size = lseek(_descr, 0, SEEK_END);
+	lseek(_descr, curPos, SEEK_SET);
+	return size;
+}
