@@ -61,6 +61,10 @@ namespace fl {
 			{
 				return _writePos - _begin;
 			}
+			const TSize readPos() const
+			{
+				return _readPos - _begin;
+			}
 			const bool isEnded() const
 			{
 				if (_readPos >= _writePos)
