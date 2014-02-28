@@ -72,11 +72,16 @@ namespace fl {
 				class ThreadSpecificData* threadSpecificData, 
 				const uint32_t stackSize
 			);
+			virtual ~EPollWorkerThread();
 			bool ctrl(class WorkEvent *ue)
 			{
 				return _poll.ctrl(ue);
 			}
 			bool addConnection(class WorkEvent* ev, Socket *acceptSocket);
+			class ThreadSpecificData *threadSpecificData()
+			{
+				return _threadSpecificData;
+			}
 		private:
 			virtual void run();
 			EPoll _poll;
@@ -108,6 +113,7 @@ namespace fl {
 				virtual ~UpdateTimeEvent();
 				virtual const ECallResult call(const TEvents events);
 			};
+			void waitThreads();
 		private:
 			static WorkEvent *_updateTimeEvent;
 			typedef std::vector<EPollWorkerThread*> TWorkerThreadVector;
@@ -118,6 +124,7 @@ namespace fl {
 		class ThreadSpecificData
 		{
 		public:
+			virtual ~ThreadSpecificData() {};
 		};
 		
 		class ThreadSpecificDataFactory 

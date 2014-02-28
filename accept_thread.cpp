@@ -27,7 +27,7 @@ AcceptThread::AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  Wor
 
 void AcceptThread::run()
 {
-	static const int MAX_ACCEPT_TIMEOUT = 60;
+	static const int MAX_ACCEPT_TIMEOUT = 10;
 	_listenTo->setDeferAccept(MAX_ACCEPT_TIMEOUT);
 	while (1) {
 		TEventDescriptor clientDescr = _listenTo->acceptDescriptor();

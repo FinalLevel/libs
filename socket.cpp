@@ -36,7 +36,8 @@ Socket::~Socket()
 
 bool Socket::setDeferAccept(const int timeOut)
 {
-	if (setsockopt( _descr, SOL_TCP, TCP_DEFER_ACCEPT, (char *)&timeOut, sizeof(timeOut) ))	{
+	int val = timeOut;
+	if (setsockopt( _descr, SOL_TCP, TCP_DEFER_ACCEPT, (char *)&val, sizeof(val) ))	{
 		return false;
 	}
 	else

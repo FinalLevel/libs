@@ -26,10 +26,16 @@ EPollWorkerThread::EPollWorkerThread(
 )
 	: _poll(queueLength), _threadSpecificData(threadSpecificData)
 {
-	setDetachedState();
 	setStackSize(stackSize);
 	if (!create())
 		throw exceptions::Error("Cannot create EPollWorkerThread thread");	
+}
+
+EPollWorkerThread::~EPollWorkerThread()
+{
+	for (auto event = _events.begin(); event != _events.end(); event++)
+		delete (*event);
+	delete _threadSpecificData;
 }
 
 bool EPollWorkerThread::addConnection(WorkEvent* ev, class Socket *acceptSocket)
@@ -129,11 +135,18 @@ bool EPollWorkerGroup::addConnection(class WorkEvent* ev, class Socket *acceptSo
 	curRnd++;
 	if (_threads[curRnd % _threads.size()]->addConnection(ev, acceptSocket))
 		return true;
-	for (auto thread = _threads.begin(); thread != _threads.begin(); thread++) {
+	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
 		if ((*thread)->addConnection(ev, acceptSocket))
 			return true;
 	}
 	return false;
+}
+
+void EPollWorkerGroup::waitThreads()
+{
+	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
+		(*thread)->waitMe();
+	}
 }
 
 WorkEvent::WorkEvent(const TEventDescriptor descr, const time_t timeOutTime)
