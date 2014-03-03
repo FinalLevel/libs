@@ -21,3 +21,15 @@ void Time::update()
 {
 	_unix = time(NULL);
 }
+
+
+ETime::ETime()
+{
+	update();
+}
+
+void ETime::update()
+{
+	Time::update();
+	localtime_r(&_unix, &_timeStruct);	
+}

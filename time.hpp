@@ -29,10 +29,54 @@ namespace fl {
 			{
 				_unix = unix;
 			}
-		private:
+		protected:
 			time_t _unix;
 		};
 		
+		class ETime : public Time
+		{
+		public:
+			ETime();
+			void update();
+			const tm &timeStruct() const
+			{ 
+				return _timeStruct; 
+			};
+			int yDay() const 
+			{ 
+				return _timeStruct.tm_yday; 
+			};
+			int year() const
+			{
+				return _timeStruct.tm_year;
+			};
+			int month() const
+			{
+				return _timeStruct.tm_mon;
+			};
+			int mDay() const 
+			{ 
+				return _timeStruct.tm_mday; 
+			};
+			int wDay() const
+			{ 
+				return _timeStruct.tm_wday;
+			};
+			int hour() const
+			{ 
+				return _timeStruct.tm_hour; 
+			};
+			int min() const 
+			{ 
+				return _timeStruct.tm_min; 
+			};
+			int sec() const 
+			{ 
+				return _timeStruct.tm_sec; 
+			};
+		private:
+			struct tm _timeStruct;
+		};
 	};
 };
 

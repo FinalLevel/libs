@@ -27,7 +27,8 @@ namespace fl {
 			{
 				return _what;
 			}
-		private:
+			virtual ~Error() throw() {};
+		protected:
 			const char *_what;
 		};
 	};

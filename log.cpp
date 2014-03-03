@@ -27,7 +27,7 @@ const char *ErrorLevelTable[ELogLevel::MAX_LOG_LEVEL] =
 	"F", // FATAL
 	"E", // ERROR
 	"W", // WARNING
-	"   ", // INFO
+	" ", // INFO
 };
 
 void ScreenTarget::log(

@@ -37,14 +37,21 @@ NetworkBuffer::EResult NetworkBuffer::send(const TDescriptor descr)
 NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr)
 {
 	_sended = 0;
-	int chunkSize = _reserved - 1;
+	int chunkSize = _reserved;
+	if (_size) {
+		chunkSize -= _size;
+		if (chunkSize < (_reserved / 4))
+			chunkSize = _reserved; // double buf after using of 1/4
+	}
+	chunkSize--;
+
 	char *data = reserveBuffer(chunkSize);
 	int res = recv(descr,  data,  chunkSize, MSG_NOSIGNAL | MSG_DONTWAIT);
-	if (res > 0)
-	{
+	if (res > 0) {
 		trim(_size - (chunkSize - res));
 		return OK;
 	}
+	trim(_size - chunkSize);
 	if (res == 0)
 		return CONNECTION_CLOSE;
 
@@ -62,12 +69,9 @@ NetworkBufferPool::NetworkBufferPool(const int bufferSize, const uint32_t freeBu
 
 NetworkBuffer *NetworkBufferPool::get()
 {
-	if (_freeBuffers.empty())
-	{
+	if (_freeBuffers.empty())	{
 		return new NetworkBuffer(_bufferSize);
-	}
-	else
-	{
+	}	else {
 		NetworkBuffer *buf = _freeBuffers.back();
 		_freeBuffers.pop_back();
 		return buf;
@@ -76,16 +80,12 @@ NetworkBuffer *NetworkBufferPool::get()
 
 void NetworkBufferPool::free(NetworkBuffer *buf)
 {
-	if (_freeBuffers.size() < _freeBuffersLimit)
-	{
+	if (_freeBuffers.size() < _freeBuffersLimit) {
 		buf->clear();
 		if (buf->reserved() > _bufferSize)
 			buf->reserve(_bufferSize);
 		_freeBuffers.push_back(buf);
-	}
-	else
-	{
+	} else {
 		delete buf;
 	}
 }
-
