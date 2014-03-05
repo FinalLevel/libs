@@ -32,11 +32,19 @@ namespace fl {
 			{
 				close();
 			}
+			File(const File &file) = delete;
+			File(File &&file)
+				: _descr(file._descr)
+			{
+				file._descr = 0;
+			}
+			File& operator=(File &&moveFrom);
 			
 			TDescriptor descr()
 			{
 				return _descr;
 			}
+			
 			
 			bool open(const char *name, const int flags, const mode_t mode = DEFAULT_OPEN_MODE);
 			void close();
@@ -48,6 +56,9 @@ namespace fl {
 			__off64_t seek64(__off64_t offset, int whence);
 			
 			bool createUnlinkedTmpFile(const char* tmpDir);
+			
+			ssize_t pread(void *buf, const size_t size, const off_t offset);
+			ssize_t pwrite(const void *buf, const size_t size, const off_t offset);
 		private:
 			TDescriptor _descr;
 		};

@@ -134,14 +134,14 @@ namespace fl {
 			{ 
 				return NULL; 
 			};
-			virtual ~ThreadSpecificDataFactory() = default;
+			virtual ~ThreadSpecificDataFactory() {};
 		};
 
 		class WorkEventFactory 
 		{
 		public:
 			virtual WorkEvent *create(const TEventDescriptor descr, const time_t timeOutTimet, Socket *acceptSocket) = 0;
-			virtual ~WorkEventFactory() = default;
+			virtual ~WorkEventFactory() {};
 		};
 		
 	};

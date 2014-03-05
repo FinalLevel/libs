@@ -60,6 +60,15 @@ inline void Buffer::_fit(const TSize size)
 	reserve(newSize);
 }
 
+
+Buffer::TSize Buffer::addSpace(const TSize size)
+{
+	_fit(size);
+	TDataPtr curWritePos = _writePos;
+	_writePos += size;
+	return (curWritePos - _begin);
+}
+
 Buffer::TDataPtr Buffer::reserveBuffer(const TSize size)
 {
 	_fit(size);
@@ -76,6 +85,15 @@ Buffer::TDataPtr Buffer::mapBuffer(const TSize size)
 	_readPos += size;
 	return curReadPos;
 }
+
+void Buffer::seekReadPos(const TSize seek)
+{
+	TDataPtr newPos = _begin + seek;
+	if (newPos > _writePos)
+		throw Error("Seek out of range");
+	_readPos = newPos;
+}
+
 
 void Buffer::skip(const TSize size)
 {

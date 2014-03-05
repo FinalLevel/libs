@@ -14,6 +14,12 @@
 using namespace fl::fs;
 using fl::strings::BString;
 
+File& File::operator=(File &&moveFrom)
+{
+	std::swap(moveFrom._descr, _descr);
+	return *this;
+}
+
 bool File::open(const char *name, const int flags, const mode_t mode)
 {
 	_descr = ::open(name, flags, mode);
@@ -39,6 +45,16 @@ ssize_t File::read(void *buf, const size_t size)
 ssize_t File::write(const void *buf, const size_t size)
 {
 	return ::write(_descr, buf, size); 
+}
+
+ssize_t File::pread(void *buf, const size_t size, const off_t offset)
+{
+	return ::pread(_descr, buf, size, offset);
+}
+
+ssize_t File::pwrite(const void *buf, const size_t size, const off_t offset)
+{
+	return ::pwrite(_descr, buf, size, offset);
 }
 
 bool File::createUnlinkedTmpFile(const char* tmpDir)

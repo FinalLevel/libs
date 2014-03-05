@@ -80,6 +80,7 @@ namespace fl {
 			{
 				_readPos = _begin;
 			}
+			void seekReadPos(const TSize seek);
 			void clear()
 			{
 				_readPos = _begin;
@@ -96,6 +97,8 @@ namespace fl {
 			TDataPtr reserveBuffer(const TSize size);
 			TDataPtr mapBuffer(const TSize size);
 			void skip(const TSize size);
+			TSize addSpace(const TSize size);
+			
 		private:
 			void _fit(const TSize size);
 			TDataPtr _begin;
