@@ -17,9 +17,12 @@
 #include <cstring>
 #include <memory>
 #include "exception.hpp"
+#include "bstring.hpp"
 
 namespace fl {
 	namespace utils {
+		using fl::strings::BString;
+		
 		class Buffer
 		{
 		public:
@@ -36,6 +39,12 @@ namespace fl {
 			Buffer(const TSize reserved = 0);
 			~Buffer();
 			Buffer(const Buffer &) = delete;
+			
+			Buffer(BString && str);
+			Buffer(const BString &str) = delete;
+			
+			Buffer &operator=(const BString &str) = delete;
+			Buffer &operator=(BString && str);
 			
 			template<class D> void add(const D &value)
 			{

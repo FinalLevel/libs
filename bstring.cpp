@@ -190,3 +190,12 @@ void BString::trimLast()
 		_data[_size] = 0;
 	}
 }
+
+BString::TDataPtr BString::release()
+{
+	TDataPtr data = _data;
+	_data = NULL;
+	_reserved = 0;
+	_size = 0;
+	return data;
+}

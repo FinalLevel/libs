@@ -139,5 +139,19 @@ BOOST_AUTO_TEST_CASE( RewindClearTest )
 	);	
 }
 
+BOOST_AUTO_TEST_CASE( MoveFromBString )
+{
+	BOOST_CHECK_NO_THROW (
+		BString bstr;
+		bstr << "1234";
+		Buffer::TSize size = bstr.size();
+		Buffer::TSize resereved = bstr.reserved();
+		Buffer buf(std::move(bstr));
+		BOOST_CHECK(buf.writtenSize() == size);
+		BOOST_CHECK(buf.reserved() == resereved);
+		BOOST_CHECK(bstr.reserved() == 0);
+	);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

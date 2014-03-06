@@ -81,6 +81,7 @@ namespace fl {
 			void trim(TSize size);
 			void trimLast();
 			void reserve(const TSize newReservedSize);
+			TDataPtr release();
 		protected:
 			bool _sprintfAdd(const char *fmt, TSize &charsAdded, va_list args);
 			bool _reserveForSprintf(const int sprintfRes, const TSize leftSpace);

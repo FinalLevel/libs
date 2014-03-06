@@ -24,6 +24,29 @@ Buffer::~Buffer()
 	free(_begin);
 }
 
+Buffer::Buffer(BString &&str)
+{
+	TSize reserved = str.reserved();
+	TSize size = str.size();
+	_begin =(TDataPtr)str.release();
+	_end =  _begin + reserved;
+	_readPos = _begin;
+	_writePos = _begin + size;
+}
+
+Buffer& Buffer::operator=(BString &&str)
+{
+	free(_begin);
+	
+	TSize reserved = str.reserved();
+	TSize size = str.size();
+	_begin =(TDataPtr)str.release();
+	_end =  _begin + reserved;
+	_readPos = _begin;
+	_writePos = _begin + size;
+	return *this;
+}
+
 void Buffer::reserve(const TSize newSize)
 {
 	if (newSize == 0) {
@@ -31,7 +54,7 @@ void Buffer::reserve(const TSize newSize)
 		_begin = NULL;
 		_end = NULL;
 		_readPos = NULL;
-		_writePos = 0;
+		_writePos = NULL;
 	} else {
 		TDataPtr newData = static_cast<TDataPtr>(malloc(newSize + 1));
 		if (!newData)
