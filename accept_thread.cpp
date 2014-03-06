@@ -30,7 +30,8 @@ void AcceptThread::run()
 	static const int MAX_ACCEPT_TIMEOUT = 10;
 	_listenTo->setDeferAccept(MAX_ACCEPT_TIMEOUT);
 	while (1) {
-		TEventDescriptor clientDescr = _listenTo->acceptDescriptor();
+		TIPv4 ip;
+		TEventDescriptor clientDescr = _listenTo->acceptDescriptor(ip);
 		if (clientDescr == INVALID_SOCKET) {
 			log::Error::L("Cannection accept error\n");
 			continue;
@@ -40,7 +41,7 @@ void AcceptThread::run()
 			close(clientDescr);
 			continue;
 		}
-		WorkEvent *event = _eventFactory->create(clientDescr, 0, _listenTo);
+		WorkEvent *event = _eventFactory->create(clientDescr, ip, 0, _listenTo);
 		if (!_workerGroup->addConnection(event, _listenTo))	{
 			log::Error::L("Cannot add connection\n");
 			delete event;

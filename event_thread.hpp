@@ -140,7 +140,8 @@ namespace fl {
 		class WorkEventFactory 
 		{
 		public:
-			virtual WorkEvent *create(const TEventDescriptor descr, const time_t timeOutTimet, Socket *acceptSocket) = 0;
+			virtual WorkEvent *create(const TEventDescriptor descr, const TIPv4 ip, const time_t timeOutTimet, 
+				Socket *acceptSocket) = 0;
 			virtual ~WorkEventFactory() {};
 		};
 		

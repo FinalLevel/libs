@@ -10,6 +10,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <poll.h>
 
 #include <cstring>
 #include <fcntl.h>
@@ -18,6 +19,7 @@
 #include "socket.hpp"
 
 using namespace fl::network;
+using fl::strings::BString;
 
 Socket::Socket()
 {
@@ -26,12 +28,22 @@ Socket::Socket()
 	}
 }
 
+Socket::Socket(const TDescriptor descr)
+	: _descr(descr)
+{
+	
+}
+
 Socket::~Socket()
 {
+	reset(INVALID_SOCKET);
+}
+
+void Socket::reset(const TDescriptor descr)
+{
 	if (_descr != INVALID_SOCKET)
-	{
 		close(_descr);
-	}
+	_descr = descr;
 }
 
 bool Socket::setDeferAccept(const int timeOut)
@@ -43,7 +55,6 @@ bool Socket::setDeferAccept(const int timeOut)
 	else
 		return true;
 }
-
 bool Socket::setNonBlockIO(const TDescriptor descr)
 {
 	int flags = fcntl(descr, F_GETFL, 0);
@@ -54,7 +65,7 @@ bool Socket::setNonBlockIO(const TDescriptor descr)
 	
 }
 
-TDescriptor Socket::acceptDescriptor()
+TDescriptor Socket::acceptDescriptor(TIPv4 &ip)
 {
 	struct	sockaddr_in	sock_addr;
 	socklen_t	sa_size = sizeof(sock_addr);
@@ -65,6 +76,7 @@ TDescriptor Socket::acceptDescriptor()
 		return INVALID_SOCKET;
 	}
 	else {
+		ip  = ntohl(sock_addr.sin_addr.s_addr);
 		return clientDescr;
 	}
 }
@@ -89,4 +101,66 @@ bool Socket::listen(const char *listenIP, int port, const int maxListenBacklog)
 		return false;
 	
 	return true;
+}
+
+bool Socket::pollAndRecvAll(void *buf, const size_t size, const size_t timeout)
+{
+	struct pollfd socketList[1];
+	size_t leftSize = size;
+	size_t readed = 0;
+	while (leftSize > 0) {
+		socketList[0].fd = _descr;
+		socketList[0].events = POLLIN | POLLERR | POLLHUP;
+		socketList[0].revents = 0;
+		auto retval = poll(socketList, 1, timeout);
+		if (retval <= 0)
+			return false;
+		if(((socketList[0].revents & POLLHUP) == POLLHUP) ||
+      ((socketList[0].revents & POLLERR) == POLLERR) ||
+      ((socketList[0].revents & POLLNVAL) == POLLNVAL)) {
+			return false;
+    }
+		auto res = recv(_descr, static_cast<uint8_t*>(buf) + readed, leftSize, MSG_NOSIGNAL | MSG_DONTWAIT);
+		if (res < 0)
+		{
+			if (errno == EAGAIN)
+				continue;
+			return false;
+		}
+		else if (res == 0)
+			return false;
+		readed += res;
+		leftSize -= res;
+	}
+	return true;
+}
+	
+BString Socket::ip2String(const TIPv4 ip)
+{
+	static const int MAX_IP_LENGTH = 4 * 4;
+	BString ipStr(MAX_IP_LENGTH + 1);
+	
+	static const char DECIMALS[] = "0123456789";
+	char *curBuf = ipStr.reserveBuffer(MAX_IP_LENGTH);
+	char *start = curBuf;
+	for (int i = (sizeof(TIPv4) - 1) * 8; i >= 0; i -= 8)
+	{
+		uint8_t val = (ip >> i) & 0xFF;
+		if (val >= 100)
+		{
+			if (val >= 200)
+				*curBuf++ = '2';
+			else
+				*curBuf++ = '1';
+			val %= 100;
+			if (val < 10)
+				*curBuf++ = '0';
+		}
+		if (val >= 10)
+			*curBuf++ = DECIMALS[val / 10];
+		*curBuf++ = DECIMALS[val % 10];
+		*curBuf++ = '.';
+	}
+	ipStr.trim(curBuf - start - 1);
+	return std::move(ipStr);
 }
