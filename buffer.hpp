@@ -39,6 +39,7 @@ namespace fl {
 			Buffer(const TSize reserved = 0);
 			~Buffer();
 			Buffer(const Buffer &) = delete;
+			Buffer &operator=(const Buffer &str) = delete;
 			
 			Buffer(BString && str);
 			Buffer(const BString &str) = delete;

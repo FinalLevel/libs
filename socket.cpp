@@ -23,15 +23,28 @@ using fl::strings::BString;
 
 Socket::Socket()
 {
-	if ((_descr = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	{
+	if (!_open())
 		throw NetworkError("Cannot create socket");
+}
+
+bool Socket::_open()
+{
+	if ((_descr = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	{
+		return setNonBlockIO(_descr);
+	} else {
+		return true;
 	}
+}
+
+bool Socket::reopen()
+{
+	reset(INVALID_SOCKET);
+	return _open();
 }
 
 Socket::Socket(const TDescriptor descr)
 	: _descr(descr)
 {
-	
 }
 
 Socket::~Socket()
@@ -55,6 +68,7 @@ bool Socket::setDeferAccept(const int timeOut)
 	else
 		return true;
 }
+
 bool Socket::setNonBlockIO(const TDescriptor descr)
 {
 	int flags = fcntl(descr, F_GETFL, 0);
@@ -62,7 +76,6 @@ bool Socket::setNonBlockIO(const TDescriptor descr)
 		return false;
 	else
 		return true;
-	
 }
 
 TDescriptor Socket::acceptDescriptor(TIPv4 &ip)
@@ -103,6 +116,38 @@ bool Socket::listen(const char *listenIP, int port, const int maxListenBacklog)
 	return true;
 }
 
+bool Socket::connect(const TIPv4 ip, const uint32_t port, const size_t timeout)
+{
+	sockaddr_in addr;
+	bzero(&addr, sizeof(sockaddr_in));
+	addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = ntohl(ip);
+	addr.sin_port = htons(port);
+	struct pollfd socketList[1];
+	int res;
+	while ((res = ::connect(_descr, (sockaddr *)&addr, sizeof(addr))) != 0)
+	{
+		if (errno == EISCONN)
+			return true;
+		
+		if ((errno != EINPROGRESS) && (errno != EAGAIN) && (errno != ENOTCONN))
+			return false;
+
+		socketList[0].fd = _descr;
+		socketList[0].events = POLLOUT | POLLERR;
+		socketList[0].revents = 0;
+		res = poll(socketList, 1, timeout);
+		if (res <= 0)
+			return false;
+		if(((socketList[0].revents & POLLHUP) == POLLHUP) ||
+      ((socketList[0].revents & POLLERR) == POLLERR) ||
+      ((socketList[0].revents & POLLNVAL) == POLLNVAL)) {
+			return false;
+    }
+	}
+	return true;
+}
+
 bool Socket::pollAndRecvAll(void *buf, const size_t size, const size_t timeout)
 {
 	struct pollfd socketList[1];
@@ -134,7 +179,44 @@ bool Socket::pollAndRecvAll(void *buf, const size_t size, const size_t timeout)
 	}
 	return true;
 }
-	
+
+bool Socket::pollAndSendAll(const void *buf, const size_t size, const size_t timeout)
+{
+	struct pollfd socketList[1];
+	size_t leftSize = size;
+	size_t sended = 0;
+	while (leftSize > 0) {
+		socketList[0].fd = _descr;
+		socketList[0].events = POLLOUT | POLLERR | POLLHUP;
+		socketList[0].revents = 0;
+		auto retval = poll(socketList, 1, timeout);
+		if (retval <= 0)
+			return false;
+		if(((socketList[0].revents & POLLHUP) == POLLHUP) ||
+      ((socketList[0].revents & POLLERR) == POLLERR) ||
+      ((socketList[0].revents & POLLNVAL) == POLLNVAL)) {
+			return false;
+    }
+		auto res = send(_descr, static_cast<const uint8_t*>(buf) + sended, leftSize, MSG_NOSIGNAL);
+		if (res < 0)
+		{
+			if (errno == EAGAIN)
+				continue;
+			return false;
+		}
+		else if (res == 0)
+			return false;
+		sended += res;
+		leftSize -= res;
+	}
+	return true;	
+}
+
+TIPv4 Socket::ip2Long(const char *ipStr)
+{
+	return inet_network(ipStr);
+}
+
 BString Socket::ip2String(const TIPv4 ip)
 {
 	static const int MAX_IP_LENGTH = 4 * 4;

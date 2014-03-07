@@ -43,15 +43,25 @@ namespace fl {
 			TDescriptor acceptDescriptor(TIPv4 &ip);
 			bool setDeferAccept(const int timeOut);
 			void reset(const TDescriptor descr);
+			bool reopen();
+			
+			static const size_t DEFAULT_CONNECT_TIMEOUT = 15 * 1000;
+			bool connect(const TIPv4 ip, const uint32_t port, const size_t timeout = DEFAULT_CONNECT_TIMEOUT);
+			
 			const TDescriptor descr() const
 			{
 				return _descr;
 			}
 			static const size_t DEFAULT_READ_TIMEOUT = 60 * 1000; // 60 seconds
 			bool pollAndRecvAll(void *buf, const size_t size, const size_t timeout = DEFAULT_READ_TIMEOUT);
+			static const size_t DEFAULT_SEND_TIMEOUT = 30 * 1000; // 30 seconds
+			bool pollAndSendAll(const void *buf, const size_t size, const size_t timeout = DEFAULT_SEND_TIMEOUT);
+			int getFlags();
 			static fl::strings::BString ip2String(const TIPv4 ip);
+			static TIPv4 ip2Long(const char *ipStr);
 			static bool setNonBlockIO(const TDescriptor descr);
 		private:
+			bool _open();
 			TDescriptor _descr;
 		};
 	}
