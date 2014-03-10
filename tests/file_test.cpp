@@ -12,8 +12,9 @@
 #include <boost/test/output_test_stream.hpp> 
 
 #include "file.hpp"
-
+#include "bstring.hpp"
 using namespace fl::fs;
+using fl::strings::BString;
 
 BOOST_AUTO_TEST_SUITE( IO )
 
@@ -40,6 +41,18 @@ BOOST_AUTO_TEST_CASE( FileSize )
 	file.write("1234", 4);
 	
 	BOOST_CHECK( file.fileSize() == 4 );
+}
+
+BOOST_AUTO_TEST_CASE( FileTouch )
+{
+	srand(time(NULL));
+	BString fileName;
+	fileName.sprintfSet("/tmp/fl_libs_file_touch_test%u", rand());
+	time_t setTime = time(NULL) - 10; // current time - 10 seconds
+	BOOST_REQUIRE(File::touch(fileName.data(), setTime));
+	struct stat fStat;
+	BOOST_REQUIRE(lstat(fileName.data(), &fStat) == 0);
+	BOOST_REQUIRE(fStat.st_mtim.tv_sec == setTime);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

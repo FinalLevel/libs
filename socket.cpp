@@ -78,6 +78,14 @@ bool Socket::setNonBlockIO(const TDescriptor descr)
 		return true;
 }
 
+bool Socket::setNoDelay(const TDescriptor descr, int flag)
+{
+	if (setsockopt(descr, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag)) == 0)
+		return true;
+	else
+		return false;
+}
+
 TDescriptor Socket::acceptDescriptor(TIPv4 &ip)
 {
 	struct	sockaddr_in	sock_addr;

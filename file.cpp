@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>
+#include <utime.h>
 #include "file.hpp"
 #include "bstring.hpp"
 
@@ -84,4 +85,20 @@ off_t File::seek(off_t offset, int whence)
 __off64_t File::seek64(__off64_t offset, int whence)
 {
 	return lseek64(_descr, offset, whence);
+}
+
+bool File::touch(const char *fileName, const time_t modTime)
+{
+	utimbuf tb;
+	tb.modtime = modTime;
+	tb.actime = modTime;
+	if (utime(fileName, &tb) == 0)
+		return true;
+	else {
+		File fd;
+		if (!fd.open(fileName, O_CREAT | O_WRONLY))
+			return false;
+		fd.close();
+		return (utime(fileName, &tb) == 0);
+	}
 }

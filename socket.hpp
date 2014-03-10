@@ -60,6 +60,7 @@ namespace fl {
 			static fl::strings::BString ip2String(const TIPv4 ip);
 			static TIPv4 ip2Long(const char *ipStr);
 			static bool setNonBlockIO(const TDescriptor descr);
+			static bool setNoDelay(const TDescriptor descr, int flag);
 		private:
 			bool _open();
 			TDescriptor _descr;

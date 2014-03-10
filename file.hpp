@@ -59,6 +59,7 @@ namespace fl {
 			
 			ssize_t pread(void *buf, const size_t size, const off_t offset);
 			ssize_t pwrite(const void *buf, const size_t size, const off_t offset);
+			static bool touch(const char *fileName, const time_t modTime);
 		private:
 			TDescriptor _descr;
 		};
