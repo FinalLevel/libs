@@ -16,7 +16,7 @@
 
 using namespace fl::strings;
 
-inline void BString::reserve(const TSize newSize)
+void BString::reserve(const TSize newSize)
 {
 	if (newSize == 0) {
 		free(_data);

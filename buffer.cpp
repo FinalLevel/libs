@@ -75,7 +75,7 @@ void Buffer::reserve(const TSize newSize)
 	}
 }
 
-inline void Buffer::_fit(const TSize size)
+void Buffer::_fit(const TSize size)
 {
 	if ((_writePos + size) < _end)
 		return;

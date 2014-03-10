@@ -1,1 +1,6 @@
-/tests/test_logger
+tests/test_logger
+libfl.a
+tests/test
+.deps
+Makefile
+Makefile.in
