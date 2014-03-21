@@ -34,7 +34,7 @@ namespace fl {
 				{
 				}
 			};			
-			typedef size_t TSize;
+			typedef u_int32_t TSize;
 			typedef u_int8_t *TDataPtr;
 			Buffer(const TSize reserved = 0);
 			~Buffer();
