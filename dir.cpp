@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <unistd.h>
 #include <cstring>
+#include <sys/statvfs.h>
 #include "dir.hpp"
 #include "bstring.hpp"
 
@@ -95,3 +96,17 @@ bool Directory::rmDirRecursive(const char *path)
 	}
 	return true;
 }
+
+bool Directory::getDiskSize(const char *path, uint64_t &totalSpace, uint64_t &freeSpace)
+{
+	struct statvfs svfs;
+	if (statvfs(path, &svfs) == 0)
+	{
+		totalSpace  = (uint64_t)svfs.f_blocks * svfs.f_frsize;
+		freeSpace = (uint64_t)svfs.f_bavail * svfs.f_frsize;
+		return true;
+	}
+	else 
+		return false;
+}
+	

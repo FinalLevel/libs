@@ -11,6 +11,7 @@
 // Description: Directory functions wrapper class
 ///////////////////////////////////////////////////////////////////////////////
 #include <dirent.h>
+#include <cstdint>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -47,6 +48,7 @@ namespace fl {
 			static const int DEFAULT_DIR_MODE = S_IRWXU;
 			static bool makeDirRecursive(const char *path, int mode = DEFAULT_DIR_MODE);
 			static bool rmDirRecursive(const char *path);
+			static bool getDiskSize(const char *path, uint64_t &totalSpace, uint64_t &freeSpace);
 		private:
 			DIR *_dir;
 			struct dirent _entry;
