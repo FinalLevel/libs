@@ -87,6 +87,11 @@ __off64_t File::seek64(__off64_t offset, int whence)
 	return lseek64(_descr, offset, whence);
 }
 
+bool File::truncate(const off_t size)
+{
+	return (ftruncate(_descr, size) == 0);
+}
+
 bool File::touch(const char *fileName, const time_t modTime)
 {
 	utimbuf tb;

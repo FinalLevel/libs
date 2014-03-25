@@ -55,4 +55,16 @@ BOOST_AUTO_TEST_CASE( FileTouch )
 	BOOST_REQUIRE(fStat.st_mtim.tv_sec == setTime);
 }
 
+BOOST_AUTO_TEST_CASE( FileTrancate )
+{
+	File file;
+	file.createUnlinkedTmpFile("/tmp");
+	file.write("1234", 4);
+	
+	BOOST_CHECK( file.fileSize() == 4 );
+	
+	BOOST_CHECK( file.truncate(3) );
+	BOOST_CHECK( file.fileSize() == 3 );
+}
+
 BOOST_AUTO_TEST_SUITE_END()
