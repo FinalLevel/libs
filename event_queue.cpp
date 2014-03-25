@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <cstring>
 #include "event_queue.hpp"
+#include "log.hpp"
 
 using namespace fl::events;
 
@@ -51,7 +52,10 @@ bool EPoll::ctrl(Event *event)
 	ev.events = event->events();
 	
 	if (epoll_ctl(_eventFD, event->op(), event->descr(), &ev) == -1)
+	{
+		log::Error::L("epoll_ctl erorr %d - %s - %d - %d (%d)\n", errno, strerror(errno), _eventFD, event->descr(), event->op());
 		return false;
+	}
 
 	event->setOp(EPOLL_CTL_MOD);
 	
