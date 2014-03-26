@@ -103,3 +103,14 @@ Event::Event(const TEventDescriptor descr)
 {
 	
 }
+
+void Event::setWaitRead()
+{
+	_events = E_INPUT | E_ERROR | E_HUP;
+}
+
+void Event::setWaitSend()
+{
+	_events = E_OUTPUT | E_ERROR | E_HUP;
+}
+

@@ -99,6 +99,8 @@ namespace fl {
 				SKIP,
 			};
 			virtual const ECallResult call(const TEvents events) = 0;
+			void setWaitRead();
+			void setWaitSend();			
 		protected:
 			TEventDescriptor _descr;
 			int _op;
