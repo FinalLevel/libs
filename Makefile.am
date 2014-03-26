@@ -2,6 +2,14 @@ noinst_LIBRARIES = libfl.a
 libfl_a_SOURCES = thread.cpp cond_mutex.cpp time_thread.cpp buffer.cpp buffer.hpp util.cpp read_write_lock.cpp dir.cpp \
   network_buffer.cpp bstring.cpp file.cpp socket.cpp accept_thread.cpp log.cpp \
   event_queue.cpp thread.cpp mutex.cpp event_thread.cpp time.cpp
+libfl_a_LIBADD = $(LDADD)
+libfl_a_CPPFLAGS = $(AM_CPPFLAGS)
+
+
+if NEED_MYSQL
+  libfl_a_SOURCES += mysql.cpp
+  libfl_a_CPPFLAGS += $(MYSQL_INCLUDE)
+endif
 
 check_PROGRAMS = libfl_test
 libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp tests/dir_test.cpp \

@@ -1,0 +1,1 @@
+AM_CONDITIONAL(NEED_MYSQL, test x$found_mysql = xyes)
