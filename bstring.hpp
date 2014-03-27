@@ -49,6 +49,7 @@ namespace fl {
 			
 			BString &operator<<(const char *str);
 			BString &operator<<(const int num);
+			BString &operator<<(const unsigned int num);
 			BString &operator<<(const char ch);
 			
 			void add(const char *str, TSize len);

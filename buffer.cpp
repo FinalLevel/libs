@@ -109,6 +109,14 @@ Buffer::TDataPtr Buffer::mapBuffer(const TSize size)
 	return curReadPos;
 }
 
+
+void Buffer::truncate(const TSize seek)
+{
+	if (seek > writtenSize())
+		throw Error("Seek out of range");
+	_writePos = _begin + seek;
+}
+
 void Buffer::seekReadPos(const TSize seek)
 {
 	TDataPtr newPos = _begin + seek;

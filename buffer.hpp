@@ -34,8 +34,8 @@ namespace fl {
 				{
 				}
 			};			
-			typedef u_int32_t TSize;
-			typedef u_int8_t *TDataPtr;
+			typedef uint32_t TSize;
+			typedef uint8_t *TDataPtr;
 			Buffer(const TSize reserved = 0);
 			~Buffer();
 			Buffer(const Buffer &) = delete;
@@ -91,6 +91,7 @@ namespace fl {
 				_readPos = _begin;
 			}
 			void seekReadPos(const TSize seek);
+			void truncate(const TSize seek);
 			void clear()
 			{
 				_readPos = _begin;

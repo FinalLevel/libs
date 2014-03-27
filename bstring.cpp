@@ -143,6 +143,12 @@ BString &BString::operator<<(const char *str)
 	return *this;
 }
 
+BString &BString::operator<<(const unsigned int num)
+{
+	sprintfAdd("%u", num);
+	return *this;
+}
+
 BString &BString::operator<<(const int num)
 {
 	sprintfAdd("%d", num);

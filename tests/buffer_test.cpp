@@ -153,5 +153,27 @@ BOOST_AUTO_TEST_CASE( MoveFromBString )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( TruncateTest )
+{
+	BOOST_CHECK_NO_THROW (
+		Buffer buffer;
+		buffer.add<u_int32_t>(10);
+		buffer.add<u_int32_t>(20);
+		BOOST_CHECK(buffer.writtenSize() == sizeof(u_int32_t) * 2);
+		BOOST_CHECK(buffer.reserved() == (sizeof(u_int32_t) + 1) * 2);
+		
+		buffer.truncate(buffer.writtenSize() -  sizeof(u_int32_t));
+		
+		BOOST_CHECK(buffer.writtenSize() == sizeof(u_int32_t));
+		BOOST_CHECK(buffer.reserved() == (sizeof(u_int32_t) + 1) * 2);
+		
+		BOOST_CHECK_THROW(buffer.truncate(sizeof(u_int32_t) * 2), Buffer::Error);
+		BOOST_CHECK_THROW(buffer.truncate(-1), Buffer::Error);
+		
+		buffer.truncate(buffer.writtenSize() -  sizeof(u_int32_t));
+		BOOST_CHECK(buffer.writtenSize() == 0);
+	);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -210,4 +210,19 @@ BOOST_AUTO_TEST_CASE( reserve )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( streamOperatorsTest )
+{
+	BOOST_CHECK_NO_THROW (
+		BString str;
+		uint8_t unsignedInt = 11;
+		int8_t signedInt = 22;
+		int integer = 3333;
+		str << "abcd" << 'e' << unsignedInt << signedInt << integer;
+		BOOST_CHECK(str == "abcde11223333");
+		BOOST_CHECK(str.size() == 13);
+		BOOST_CHECK(str.reserved() == 17);
+		
+	);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
