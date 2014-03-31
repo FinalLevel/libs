@@ -43,12 +43,20 @@ namespace fl {
 				ST_FINISHED
 			};
 		};
+		namespace EHttpVersion
+		{
+			enum EHttpVersion : uint8_t
+			{
+				HTTP_1_0,
+				HTTP_1_1,
+			};
+		};
 
 		class HttpEventInterface
 		{
 		public:
-			virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const std::string &host, 
-				const std::string &fileName, const std::string &query) = 0;
+			virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+				const std::string &host, const std::string &fileName, const std::string &query) = 0;
 			virtual bool parsePOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError)
 			{
 				return true;
@@ -58,10 +66,17 @@ namespace fl {
 			{
 				return true;
 			}
-			virtual bool formError(const EHttpState::EHttpState state, BString &networkBuffer)
+			virtual bool formError(const EHttpState::EHttpState state, BString &result)
 			{
 				return false;
 			}
+			enum EFormResult
+			{
+				 RESULT_OK_CLOSE = 0,
+				 RESULT_OK_KEEP_ALIVE,
+				 RESULT_ERROR,
+			};
+			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
 		};
 		
 		class HttpEvent : public WorkEvent
@@ -93,7 +108,8 @@ namespace fl {
 		class HttpThreadSpecificData : public ThreadSpecificData
 		{
 		public:
-			HttpThreadSpecificData();
+			HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize = 1024 * 1024, const uint8_t maxChunkCount = 128, 
+				const size_t bufferSize = 32 * 1024, const size_t maxFreeBuffers = 1024);
 			virtual ~HttpThreadSpecificData() {}
 			uint8_t maxChunkCount;
 			NetworkBuffer::TSize maxRequestSize;

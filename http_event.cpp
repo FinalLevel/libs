@@ -30,8 +30,10 @@ HttpEvent::~HttpEvent()
 void HttpEvent::_endWork()
 {
 	_state = EHttpState::ST_FINISHED;
-	if (_descr != 0)
+	if (_descr != 0) {
 		close(_descr);
+		_descr = 0;
+	}
 	if (_networkBuffer)
 	{
 		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
@@ -117,8 +119,15 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	int fileNameLen = pQuery - beginURI;
 	if (fileNameLen > 0)
 		fileName.assign(beginURI, fileNameLen);
-
-	return _interface->parseURI(requestType, hostName, fileName, query);	
+	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0; 
+	size_t versionLength = endURI - endURL - 1;
+	static const std::string HTTP_VERSION_1_1("HTTP/1.1");
+	if (versionLength == HTTP_VERSION_1_1.size()) {
+		if (!strncasecmp(endURL + 1, HTTP_VERSION_1_1.c_str(), HTTP_VERSION_1_1.size())) {
+			version = EHttpVersion::HTTP_1_1;
+		}
+	}
+	return _interface->parseURI(requestType, version, hostName, fileName, query);	
 }
 
 bool HttpEvent::_parseHeader(const char *pStartHeader, const char *pEndHeader)
@@ -236,6 +245,7 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 
 HttpEvent::ECallResult HttpEvent::_sendError()
 {
+	_state = EHttpState::ST_SEND_AND_CLOSE;
 	_networkBuffer->clear();
 	if (!_interface->formError(_state, *_networkBuffer))
 		_networkBuffer->sprintfSet("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n");
@@ -280,7 +290,21 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 				return _sendError();
 		}
 		if (_state == EHttpState::ST_REQUEST_RECEIVED) {
-			
+			_networkBuffer->clear();
+			auto res = _interface->formResult(*_networkBuffer, this);
+			switch (res) {
+				case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
+					_state = EHttpState::ST_SEND;
+					return _sendAnswer();
+				break;
+				case HttpEventInterface::RESULT_OK_CLOSE:
+					_state = EHttpState::ST_SEND_AND_CLOSE;
+					return _sendAnswer();
+				break;
+				case HttpEventInterface::RESULT_ERROR:
+					return _sendError();
+				break;
+			};
 		}
 		else
 			return SKIP;
@@ -297,4 +321,9 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 	return SKIP;
 }
 
+HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize, const uint8_t maxChunkCount, 
+	const size_t bufferSize, const size_t maxFreeBuffers)
+	: maxRequestSize(maxRequestSize), maxChunkCount(maxChunkCount), bufferPool(bufferSize, maxFreeBuffers)
+{
+}
 

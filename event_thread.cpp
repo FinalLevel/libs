@@ -126,6 +126,15 @@ EPollWorkerGroup::EPollWorkerGroup(
 	}
 }
 
+EPollWorkerGroup::~EPollWorkerGroup()
+{
+	cancelThreads();
+	waitThreads();
+	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
+		delete (*thread);
+	}		
+}
+
 bool EPollWorkerGroup::addConnection(class WorkEvent* ev, class Socket *acceptSocket)
 {
 	if (_threads.empty())
@@ -140,6 +149,13 @@ bool EPollWorkerGroup::addConnection(class WorkEvent* ev, class Socket *acceptSo
 			return true;
 	}
 	return false;
+}
+
+void EPollWorkerGroup::cancelThreads()
+{
+	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
+		(*thread)->cancel();
+	}	
 }
 
 void EPollWorkerGroup::waitThreads()

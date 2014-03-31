@@ -103,6 +103,7 @@ namespace fl {
 				const uint32_t queueLength, 
 				const uint32_t stackSize = EPOLL_WORKER_STACK_SIZE
 			);
+			~EPollWorkerGroup();
 			bool addConnection(class WorkEvent* ev, Socket *acceptSocket);
 			
 			static fl::chrono::Time curTime; // time value updated by UpdateTimeEvent
@@ -114,6 +115,7 @@ namespace fl {
 				virtual const ECallResult call(const TEvents events);
 			};
 			void waitThreads();
+			void cancelThreads();
 		private:
 			static WorkEvent *_updateTimeEvent;
 			typedef std::vector<EPollWorkerThread*> TWorkerThreadVector;

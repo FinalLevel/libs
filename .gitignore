@@ -1,6 +1,6 @@
 tests/test_logger
 libfl.a
-tests/test
+libfl_test
 .deps
 Makefile
 Makefile.in
