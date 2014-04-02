@@ -55,6 +55,9 @@ namespace fl {
 		class HttpEventInterface
 		{
 		public:
+			virtual ~HttpEventInterface() 
+			{
+			}
 			virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
 				const std::string &host, const std::string &fileName, const std::string &query) = 0;
 			virtual bool parsePOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError)
@@ -77,6 +80,9 @@ namespace fl {
 				 RESULT_ERROR,
 			};
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
+		protected:
+			static bool _isCookieHeader(const char *name, const size_t nameLength);
+			static const char _nextParam(const char *&paramStart, const char *end, const char *&value, size_t &valueLength);
 		};
 		
 		class HttpEvent : public WorkEvent
@@ -86,7 +92,6 @@ namespace fl {
 			virtual ~HttpEvent();
 			virtual const ECallResult call(const TEvents events);
 		private:
-			static const char *_terminatingCharacters;
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);
 			bool _parseHeader(const char *pStartHeader, const char *pEndHeader);
@@ -99,7 +104,6 @@ namespace fl {
 			NetworkBuffer *_networkBuffer;
 			uint32_t _headerStartPosition;
 			EHttpState::EHttpState _state;
-			uint8_t _endCharacterNumber;
 			uint8_t _chunkNumber;
 			typedef uint8_t TStatus;
 			TStatus _status;
@@ -111,8 +115,8 @@ namespace fl {
 			HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize = 1024 * 1024, const uint8_t maxChunkCount = 128, 
 				const size_t bufferSize = 32 * 1024, const size_t maxFreeBuffers = 1024);
 			virtual ~HttpThreadSpecificData() {}
-			uint8_t maxChunkCount;
 			NetworkBuffer::TSize maxRequestSize;
+			uint8_t maxChunkCount;
 			NetworkBufferPool bufferPool;
 		};
 

@@ -18,7 +18,6 @@ using namespace fl::network;
 AcceptThread::AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  WorkEventFactory *eventFactory)
 	: _workerGroup(workerGroup), _listenTo(listenTo), _eventFactory(eventFactory)
 {
-	setDetachedState();
 	const size_t ACCEPT_THREAD_STACK_SIZE = 100 * 1024;
 	setStackSize(ACCEPT_THREAD_STACK_SIZE);
 	if (!create())

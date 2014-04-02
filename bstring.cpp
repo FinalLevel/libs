@@ -53,6 +53,12 @@ BString::BString(const TSize reserved)
 	reserve(_reserved);
 }
 
+BString::BString(const char *str)
+	: _size(0), _reserved(0), _data(NULL)
+{
+	add(str, strlen(str));
+}
+
 BString::~BString()
 {
 	free(_data);
@@ -152,6 +158,12 @@ BString &BString::operator<<(const unsigned int num)
 BString &BString::operator<<(const int num)
 {
 	sprintfAdd("%d", num);
+	return *this;
+}
+
+BString &BString::operator<<(const std::string &str)
+{
+	add(str.c_str(), str.size());
 	return *this;
 }
 

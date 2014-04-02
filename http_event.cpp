@@ -13,11 +13,10 @@
 
 using namespace fl::events;
 
-const char *HttpEvent::_terminatingCharacters = "\r\n\r\n";
 
 HttpEvent::HttpEvent(const TEventDescriptor descr, const time_t timeOutTime, HttpEventInterface *interface)
 	: WorkEvent(descr, timeOutTime), _interface(interface), _networkBuffer(0), _headerStartPosition(0),
-		_state(EHttpState::ST_WAIT_REQUEST), _endCharacterNumber(0), _chunkNumber(0), _status(0)
+		_state(EHttpState::ST_WAIT_REQUEST), _chunkNumber(0), _status(0)
 {
 	setWaitRead();
 }
@@ -39,6 +38,10 @@ void HttpEvent::_endWork()
 		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
 		threadSpecData->bufferPool.free(_networkBuffer);
 		_networkBuffer = NULL;
+	}
+	if (_interface) {
+		delete _interface;
+		_interface = NULL;
 	}
 }
 
@@ -63,7 +66,21 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 		log::Error::L("Can't find an URI begin %u (%c)\n", requestType, *(beginURI - 1));
 		return false;
 	}
-	const char *endURL =  endURI;
+	static const std::string HTTP_VERSION("HTTP/");
+	const char *endURL =  endURI - HTTP_VERSION.size() - 3; // - major.minor (1.1)
+	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0; 
+	if (!strncasecmp(endURL, HTTP_VERSION.c_str(), HTTP_VERSION.size())) {
+		if (*(endURI - 1) == '1')
+			version = EHttpVersion::HTTP_1_1;
+		endURL--;
+		if (*endURL != ' ') {
+			log::Error::L("Space expected in HTTP request\n");
+			return false;
+		}
+	} else {
+		log::Error::L("Can't find 'HTTP/' in HTTP request\n");
+		return false;
+	}
 	while (endURL > beginURI)	{
 		if (*endURL == ' ')
 			break;
@@ -119,14 +136,6 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	int fileNameLen = pQuery - beginURI;
 	if (fileNameLen > 0)
 		fileName.assign(beginURI, fileNameLen);
-	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0; 
-	size_t versionLength = endURI - endURL - 1;
-	static const std::string HTTP_VERSION_1_1("HTTP/1.1");
-	if (versionLength == HTTP_VERSION_1_1.size()) {
-		if (!strncasecmp(endURL + 1, HTTP_VERSION_1_1.c_str(), HTTP_VERSION_1_1.size())) {
-			version = EHttpVersion::HTTP_1_1;
-		}
-	}
 	return _interface->parseURI(requestType, version, hostName, fileName, query);	
 }
 
@@ -177,37 +186,38 @@ bool HttpEvent::_readRequest()
 			_networkBuffer->size());
 		return false;
 	}
-	static const NetworkBuffer::TSize MIN_HTTP_REQUEST = sizeof("GET / HTTP/1.0\r\n\r\n") - 1;
+	static const NetworkBuffer::TSize MIN_HTTP_REQUEST = sizeof("GET / HTTP/1.0\r\n\r\n") - 2;
 	if (_networkBuffer->size() > MIN_HTTP_REQUEST)	{
+		if (lastChecked > 0) // skip one char because it might be '\r' before '\n'
+			lastChecked--;
 		const char *pBuffer = _networkBuffer->c_str() + lastChecked;
-		auto endCharacter = _terminatingCharacters[_endCharacterNumber];
-		for ( ; lastChecked < _networkBuffer->size(); lastChecked++) {
-			auto queryCharacter = *pBuffer;
-			if (endCharacter == queryCharacter)
+		bool fullRequestFound = false;
+		while (*pBuffer != 0) {
+			if (*pBuffer == '\r')
 			{
-				if (endCharacter == '\n') {
-					const char *pEndHeader = pBuffer - 1; // skip \r\n
+				pBuffer++;
+				if (*pBuffer == '\n') {
+					pBuffer++;
+					const char *pEndHeader = pBuffer - 2; // skip \r\n
+					const char *pBeginHeader = _networkBuffer->c_str() + _headerStartPosition;
+					int headerLength = pEndHeader - pBeginHeader;
 					if (!_headerStartPosition) { // parse URI
-						if (!_parseURI(_networkBuffer->c_str(), pEndHeader))
+						if (!_parseURI(pBeginHeader, pEndHeader))
 							return false;
+					} else if (headerLength > 0) {
+						if (!_parseHeader(pBeginHeader, pEndHeader))
+							return false;
+					} else  {// \r\n\r\n found
+						fullRequestFound = true;
+						break;
 					}
-					else if (!_parseHeader(_networkBuffer->c_str() + _headerStartPosition, pEndHeader))
-						return false;
-					_headerStartPosition = lastChecked + 1;
+					_headerStartPosition = pBuffer - _networkBuffer->c_str();
 				}
-				_endCharacterNumber++;
-				endCharacter = _terminatingCharacters[_endCharacterNumber];
-				if (!endCharacter) // \r\n\r\n
-					break;
-			} else if (_endCharacterNumber) {
-				_endCharacterNumber = 0;
-				endCharacter = _terminatingCharacters[_endCharacterNumber];
 			}
-			pBuffer++;
+			else
+				pBuffer++;
 		}
-		if (!endCharacter) { // end query was found
-			_headerStartPosition = lastChecked + 1;
-			
+		if (fullRequestFound) { // end query was found
 			bool parseError = false;
 			if (_interface->parsePOSTData(_headerStartPosition, *_networkBuffer, parseError)) {
 				_state = EHttpState::ST_REQUEST_RECEIVED;
@@ -327,3 +337,31 @@ HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxReq
 {
 }
 
+
+bool HttpEventInterface::_isCookieHeader(const char *name, const size_t nameLength)
+{
+	static const std::string COOKIE_HEADER("Cookie");
+	if (nameLength != COOKIE_HEADER.size())
+		return false;
+	if (strncasecmp(name, COOKIE_HEADER.c_str(), COOKIE_HEADER.size()))
+		return false;
+	else
+		return true;
+}
+
+const char HttpEventInterface::_nextParam(const char *&paramStart, const char *end, const char *&value, 
+	size_t &valueLength)
+{
+	if (paramStart >= end)
+		return 0;
+	
+	const char *pNext = strchr(paramStart, '&');
+	if (!pNext)
+		pNext = end;
+	auto param = *paramStart;
+	paramStart++;
+	value = paramStart;
+	valueLength = pNext - value;
+	paramStart = pNext + 1;
+	return param;
+}

@@ -36,6 +36,7 @@ namespace fl {
 			static const TSize DEFAULT_RESERVED_SIZE = 0;
 			
 			BString(const TSize reserved = DEFAULT_RESERVED_SIZE);
+			BString(const char *str);
 			~BString();
 			
 			BString(const BString &) = delete;
@@ -51,6 +52,7 @@ namespace fl {
 			BString &operator<<(const int num);
 			BString &operator<<(const unsigned int num);
 			BString &operator<<(const char ch);
+			BString &operator<<(const std::string &str);
 			
 			void add(const char *str, TSize len);
 			
