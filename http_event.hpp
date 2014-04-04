@@ -80,7 +80,14 @@ namespace fl {
 				 RESULT_ERROR,
 			};
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
+			virtual bool reset()
+			{
+				return false;
+			}
 		protected:
+			static bool _parseKeepAlive(const char *name, const size_t nameLength, const char *value, bool &isKeepAlive);
+			static bool _parseContentLength(const char *name, const size_t nameLength, const char *value, 
+				size_t &contentLength);
 			static bool _isCookieHeader(const char *name, const size_t nameLength);
 			static const char _nextParam(const char *&paramStart, const char *end, const char *&value, size_t &valueLength);
 		};
@@ -99,6 +106,8 @@ namespace fl {
 			bool _readPostData();
 			ECallResult _sendAnswer();
 			ECallResult _sendError();
+			void _updateTimeout();
+			bool _reset();
 			
 			HttpEventInterface *_interface;
 			NetworkBuffer *_networkBuffer;
@@ -113,11 +122,15 @@ namespace fl {
 		{
 		public:
 			HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize = 1024 * 1024, const uint8_t maxChunkCount = 128, 
-				const size_t bufferSize = 32 * 1024, const size_t maxFreeBuffers = 1024);
+				const size_t bufferSize = 32 * 1024, const size_t maxFreeBuffers = 1024, 
+				const uint32_t operationTimeout = 60, const uint32_t firstRequstTimeout = 15, const uint32_t keepAlive = 60);
 			virtual ~HttpThreadSpecificData() {}
 			NetworkBuffer::TSize maxRequestSize;
 			uint8_t maxChunkCount;
 			NetworkBufferPool bufferPool;
+			uint32_t operationTimeout;
+			uint32_t firstRequstTimeout;
+			uint32_t keepAlive;
 		};
 
 	};

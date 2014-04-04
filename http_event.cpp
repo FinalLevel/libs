@@ -15,15 +15,37 @@ using namespace fl::events;
 
 
 HttpEvent::HttpEvent(const TEventDescriptor descr, const time_t timeOutTime, HttpEventInterface *interface)
-	: WorkEvent(descr, timeOutTime), _interface(interface), _networkBuffer(0), _headerStartPosition(0),
+	: WorkEvent(descr, timeOutTime), _interface(interface), _networkBuffer(NULL), _headerStartPosition(0),
 		_state(EHttpState::ST_WAIT_REQUEST), _chunkNumber(0), _status(0)
 {
 	setWaitRead();
 }
 
+bool HttpEvent::_reset()
+{
+	if (_interface->reset()) {
+		_state = EHttpState::ST_WAIT_REQUEST;
+		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
+		if (_networkBuffer) {
+			threadSpecData->bufferPool.free(_networkBuffer);
+			_networkBuffer = NULL;
+		}
+		_headerStartPosition = 0;
+		_chunkNumber = 0;
+		_status = 0;
+		setWaitRead();
+		if (!_thread->ctrl(this))
+			return false;
+		_timeOutTime = EPollWorkerGroup::curTime.unix() + threadSpecData->keepAlive;
+		return true;
+	} else
+		return false;	
+}
+
 HttpEvent::~HttpEvent()
 {
 	_endWork();
+	delete _interface;
 }
 
 void HttpEvent::_endWork()
@@ -33,15 +55,10 @@ void HttpEvent::_endWork()
 		close(_descr);
 		_descr = 0;
 	}
-	if (_networkBuffer)
-	{
+	if (_networkBuffer) {
 		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
 		threadSpecData->bufferPool.free(_networkBuffer);
 		_networkBuffer = NULL;
-	}
-	if (_interface) {
-		delete _interface;
-		_interface = NULL;
 	}
 }
 
@@ -208,6 +225,7 @@ bool HttpEvent::_readRequest()
 						if (!_parseHeader(pBeginHeader, pEndHeader))
 							return false;
 					} else  {// \r\n\r\n found
+						_headerStartPosition = pBuffer - _networkBuffer->c_str();
 						fullRequestFound = true;
 						break;
 					}
@@ -234,20 +252,27 @@ bool HttpEvent::_readRequest()
 	return true;
 }
 
+void HttpEvent::_updateTimeout()
+{
+	auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
+	_timeOutTime = EPollWorkerGroup::curTime.unix() + threadSpecData->operationTimeout;	
+}
+
 HttpEvent::ECallResult HttpEvent::_sendAnswer()
 {
 	auto res = _networkBuffer->send(_descr);
 	if (res == NetworkBuffer::IN_PROGRESS) {
 		setWaitSend();
 		if (_thread->ctrl(this)) {
-			return SKIP;
+			_updateTimeout();
+			return CHANGE;
 		}
 		else
 			return FINISHED;
 	} else if (res == NetworkBuffer::OK) {
 		if (_state != EHttpState::ST_SEND_AND_CLOSE) {
-			/*if (_reset())
-				return CHANGE;*/
+			if (_reset())
+				return CHANGE;
 		}
 	}
 	return FINISHED;	
@@ -315,9 +340,10 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 					return _sendError();
 				break;
 			};
+		} else {
+			_updateTimeout();
+			return CHANGE;
 		}
-		else
-			return SKIP;
 	}
 	
 	if (events & E_OUTPUT) {
@@ -332,11 +358,48 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 }
 
 HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize, const uint8_t maxChunkCount, 
-	const size_t bufferSize, const size_t maxFreeBuffers)
-	: maxRequestSize(maxRequestSize), maxChunkCount(maxChunkCount), bufferPool(bufferSize, maxFreeBuffers)
+	const size_t bufferSize, const size_t maxFreeBuffers, 
+	const uint32_t operationTimeout, const uint32_t firstRequstTimeout, const uint32_t keepAlive)
+	: maxRequestSize(maxRequestSize), maxChunkCount(maxChunkCount), bufferPool(bufferSize, maxFreeBuffers),
+	operationTimeout(operationTimeout), firstRequstTimeout(firstRequstTimeout), keepAlive(keepAlive)
 {
 }
 
+
+bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLength, const char *value, 
+	bool &isKeepAlive)
+{
+	static const std::string CONNECTION_HEADER("Connection");
+	if (nameLength != CONNECTION_HEADER.size())
+		return false;
+	if (strncasecmp(name, CONNECTION_HEADER.c_str(), CONNECTION_HEADER.size()))
+		return false;
+	else {
+		static const std::string KEEP_ALIVE_VALUE("keep-alive");
+		if (strncasecmp(value, KEEP_ALIVE_VALUE.c_str(), KEEP_ALIVE_VALUE.size())) {
+			isKeepAlive = false;
+		} else {
+			isKeepAlive = true;
+		}
+		return true;
+	}
+	
+}
+
+bool HttpEventInterface::_parseContentLength(const char *name, const size_t nameLength, const char *value, 
+	size_t &contentLength)
+{
+	static const std::string CONTENT_LENGTH_HEADER("Content-length");
+	if (nameLength != CONTENT_LENGTH_HEADER.size())
+		return false;
+	if (strncasecmp(name, CONTENT_LENGTH_HEADER.c_str(), CONTENT_LENGTH_HEADER.size()))
+		return false;
+	else
+	{
+		contentLength = strtoull(value, NULL, 10);
+		return true;
+	}
+}
 
 bool HttpEventInterface::_isCookieHeader(const char *name, const size_t nameLength)
 {

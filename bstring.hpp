@@ -50,6 +50,7 @@ namespace fl {
 			
 			BString &operator<<(const char *str);
 			BString &operator<<(const int num);
+			BString &operator<<(const uint64_t num);
 			BString &operator<<(const unsigned int num);
 			BString &operator<<(const char ch);
 			BString &operator<<(const std::string &str);

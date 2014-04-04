@@ -155,6 +155,13 @@ BString &BString::operator<<(const unsigned int num)
 	return *this;
 }
 
+
+BString &BString::operator<<(const uint64_t num)
+{
+	sprintfAdd("%llu", num);
+	return *this;	
+}
+
 BString &BString::operator<<(const int num)
 {
 	sprintfAdd("%d", num);
