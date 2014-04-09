@@ -51,6 +51,7 @@ HttpEvent::~HttpEvent()
 void HttpEvent::_endWork()
 {
 	_state = EHttpState::ST_FINISHED;
+	_timeOutTime = 0;
 	if (_descr != 0) {
 		close(_descr);
 		_descr = 0;
@@ -305,6 +306,41 @@ bool HttpEvent::_readPostData()
 	return true;
 }
 
+const HttpEvent::ECallResult HttpEvent::_setWaitExternalEvent()
+{
+	_state = EHttpState::ST_WAIT_EXTERNAL_EVENT;
+	_events = E_ERROR | E_HUP;
+	if (_thread->ctrl(this)) {
+		_updateTimeout();
+		return CHANGE;
+	}
+	else
+		return FINISHED;	
+}
+
+void HttpEvent::sendAnswer(const HttpEventInterface::EFormResult result)
+{
+	ECallResult sendResult = SKIP;
+	switch (result) {
+		case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
+			_state = EHttpState::ST_SEND;
+			sendResult = _sendAnswer();
+		break;
+		case HttpEventInterface::RESULT_OK_CLOSE:
+			_state = EHttpState::ST_SEND_AND_CLOSE;
+			sendResult = _sendAnswer();
+		break;
+		case HttpEventInterface::RESULT_OK_WAIT:
+			sendResult = _setWaitExternalEvent();
+		break;
+		case HttpEventInterface::RESULT_ERROR:
+			sendResult = _sendError();
+		break;
+	};
+	if (sendResult == FINISHED)
+		_endWork();
+}
+
 const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 {
 	if (_state == EHttpState::ST_FINISHED)
@@ -336,6 +372,8 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 					_state = EHttpState::ST_SEND_AND_CLOSE;
 					return _sendAnswer();
 				break;
+				case HttpEventInterface::RESULT_OK_WAIT:
+					return _setWaitExternalEvent();
 				case HttpEventInterface::RESULT_ERROR:
 					return _sendError();
 				break;

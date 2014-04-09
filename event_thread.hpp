@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "event_queue.hpp"
+#include "timer_event.hpp"
 #include "thread.hpp"
 #include "mutex.hpp"
 #include "time.hpp"
@@ -57,6 +58,10 @@ namespace fl {
 			{
 				_thread = thread;
 			}
+			class EPollWorkerThread *thread()
+			{
+				return _thread;
+			}
 		protected:
 			class EPollWorkerThread *_thread;
 			time_t _timeOutTime;
@@ -73,7 +78,7 @@ namespace fl {
 				const uint32_t stackSize
 			);
 			virtual ~EPollWorkerThread();
-			bool ctrl(class WorkEvent *ue)
+			bool ctrl(class Event *ue)
 			{
 				return _poll.ctrl(ue);
 			}
@@ -107,17 +112,17 @@ namespace fl {
 			bool addConnection(class WorkEvent* ev, Socket *acceptSocket);
 			
 			static fl::chrono::Time curTime; // time value updated by UpdateTimeEvent
-			class UpdateTimeEvent : public WorkEvent
+			class UpdateTimeEvent : public TimerEvent
 			{
 			public:
 				UpdateTimeEvent();
-				virtual ~UpdateTimeEvent();
+				virtual ~UpdateTimeEvent() {};
 				virtual const ECallResult call(const TEvents events);
 			};
 			void waitThreads();
 			void cancelThreads();
 		private:
-			static WorkEvent *_updateTimeEvent;
+			static UpdateTimeEvent *_updateTimeEvent;
 			typedef std::vector<EPollWorkerThread*> TWorkerThreadVector;
 			TWorkerThreadVector _threads;
 		};

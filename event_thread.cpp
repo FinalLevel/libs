@@ -7,7 +7,6 @@
 // Description: An event system worker class
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <sys/timerfd.h>
 #include <unistd.h>
 #include <cstring>
 
@@ -172,35 +171,16 @@ WorkEvent::WorkEvent(const TEventDescriptor descr, const time_t timeOutTime)
 }
 
 Time EPollWorkerGroup::curTime;
-WorkEvent *EPollWorkerGroup::_updateTimeEvent = NULL;
+EPollWorkerGroup::UpdateTimeEvent *EPollWorkerGroup::_updateTimeEvent = NULL;
 
 EPollWorkerGroup::UpdateTimeEvent::UpdateTimeEvent()
-	: WorkEvent(timerfd_create(CLOCK_REALTIME, TFD_NONBLOCK), 0)
+	: TimerEvent(1, 0, 1, 0) // call event every second
 {
-	_op = EPOLL_CTL_ADD;
-	_events = E_INPUT | E_ERROR;
 	
-	if (_descr == -1)
-		throw exceptions::Error("Cannot create UpdateTimeEvent");	
-	itimerspec tm;
-	bzero(&tm, sizeof(tm));
-	tm.it_value.tv_sec = 1;
-	tm.it_interval.tv_sec = 1; // make call every second
-	if (timerfd_settime(_descr, 0, &tm, 0))
-		throw exceptions::Error("Cannot call  timerfd_settime in UpdateTimeEvent");	
-	
-}
-
-EPollWorkerGroup::UpdateTimeEvent::~UpdateTimeEvent()
-{
-	close(_descr);
 }
 
 const Event::ECallResult EPollWorkerGroup::UpdateTimeEvent::call(const TEvents events)
 {
-	uint64_t readBuf;
-	read(_descr, &readBuf, sizeof(readBuf));
-	
 	EPollWorkerGroup::curTime.update();
-	return Event::SKIP;
+	return _readTimer();
 }

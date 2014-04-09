@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		const u_int32_t WORKER_STACK_SIZE = 100000;
 		EPollWorkerThread worker(QUEUE_LENGTH, NULL, WORKER_STACK_SIZE);
 		
-		BOOST_CHECK( worker.ctrl(static_cast<WorkEvent*>(new MockTimeEvent())) != false);
+		BOOST_CHECK( worker.ctrl(new MockTimeEvent()) != false);
 
 		int fd = socket(PF_INET, SOCK_STREAM, 0);
 		BOOST_CHECK(fd > 0 );

@@ -614,4 +614,97 @@ BOOST_AUTO_TEST_CASE( HttpPostTest )
 	}
 }
 
+
+class DependedMockHttpEventInterface : public HttpEventInterface
+{
+public:
+	typedef uint32_t TStatus;
+	static const TStatus ST_CREATE = 0x1;
+	static const TStatus ST_DESTROY = 0x2;
+	static const TStatus ST_DEPENDED_CREATE = 0x4;
+	static const TStatus ST_DEPENDED_DESTROY = 0x8;
+	
+	static TStatus _status;
+	HttpEvent *_http;
+	DependedMockHttpEventInterface()
+		: _http(NULL), _depended(this)
+	{
+		_status |= ST_CREATE;
+	}
+	virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+			const std::string &host, const std::string &fileName, const std::string &query)
+	{
+		return true;
+	}
+	static const std::string ANSWER;
+	virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http)
+	{
+		_http = http;
+		_http->thread()->ctrl(&_depended);
+		return RESULT_OK_WAIT;
+	}
+	virtual ~DependedMockHttpEventInterface()
+	{
+		_status |= ST_DESTROY;
+	}
+	static bool checkStatus()
+	{
+		return _status == (ST_CREATE | ST_DESTROY | ST_DEPENDED_CREATE | ST_DEPENDED_DESTROY);
+	}
+	void timerCall()
+	{
+		BString *networkBuffer = _http->networkBuffer();
+		if (networkBuffer) {
+			networkBuffer->clear();
+			*networkBuffer << ANSWER;
+			_http->sendAnswer(RESULT_OK_CLOSE);
+		}
+	}
+	
+	class DependedEvent : public TimerEvent
+	{
+	public:
+		DependedMockHttpEventInterface *_parent;
+		static const int long CALL_AFTER = 100000000; // 100 ms
+		DependedEvent(DependedMockHttpEventInterface *parent)
+			: TimerEvent(0, CALL_AFTER, 0, 0), _parent(parent) // call after CALL_AFTER nanosecond
+		{
+			DependedMockHttpEventInterface::_status |= ST_DEPENDED_CREATE;
+		}
+			
+		virtual ~DependedEvent()
+		{
+			DependedMockHttpEventInterface::_status |= ST_DEPENDED_DESTROY;
+		}
+		
+		virtual const ECallResult call(const TEvents events)
+		{
+			_parent->timerCall();
+			return _readTimer();
+		}
+	};
+	DependedEvent _depended;
+};
+
+DependedMockHttpEventInterface::TStatus DependedMockHttpEventInterface::_status = 0;
+const std::string DependedMockHttpEventInterface::ANSWER("HTTP 200 OK\r\n\r\n");
+
+
+BOOST_AUTO_TEST_CASE( Depended )
+{
+	try
+	{
+		HttpMockEventFactory<DependedMockHttpEventInterface> factory;
+		TestHttpEventFramework testEventFramework(&factory);
+		BString answer(DependedMockHttpEventInterface::ANSWER.size() + 1);
+		BOOST_REQUIRE(testEventFramework.doRequest("GET / HTTP/1.0\r\n\r\n", answer));
+		BOOST_CHECK(answer == DependedMockHttpEventInterface::ANSWER.c_str());
+	}
+	catch (...)
+	{
+		BOOST_CHECK_NO_THROW(throw);
+	}
+	BOOST_CHECK(DependedMockHttpEventInterface::checkStatus());
+}
+
 BOOST_AUTO_TEST_SUITE_END()

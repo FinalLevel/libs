@@ -40,6 +40,7 @@ namespace fl {
 				ST_REQUEST_RECEIVED,
 				ST_SEND,
 				ST_SEND_AND_CLOSE,
+				ST_WAIT_EXTERNAL_EVENT,
 				ST_FINISHED
 			};
 		};
@@ -77,6 +78,7 @@ namespace fl {
 			{
 				 RESULT_OK_CLOSE = 0,
 				 RESULT_OK_KEEP_ALIVE,
+				 RESULT_OK_WAIT,
 				 RESULT_ERROR,
 			};
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
@@ -98,6 +100,11 @@ namespace fl {
 			HttpEvent(const TEventDescriptor descr, const time_t timeOutTime, HttpEventInterface *interface);
 			virtual ~HttpEvent();
 			virtual const ECallResult call(const TEvents events);
+			NetworkBuffer *networkBuffer()
+			{
+				return _networkBuffer;
+			}
+			void sendAnswer(const HttpEventInterface::EFormResult result);
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);
@@ -108,6 +115,7 @@ namespace fl {
 			ECallResult _sendError();
 			void _updateTimeout();
 			bool _reset();
+			const ECallResult _setWaitExternalEvent();
 			
 			HttpEventInterface *_interface;
 			NetworkBuffer *_networkBuffer;
