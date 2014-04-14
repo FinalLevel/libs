@@ -37,7 +37,7 @@ void ScreenTarget::log(
 	struct tm *ct, 
 	const char *fmt, va_list args
 ) {
-	printf("{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	printf("[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vprintf(fmt, args);	
 }
 
@@ -63,7 +63,7 @@ void FileTarget::log(
 	const char *fmt, 
 	va_list args
 ) {
-	fprintf(_fd, "{%s/%u/%02i.%02i %02i:%02i:%02i/%s} ", tag, _process.pid, 
+	fprintf(_fd, "[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, 
 					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vfprintf(_fd, fmt, args);
 	fflush(_fd);
