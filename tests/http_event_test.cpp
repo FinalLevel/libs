@@ -110,7 +110,7 @@ public:
 	{
 		_status |= ST_CREATE;
 	}
-	virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 			const std::string &host, const std::string &fileName, const std::string &query)
 	{
 		return true;
@@ -162,7 +162,7 @@ public:
 	{
 		_status = 0;
 	}
-	virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 			const std::string &host, const std::string &fileName, const std::string &query)
 	{
 		if (fileName == TEST_FILE_NAME) {
@@ -282,7 +282,7 @@ public:
 			return false;
 	};
 	
-	virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 			const std::string &host, const std::string &fileName, const std::string &query)
 	{
 		if (version == EHttpVersion::HTTP_1_1) {
@@ -506,9 +506,10 @@ public:
 		return true;	
 	}
 	
-	virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 			const std::string &host, const std::string &fileName, const std::string &query)
 	{
+		auto reqType = _parseHTTPCmd(*cmdStart);
 		if (reqType == EHttpRequestType::POST)
 			_status |= ST_POST;
 		if (fileName == TEST_FILE_NAME) {
@@ -631,7 +632,7 @@ public:
 	{
 		_status |= ST_CREATE;
 	}
-	virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 			const std::string &host, const std::string &fileName, const std::string &query)
 	{
 		return true;

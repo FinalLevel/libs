@@ -65,25 +65,19 @@ void HttpEvent::_endWork()
 
 bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 {
-	EHttpRequestType::EHttpRequestType requestType = EHttpRequestType::GET;
-	auto firstChar = toupper(*beginURI);
-	if (firstChar == 'G')	{
-		requestType = EHttpRequestType::GET;
-		beginURI += sizeof("GET");
-	} else if (firstChar == 'P')	{
-		requestType = EHttpRequestType::POST;
-		beginURI += sizeof("POST");
-	} else if (firstChar == 'H')	{
-		requestType = EHttpRequestType::HEAD;
-		beginURI += sizeof("HEAD");
-	} else {
-		log::Error::L("Not GET/POST/HEADER request has been received %c%c\n", firstChar, *(beginURI + 1));
+	auto cmdEnd = beginURI;
+	while (cmdEnd < endURI) {
+		if (*cmdEnd == ' ')
+			break;
+		cmdEnd++;
+	}
+	if (cmdEnd == endURI) {
+		log::Error::L("Can't find an URI begin\n");
 		return false;
 	}
-	if (*(beginURI - 1) != ' ') {
-		log::Error::L("Can't find an URI begin %u (%c)\n", requestType, *(beginURI - 1));
-		return false;
-	}
+	auto cmdStart = beginURI;
+	beginURI = cmdEnd + 1;
+	
 	static const std::string HTTP_VERSION("HTTP/");
 	const char *endURL =  endURI - HTTP_VERSION.size() - 3; // - major.minor (1.1)
 	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0; 
@@ -105,7 +99,7 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 		endURL--;
 	}
 	if (endURL == beginURI) {
-		log::Error::L("URL cannot be zero size %u\n", requestType);
+		log::Error::L("Size of URL cannot be zero\n");
 		return false;
 	}
 	
@@ -154,7 +148,7 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	int fileNameLen = pQuery - beginURI;
 	if (fileNameLen > 0)
 		fileName.assign(beginURI, fileNameLen);
-	return _interface->parseURI(requestType, version, hostName, fileName, query);	
+	return _interface->parseURI(cmdStart, version, hostName, fileName, query);	
 }
 
 bool HttpEvent::_parseHeader(const char *pStartHeader, const char *pEndHeader)
@@ -432,8 +426,7 @@ bool HttpEventInterface::_parseContentLength(const char *name, const size_t name
 		return false;
 	if (strncasecmp(name, CONTENT_LENGTH_HEADER.c_str(), CONTENT_LENGTH_HEADER.size()))
 		return false;
-	else
-	{
+	else {
 		contentLength = strtoull(value, NULL, 10);
 		return true;
 	}
@@ -465,4 +458,27 @@ const char HttpEventInterface::_nextParam(const char *&paramStart, const char *e
 	valueLength = pNext - value;
 	paramStart = pNext + 1;
 	return param;
+}
+
+HttpEventInterface::EHttpRequestType HttpEventInterface::_parseHTTPCmd(const char cmdStart)
+{
+	auto firstChar = toupper(cmdStart);
+	if (firstChar == 'G')	{
+		return EHttpRequestType::GET;
+	} else if (firstChar == 'P')	{
+		return EHttpRequestType::POST;
+	} else if (firstChar == 'H')	{
+		return EHttpRequestType::HEAD;
+	} else {
+		log::Error::L("Not GET/POST/HEADER request has been received %c\n", firstChar);
+		return EHttpRequestType::UNKNOWN;
+	}
+}
+
+void HttpEventInterface::_addConnectionHeader(BString &networkBuffer, const bool isKeepAlive)
+{
+	if (isKeepAlive)
+		networkBuffer << "Connection: Keep-Alive\r\n";
+	else
+		networkBuffer << "Connection: Close\r\n";
 }

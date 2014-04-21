@@ -22,15 +22,6 @@ namespace fl {
 		using fl::network::NetworkBufferPool;
 		using fl::strings::BString;
 		
-		namespace EHttpRequestType
-		{
-			enum EHttpRequestType 
-			{
-				GET,
-				POST,
-				HEAD,
-			};
-		};
 		namespace EHttpState
 		{
 			enum EHttpState : uint8_t
@@ -59,7 +50,7 @@ namespace fl {
 			virtual ~HttpEventInterface() 
 			{
 			}
-			virtual bool parseURI(const EHttpRequestType::EHttpRequestType reqType, const EHttpVersion::EHttpVersion version,
+			virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 				const std::string &host, const std::string &fileName, const std::string &query) = 0;
 			virtual bool parsePOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError)
 			{
@@ -70,7 +61,7 @@ namespace fl {
 			{
 				return true;
 			}
-			virtual bool formError(const EHttpState::EHttpState state, BString &result)
+			virtual bool formError(EHttpState::EHttpState &state, BString &result)
 			{
 				return false;
 			}
@@ -92,6 +83,15 @@ namespace fl {
 				size_t &contentLength);
 			static bool _isCookieHeader(const char *name, const size_t nameLength);
 			static const char _nextParam(const char *&paramStart, const char *end, const char *&value, size_t &valueLength);
+			enum class EHttpRequestType : uint8_t
+			{
+				UNKNOWN,
+				GET,
+				POST,
+				HEAD,
+			};
+			static EHttpRequestType _parseHTTPCmd(const char cmdStart); 
+			static void _addConnectionHeader(BString &networkBuffer, const bool isKeepAlive);
 		};
 		
 		class HttpEvent : public WorkEvent
