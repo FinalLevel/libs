@@ -9,93 +9,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <boost/test/unit_test.hpp>
-#include "http_event.hpp"
-#include "socket.hpp"
-#include "accept_thread.hpp"
+#include "mock_http_util.hpp"
 
 using namespace fl::network;
 using namespace fl::events;
 
 
-class MockThreadSpecificDataFactory : public ThreadSpecificDataFactory
-{
-public:
-	MockThreadSpecificDataFactory()
-	{
-		
-	}
-	virtual ThreadSpecificData *create()
-	{
-		return new HttpThreadSpecificData();
-	}
-	virtual ~MockThreadSpecificDataFactory() {};
-};
-
-
-template <class T>
-class HttpMockEventFactory : public WorkEventFactory 
-{
-public:
-	HttpMockEventFactory()
-	{
-	}
-	virtual WorkEvent *create(const TEventDescriptor descr, const TIPv4 ip, const time_t timeOutTime, 
-		Socket *acceptSocket)
-	{
-		return new HttpEvent(descr, timeOutTime, new T());
-	}
-	virtual ~HttpMockEventFactory() {};
-};
-		
-class TestHttpEventFramework
-{
-public:
-	TestHttpEventFramework(WorkEventFactory *factory)
-		: _ip("127.0.0.1"), _port(2000 + rand() % 10000), _acceptThread(NULL), _workerGroup(NULL)
-	{		
-		do {
-			_port++;
-		} while (!_listen.listen(_ip.c_str(), _port));
-		_workerGroup = new EPollWorkerGroup(new MockThreadSpecificDataFactory(), 1, 10, 200000);
-		_acceptThread = new AcceptThread(_workerGroup, &_listen, factory);
-	};
-	~TestHttpEventFramework()
-	{
-		_acceptThread->cancel();
-		_acceptThread->waitMe();
-		delete _acceptThread;
-		delete _workerGroup;
-	}
-	bool doRequest(const BString &request, BString &answer)
-	{
-		Socket conn;
-		if (!connect(conn))
-			return false;
-		return doRequest(conn, request, answer);
-	}
-	bool doRequest(Socket &conn, const BString &request, BString &answer)
-	{
-		if (!conn.pollAndSendAll(request.c_str(), request.size()))
-			return false;
-		size_t answerSize = answer.reserved() - 1;
-		if (!conn.pollAndRecvAll(answer.reserveBuffer(answerSize), answerSize))
-			return false;
-		return true;
-	}
-	bool connect(Socket &conn)
-	{
-		if (!conn.connect(Socket::ip2Long(_ip.c_str()), _port))
-			return false;
-		else
-			return true;
-	}
-private:
-	Socket _listen;
-	std::string _ip;
-	uint16_t _port;
-	AcceptThread *_acceptThread;
-	EPollWorkerGroup *_workerGroup;
-};
 
 BOOST_AUTO_TEST_SUITE( HttpEventTest )
 
@@ -132,7 +51,7 @@ public:
 };
 
 CreateDestructionMockHttpEventInterface::TStatus CreateDestructionMockHttpEventInterface::_status = 0;
-const std::string CreateDestructionMockHttpEventInterface::ANSWER("HTTP 200 OK\r\n\r\n");
+const std::string CreateDestructionMockHttpEventInterface::ANSWER("HTTP/1.0 200 OK\r\n\r\n");
 
 BOOST_AUTO_TEST_CASE( CreateDestruction )
 {
@@ -143,6 +62,16 @@ BOOST_AUTO_TEST_CASE( CreateDestruction )
 		BString answer(CreateDestructionMockHttpEventInterface::ANSWER.size() + 1);
 		BOOST_REQUIRE(testEventFramework.doRequest("GET / HTTP/1.0\r\n\r\n", answer));
 		BOOST_CHECK(answer == CreateDestructionMockHttpEventInterface::ANSWER.c_str());
+		for (int i = 0; i < 10; i++) {
+			if (CreateDestructionMockHttpEventInterface::checkStatus())
+				break;
+			else {
+				struct timespec tim;
+				tim.tv_sec = 0;
+				tim.tv_nsec = 20000;
+				nanosleep(&tim , NULL);
+			}
+		}
 	}
 	catch (...)
 	{
@@ -224,7 +153,7 @@ public:
 };
 
 FunctionalityMockHttpEventInterface::TStatus FunctionalityMockHttpEventInterface::_status = 0;
-const std::string FunctionalityMockHttpEventInterface::ANSWER("HTTP 200 OK\r\n\r\n");
+const std::string FunctionalityMockHttpEventInterface::ANSWER("HTTP/1.0 200 OK\r\n\r\n");
 const std::string FunctionalityMockHttpEventInterface::TEST_COOKIE("U=test");
 const std::string FunctionalityMockHttpEventInterface::TEST_FILE_NAME("/test");
 const std::string FunctionalityMockHttpEventInterface::TEST_QUERY("a1&btest1");
@@ -378,8 +307,8 @@ public:
 };
 
 KeepAliveMockHttpEventInterface::TStatus KeepAliveMockHttpEventInterface::_status = 0;
-const std::string KeepAliveMockHttpEventInterface::ANSWER1("HTTP 200 OK\r\nContent-length: 5\r\n\r\ntest1");
-const std::string KeepAliveMockHttpEventInterface::ANSWER2("HTTP 200 OK\r\nContent-length: 5\r\n\r\ntest2");
+const std::string KeepAliveMockHttpEventInterface::ANSWER1("HTTP/1.1 200 OK\r\nContent-length: 5\r\n\r\ntest1");
+const std::string KeepAliveMockHttpEventInterface::ANSWER2("HTTP/1.1 200 OK\r\nContent-length: 5\r\n\r\ntest2");
 
 const std::string KeepAliveMockHttpEventInterface::TEST_COOKIE1("U=test");
 const std::string KeepAliveMockHttpEventInterface::TEST_FILE_NAME1("/test");
@@ -565,7 +494,7 @@ public:
 };
 
 PostMockHttpEventInterface::TStatus PostMockHttpEventInterface::_status = 0;
-const std::string PostMockHttpEventInterface::ANSWER("HTTP 200 OK\r\n\r\n");
+const std::string PostMockHttpEventInterface::ANSWER("HTTP/1.0 200 OK\r\n\r\n");
 const std::string PostMockHttpEventInterface::TEST_COOKIE("U=test");
 const std::string PostMockHttpEventInterface::TEST_FILE_NAME("/test");
 const std::string PostMockHttpEventInterface::TEST_QUERY("a1&ktest1");
@@ -688,7 +617,7 @@ public:
 };
 
 DependedMockHttpEventInterface::TStatus DependedMockHttpEventInterface::_status = 0;
-const std::string DependedMockHttpEventInterface::ANSWER("HTTP 200 OK\r\n\r\n");
+const std::string DependedMockHttpEventInterface::ANSWER("HTTP/1.0 200 OK\r\n\r\n");
 
 
 BOOST_AUTO_TEST_CASE( Depended )

@@ -81,6 +81,8 @@ namespace fl {
 			static bool _parseKeepAlive(const char *name, const size_t nameLength, const char *value, bool &isKeepAlive);
 			static bool _parseContentLength(const char *name, const size_t nameLength, const char *value, 
 				size_t &contentLength);
+			static bool _parseHost(const char *name, const size_t nameLength, const char *value, const size_t valueLen, 
+				std::string &host);
 			static bool _isCookieHeader(const char *name, const size_t nameLength);
 			static const char _nextParam(const char *&paramStart, const char *end, const char *&value, size_t &valueLength);
 			enum class EHttpRequestType : uint8_t

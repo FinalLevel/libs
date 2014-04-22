@@ -26,7 +26,7 @@ namespace fl {
 		class HttpAnswer
 		{
 		public:
-			HttpAnswer(BString &buf, const std::string &httpStatus, const char *contentType, 
+			HttpAnswer(BString &buf, const std::string &httpStatus, const char *contentType, const bool isKeepAlive,
 				const std::string& headers = std::string());
 			void addHeaders(const std::string &headers);
 			void setContentLength();

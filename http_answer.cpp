@@ -13,11 +13,16 @@
 
 using namespace fl::http;
 
-HttpAnswer::HttpAnswer(BString &buf, const std::string &httpStatus, const char *contentType, const std::string& headers)
+HttpAnswer::HttpAnswer(BString &buf, const std::string &httpStatus, const char *contentType, const bool isKeepAlive, 
+	const std::string& headers)
 	: _buf(buf)
 {
 	buf << httpStatus;
 	buf << "Content-Type: " << contentType << "\r\n" << headers;
+	if (isKeepAlive)
+		_buf << "Connection: Keep-Alive\r\n";
+	else
+		_buf << "Connection: Close\r\n";
 	_contentLengthStart = buf.size();
 	buf << "Content-Length: 0000000000\r\n\r\n";
 	_headersEnd = buf.size();

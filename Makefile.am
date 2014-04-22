@@ -14,7 +14,8 @@ endif
 check_PROGRAMS = libfl_test
 libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp tests/dir_test.cpp \
   tests/bstring_test.cpp tests/file_test.cpp tests/socket_test.cpp tests/event_thread_test.cpp tests/thread_test.cpp \
-  tests/log_test.cpp tests/event_queue_test.cpp tests/http_event_test.cpp tests/http_answer_test.cpp
+  tests/log_test.cpp tests/event_queue_test.cpp tests/http_event_test.cpp tests/http_answer_test.cpp \ 
+  tests/webdav_interface_test.cpp
 libfl_test_LDFLAGS = $(BOOST_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(BOOST_FILESYSTEM_LIB) $(MYSQL_LDFLAGS)
 libfl_test_LDADD = $(LDADD) libfl.a
 libfl_test_CPPFLAGS = $(AM_CPPFLAGS)

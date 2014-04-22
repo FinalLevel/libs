@@ -13,10 +13,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "http_event.hpp"
+#include "file.hpp"
 
 namespace fl {
 	namespace http {
 		using namespace fl::events;
+		using fl::fs::File;
+		
+		const size_t DEFALUT_POST_INMEMMORY_SIZE = 1024 * 64; // 64 kByte
 		
 		class WebDavInterface : public HttpEventInterface
 		{
@@ -32,9 +36,22 @@ namespace fl {
 				const char *pEndHeader);
 			virtual bool formError(EHttpState::EHttpState &state, BString &result);
 			
-			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
+			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http);
 			virtual bool reset();
+			
+			static void setMaxPostInMemmorySize(const size_t maxPostInMemmorySize)
+			{
+				_maxPostInMemmorySize = maxPostInMemmorySize;
+			}
+			static size_t maxPostInMemmorySize()
+			{
+				return _maxPostInMemmorySize;
+			}
 		protected:
+			static size_t _maxPostInMemmorySize;
+			static std::string _tmpPath;
+			
+			
 			typedef uint8_t TStatus;
 			TStatus _status;
 			static const TStatus ST_OVERWRITE = 0x1;
@@ -43,12 +60,17 @@ namespace fl {
 			// the statuses from 0x10 to 0x80 are reserved for CMD specific purposes
 			static const TStatus ST_PROP_FIND_SUPPORTED_METHOD_SET				= 0x10;
 			
+			static const TStatus ST_POST_SPLITED													= 0x10;
+			
 			static const std::string HTTP_MULTI_STATUS;
+			static const std::string HTTP_CREATED_STATUS;
 
 			enum EError : uint8_t
 			{
 				ERROR_NO = 0,
 				ERROR_BAD_REQUEST,
+				ERROR_LENGTH_REQUIRED,
+				ERROR_INSUFFICIENT_STORAGE,
 				ERROR_MAX,
 			};
 			static const std::string _ERROR_STRINGS[ERROR_MAX];
@@ -77,8 +99,9 @@ namespace fl {
 			EFormResult _formPropFind(BString &networkBuffer);
 
 			
-			virtual bool _savePartialPOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError);
-			virtual bool _put(const char *dataStart);
+			bool _savePartialPOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError);
+			virtual bool _put(const char *dataStart) = 0;
+			EFormResult _formPut(BString &networkBuffer);
 			
 			bool _parsePropFind(const char *data);
 			
@@ -86,6 +109,14 @@ namespace fl {
 			
 			std::string _host;
 			std::string _fileName;
+			
+			EFormResult _keepAliveState()
+			{
+				return (_status & ST_KEEP_ALIVE) ? EFormResult::RESULT_OK_KEEP_ALIVE : EFormResult::RESULT_OK_CLOSE;
+			}
+			bool _savePostChunk(const char *data, const size_t size);
+			File _postTmpFile;
+			virtual bool _putFile() = 0;
 		};
 	};
 };

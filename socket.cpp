@@ -156,6 +156,101 @@ bool Socket::connect(const TIPv4 ip, const uint32_t port, const size_t timeout)
 	return true;
 }
 
+bool Socket::pollReadHttpAnswer(BString &answer, const size_t timeout)
+{
+	bool fullRequestReceived = false;
+	bool headerFound = false;
+	BString::TSize headerStartPosition = 0;
+	ssize_t contentLength = -1;
+	
+	struct pollfd socketList[1];
+	while (true) {
+		socketList[0].fd = _descr;
+		socketList[0].events = POLLIN | POLLERR | POLLHUP;
+		socketList[0].revents = 0;
+		auto retval = poll(socketList, 1, timeout);
+		if (retval <= 0)
+			return false;
+		if(((socketList[0].revents & POLLHUP) == POLLHUP) ||
+      ((socketList[0].revents & POLLERR) == POLLERR) ||
+      ((socketList[0].revents & POLLNVAL) == POLLNVAL)) {
+			return fullRequestReceived;
+    }
+		auto chunkSize = answer.reserved();
+		if (answer.size()) {
+			chunkSize -= answer.size();
+			if (chunkSize < (answer.reserved() / 4))
+				chunkSize = answer.reserved(); // double buffer size after using of 1/4
+		}
+		static const size_t HTTP_ANSWER_SIZE = 8 * 1024;
+		if (chunkSize <= 1)
+			chunkSize = HTTP_ANSWER_SIZE;
+		else
+			chunkSize--;
+		
+		auto lastChecked = answer.size();
+		char *data = answer.reserveBuffer(chunkSize);
+		auto res = recv(_descr, data, chunkSize, MSG_NOSIGNAL | MSG_DONTWAIT);
+		if (res > 0) {
+			answer.trim(answer.size() - (chunkSize - res));
+			static const BString::TSize MIN_HTTP_ANSWER = sizeof("HTTP/1.0 200 OK\r\n\r\n") - 2;
+			if (!headerFound && (answer.size() > MIN_HTTP_ANSWER))	{
+				if (lastChecked > 0) // skip one char because it might be '\r' before '\n'
+					lastChecked--;
+				const char *pBuffer = answer.c_str() + lastChecked;
+				while (*pBuffer != 0) {
+					if (*pBuffer == '\r')
+					{
+						pBuffer++;
+						if (*pBuffer == '\n') {
+							pBuffer++;
+							const char *pEndHeader = pBuffer - 2; // skip \r\n
+							const char *pBeginHeader = answer.c_str() + headerStartPosition;
+							int headerLength = pEndHeader - pBeginHeader;
+							if (headerLength > 0) {
+								static const std::string CONTENT_LENGTH_HEADER("Content-length:");
+								if (!strncasecmp(pBeginHeader, CONTENT_LENGTH_HEADER.c_str(), CONTENT_LENGTH_HEADER.size())) {
+									pBeginHeader += CONTENT_LENGTH_HEADER.size();
+									while (isspace(*pBeginHeader))
+										pBeginHeader++;
+									contentLength = strtoull(pBeginHeader, NULL, 10);
+								}
+							} else  {// \r\n\r\n found
+								headerStartPosition = pBuffer - answer.c_str();
+								headerFound = true;
+								if (contentLength < 0)
+									fullRequestReceived = true;
+								break;
+							}
+							headerStartPosition = pBuffer - answer.c_str();
+						}
+					}
+					else
+						pBuffer++;
+				}
+			}
+			if (headerFound) { // end query was found
+				if (contentLength < 0) // a content length header has not received
+					continue;
+				if (headerStartPosition + contentLength <= (ssize_t)answer.size())
+					return true;
+				else
+					continue;
+			}	
+		}  else { 
+			answer.trim(answer.size() - chunkSize);
+			if (res == 0) {
+				return fullRequestReceived;
+			} else  if (res < 0) {
+				if (errno == EAGAIN)
+					continue;
+				return fullRequestReceived;
+			}
+		}
+	}
+	return false;
+}
+
 bool Socket::pollAndRecvAll(void *buf, const size_t size, const size_t timeout)
 {
 	struct pollfd socketList[1];

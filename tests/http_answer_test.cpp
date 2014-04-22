@@ -17,18 +17,17 @@ BOOST_AUTO_TEST_SUITE( fl_http_HttpAnswer )
 
 BOOST_AUTO_TEST_CASE( HttpAnswerConstructor )
 {
-	BOOST_CHECK_NO_THROW (
-		BString buf;
-		HttpAnswer httpAnswer(buf, HTTP_OK_STATUS, "text/html", CACHE_PREVENTING_HEADERS);
-		
-	);
+	BString buf;
+	HttpAnswer httpAnswer(buf, HTTP_OK_STATUS, "text/html", false, CACHE_PREVENTING_HEADERS);
+	httpAnswer.setContentLength();
+	BOOST_CHECK( strstr(buf.c_str(), "Content-Length: 0000000000\r\n\r\n") != NULL);
 }
 
 BOOST_AUTO_TEST_CASE( HttpAnswerSetContentLength )
 {
 	BOOST_CHECK_NO_THROW (	
 		BString buf;
-		HttpAnswer httpAnswer(buf, HTTP_OK_STATUS, "text/html", CACHE_PREVENTING_HEADERS);
+		HttpAnswer httpAnswer(buf, HTTP_OK_STATUS, "text/html", false, CACHE_PREVENTING_HEADERS);
 		const std::string TEST_STRING("bla bla bla");
 		buf << TEST_STRING;
 		httpAnswer.setContentLength();

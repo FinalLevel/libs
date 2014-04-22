@@ -174,6 +174,12 @@ BString &BString::operator<<(const std::string &str)
 	return *this;
 }
 
+BString &BString::operator<<(const BString &str)
+{
+	add(str.c_str(), str.size());
+	return *this;
+}
+
 BString &BString::operator<<(const char ch)
 {
 	_fit(1);

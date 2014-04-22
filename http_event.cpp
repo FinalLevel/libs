@@ -418,6 +418,22 @@ bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLeng
 	
 }
 
+
+bool HttpEventInterface::_parseHost(const char *name, const size_t nameLength, const char *value, const size_t valueLen,
+	std::string &host)
+{
+	static const std::string HOST_HEADER("Host");
+	if (nameLength != HOST_HEADER.size())
+		return false;
+	if (strncasecmp(name, HOST_HEADER.c_str(), HOST_HEADER.size()))
+		return false;
+	else {
+		host.assign(value, valueLen);
+		return true;
+	}
+
+}
+
 bool HttpEventInterface::_parseContentLength(const char *name, const size_t nameLength, const char *value, 
 	size_t &contentLength)
 {

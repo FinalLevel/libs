@@ -21,6 +21,7 @@ namespace fl {
 		typedef int TDescriptor;
 		typedef uint32_t TIPv4;
 		const TDescriptor INVALID_SOCKET = -1;
+		using fl::strings::BString;
 		
 		class NetworkError : public fl::exceptions::Error
 		{
@@ -56,6 +57,7 @@ namespace fl {
 			bool pollAndRecvAll(void *buf, const size_t size, const size_t timeout = DEFAULT_READ_TIMEOUT);
 			static const size_t DEFAULT_SEND_TIMEOUT = 30 * 1000; // 30 seconds
 			bool pollAndSendAll(const void *buf, const size_t size, const size_t timeout = DEFAULT_SEND_TIMEOUT);
+			bool pollReadHttpAnswer(BString &answer, const size_t timeout = DEFAULT_READ_TIMEOUT);
 			int getFlags();
 			static fl::strings::BString ip2String(const TIPv4 ip);
 			static TIPv4 ip2Long(const char *ipStr);
