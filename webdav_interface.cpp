@@ -20,7 +20,7 @@ size_t WebDavInterface::_maxPostInMemmorySize = DEFALUT_POST_INMEMMORY_SIZE;
 std::string WebDavInterface::_tmpPath("/tmp");
 
 WebDavInterface::WebDavInterface()
-	: _status(0), _error(EError::ERROR_NO), _requestType(ERequestType::UNKNOWN), _contentLength(0)
+	: _status(0), _error(EError::ERROR_200_OK), _requestType(ERequestType::UNKNOWN), _contentLength(0)
 {
 }
 
@@ -28,7 +28,7 @@ bool WebDavInterface::reset()
 {
 	if (_status & ST_KEEP_ALIVE) {
 		_status = 0;
-		_error = EError::ERROR_NO;
+		_error = EError::ERROR_200_OK;
 		_requestType = ERequestType::UNKNOWN;
 		_contentLength = 0;
 		_host.clear();
@@ -45,13 +45,13 @@ bool WebDavInterface::parseURI(const char *cmdStart, const EHttpVersion::EHttpVe
 {
 	if (version != EHttpVersion::HTTP_1_1) {
 		log::Error::L("WebDAV can work only over HTTP/1.1 protocol\n");
-		_error = ERROR_BAD_REQUEST;
+		_error = ERROR_400_BAD_REQUEST;
 		return false;
 	}
 	_status |= ST_KEEP_ALIVE;
 	if (!_parseRequestType(cmdStart))
 	{
-		_error = ERROR_BAD_REQUEST;
+		_error = ERROR_400_BAD_REQUEST;
 		return false;
 	}
 	_host = host;
@@ -80,7 +80,10 @@ bool WebDavInterface::parseHeader(const char *name, const size_t nameLength, con
 const std::string WebDavInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 200 OK\r\n",
 	"HTTP/1.1 400 Bad Request\r\n",
+	"HTTP/1.1 405 Method Not Allowed\r\n"
+	"HTTP/1.1 409 Conflict\r\n"
 	"HTTP/1.1 411 Length Required\r\n",
+	"HTTP/1.1 503 Service Unavailable\r\n",
 	"HTTP/1.1 507 Insufficient Storage\r\n",
 };
 
@@ -97,13 +100,13 @@ bool WebDavInterface::_savePostChunk(const char *data, const size_t size)
 	if (_postTmpFile.descr() == 0) {
 		if (!_postTmpFile.createUnlinkedTmpFile(_tmpPath.c_str())) {
 			log::Error::L("Can't create a temporary file at %s to save a POST request\n", _tmpPath.c_str());
-			_error = ERROR_INSUFFICIENT_STORAGE;
+			_error = ERROR_507_INSUFFICIENT_STORAGE;
 			return false;
 		}
 	}
 	if (_postTmpFile.write(data, size) != (ssize_t)size) {
 		log::Error::L("Can't save a POST request to the temporary file at %s\n", _tmpPath.c_str());
-		_error = ERROR_INSUFFICIENT_STORAGE;
+		_error = ERROR_507_INSUFFICIENT_STORAGE;
 		return false;
 	}
 	if (size >= _contentLength)
@@ -171,12 +174,12 @@ bool WebDavInterface::_parsePropFind(const char *data)
 		auto root = doc.first_node();
 		if (root == NULL) {
 			log::Error::L("WebDAV:PROPFIND: the root element is NULL\n");
-			_error = ERROR_BAD_REQUEST;
+			_error = ERROR_400_BAD_REQUEST;
 			return false;
 		}
 		if (strcmp(root->name(), "propfind")) {
 			log::Error::L("WebDAV:PROPFIND: bad root name %s\n", root->name());
-			_error = ERROR_BAD_REQUEST;
+			_error = ERROR_400_BAD_REQUEST;
 			return false;			
 		}
 		for (auto child = root->first_node(); child != NULL; child = child->next_sibling()) {
@@ -198,7 +201,7 @@ bool WebDavInterface::_parsePropFind(const char *data)
 	catch (...)
 	{
 		log::Error::L("WebDAV:PROPFIND cannot parse XML\n");
-		_error = ERROR_BAD_REQUEST;
+		_error = ERROR_400_BAD_REQUEST;
 		return false;
 	}
 }
@@ -232,7 +235,9 @@ HttpEventInterface::EFormResult WebDavInterface::formResult(BString &networkBuff
 	case ERequestType::OPTIONS:
 		return _formOptions(networkBuffer);
 	case ERequestType::PROPFIND:
-		return _formPropFind(networkBuffer);		
+		return _formPropFind(networkBuffer);
+	case ERequestType::MKCOL:
+		return _formMkCOL(networkBuffer);	
 	case ERequestType::UNKNOWN:
 		break;
 	}
@@ -279,6 +284,19 @@ Allow: MKCOL, PROPFIND, PROPPATCH\r\n\
 DAV: 1\r\n");
 	answer.setContentLength();
 	return _keepAliveState();
+}
+
+HttpEventInterface::EFormResult WebDavInterface::_formMkCOL(BString &networkBuffer)
+{
+	if (_mkCOL()) {
+		HttpAnswer answer(networkBuffer, HTTP_CREATED_STATUS, "text/xml; charset=\"utf-8\"", (_status & ST_KEEP_ALIVE));
+		answer.setContentLength();
+		return _keepAliveState();	
+	} else {
+		EHttpState::EHttpState state;
+		formError(state, networkBuffer);
+		return _keepAliveState();
+	}
 }
 
 HttpEventInterface::EFormResult WebDavInterface::_formPut(BString &networkBuffer)

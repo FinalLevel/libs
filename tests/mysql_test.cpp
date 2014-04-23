@@ -38,12 +38,16 @@ BOOST_AUTO_TEST_CASE( QueryTest )
 	{
 		Mysql sql;
 		auto query = sql.createQuery();
-		query << "SELECT id FROM " << "table" << " WHERE id=" <<= 10;
+		query << "SELECT id FROM " << "table" << " WHERE id=" << ESC << 10;
 		BOOST_CHECK(query == "SELECT id FROM table WHERE id=10");
 
 		query.clear();
-		query << "SELECT id FROM " << "table" << " WHERE id=" <<= "test";
+		query << "SELECT id FROM " << "table" << " WHERE id=" << ESC << "test";
 		BOOST_CHECK(query == "SELECT id FROM table WHERE id='test'");
+		
+		query.clear();
+		query << "SELECT id FROM " << "table" << " WHERE id=" << ESC << "test" << " AND i=" << ESC << 10 << " AND 1";
+		BOOST_CHECK(query == "SELECT id FROM table WHERE id='test' AND i=10 AND 1");
 
 	}
 	catch (...) 

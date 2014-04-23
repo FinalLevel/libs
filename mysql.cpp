@@ -224,22 +224,29 @@ const char *MysqlResult::getFieldName(const int pos)
 
 
 MysqlQuery::MysqlQuery(MysqlQuery &&src)
-	: BString(std::move(src)), _mysql(src._mysql)
+	: BString(std::move(src)), _mysql(src._mysql), _needEscape(src._needEscape)
 {
-	
+	src._needEscape = false;
 }
 
 MysqlQuery &MysqlQuery::operator= (MysqlQuery &&src)
 {
 	BString::operator= (std::move(src));
 	std::swap(_mysql, src._mysql);
+	std::swap(_needEscape, src._needEscape);
 	return *this;
 }
 
 MysqlQuery::MysqlQuery(TMysqlDescriptorSharedPtr &mysql, const BString::TSize reserved)
-	: BString(reserved), _mysql(mysql)
+	: BString(reserved), _mysql(mysql), _needEscape(false)
 {
 	
+}
+
+void MysqlQuery::clear()
+{
+	BString::clear();
+	_needEscape = false;
 }
 
 void MysqlQuery::_escape(const char *value, const size_t length)
@@ -249,18 +256,6 @@ void MysqlQuery::_escape(const char *value, const size_t length)
 	currentSize += mysql_real_escape_string(_mysql.get(), reserveBuffer(length * 2  + 1), value, length);
 	trim(currentSize);
 	*this << '\'';
-}
-
-MysqlQuery &MysqlQuery::operator<<= (const char *value)
-{
-	_escape(value, strlen(value));
-	return *this;
-}
-
-MysqlQuery &MysqlQuery::operator<<= (const std::string &value)
-{
-	_escape(value.c_str(), value.size());
-	return *this;	
 }
 
 bool log::MysqlLogSystem::log(const size_t target, const int level, const time_t curTime, struct tm *ct, 

@@ -67,10 +67,13 @@ namespace fl {
 
 			enum EError : uint8_t
 			{
-				ERROR_NO = 0,
-				ERROR_BAD_REQUEST,
-				ERROR_LENGTH_REQUIRED,
-				ERROR_INSUFFICIENT_STORAGE,
+				ERROR_200_OK = 0,
+				ERROR_400_BAD_REQUEST,
+				ERROR_405_METHOD_NOT_ALLOWED,
+				ERROR_409_CONFLICT,
+				ERROR_411_LENGTH_REQUIRED,
+				ERROR_503_SERVICE_UNAVAILABLE,
+				ERROR_507_INSUFFICIENT_STORAGE,
 				ERROR_MAX,
 			};
 			static const std::string _ERROR_STRINGS[ERROR_MAX];
@@ -117,6 +120,12 @@ namespace fl {
 			bool _savePostChunk(const char *data, const size_t size);
 			File _postTmpFile;
 			virtual bool _putFile() = 0;
+			
+			EFormResult _formMkCOL(BString &networkBuffer);
+			virtual bool _mkCOL()
+			{
+				return false;
+			}
 		};
 	};
 };

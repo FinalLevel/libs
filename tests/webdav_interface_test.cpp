@@ -35,13 +35,13 @@ protected:
 		if (dataStart == MockPutWebDavInterface::SMALL_FILE)
 			return true;
 		else {
-			_error = ERROR_BAD_REQUEST;
+			_error = ERROR_400_BAD_REQUEST;
 			return false;
 		}
 	}
 	virtual bool _putFile()
 	{
-		_error = ERROR_BAD_REQUEST;
+		_error = ERROR_400_BAD_REQUEST;
 
 		if (!_postTmpFile.descr())
 			return false;
@@ -56,7 +56,7 @@ protected:
 		for (int i = 0; i < fileSize; i++)
 			if (buf[i] != ('0' + (i % 32)))
 				return false;
-		_error = ERROR_NO;
+		_error = ERROR_200_OK;
 		return true;
 	}
 };
@@ -114,12 +114,12 @@ public:
 protected:
 	virtual bool _put(const char *dataStart) 
 	{
-		_error = ERROR_BAD_REQUEST;
+		_error = ERROR_400_BAD_REQUEST;
 		return false;
 	}
 	virtual bool _putFile()
 	{
-		_error = ERROR_BAD_REQUEST;
+		_error = ERROR_400_BAD_REQUEST;
 		return false;
 	}
 };

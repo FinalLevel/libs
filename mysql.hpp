@@ -197,39 +197,67 @@ namespace fl {
 			MYSQL_ROW _currentRow;
 		};
 		
+		struct Escape {};
+		const Escape ESC = {};
+		
 		class MysqlQuery : public BString
 		{
 		public:
 			MysqlQuery(MysqlQuery &&src);
 			MysqlQuery &operator= (MysqlQuery &&src);
 			
-			MysqlQuery& operator<<= (const char *value);
-			MysqlQuery& operator<<= (const std::string &value);
-			
-			template <typename T>
-			MysqlQuery& operator<<= (const T value)
+		
+			MysqlQuery &operator<< (const Escape)
 			{
-				*this << value;
+				_needEscape = true;
 				return *this;
 			}
 			MysqlQuery &operator<< (const char *str)
 			{
-				BString::operator<<(str);
+				if (_needEscape) {
+					_escape(str, strlen(str));
+					_needEscape = false;
+				}
+				else
+					BString::operator<<(str);
 				return *this;
 			}
-
+			MysqlQuery &operator<< (const std::string &str)
+			{
+				if (_needEscape) {
+					_escape(str.c_str(), str.size());
+					_needEscape = false;
+				}
+				else
+					BString::operator<<(str);
+				return *this;
+			}
+			
+			MysqlQuery &operator<< (const BString &str)
+			{
+				if (_needEscape) {
+					_escape(str.c_str(), str.size());
+					_needEscape = false;
+				}
+				else
+					BString::operator<<(str);
+				return *this;
+			}
 			template <typename T>
 			MysqlQuery& operator<< (const T value)
 			{
+				_needEscape = false;
 				BString::operator<<(value);
 				return *this;
 			}
+			void clear();
 		private:
 			friend class Mysql; // used only to prevent construction from other sources
 			MysqlQuery(TMysqlDescriptorSharedPtr &mysql, const BString::TSize reserved);
 			void _escape(const char *value, const size_t length);
 
 			TMysqlDescriptorSharedPtr _mysql;
+			bool _needEscape;
 		};
 		
 		namespace log {
