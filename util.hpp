@@ -13,7 +13,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <cstdint>
+#include <cstring>
 #include <string>
+#include <vector>
 
 namespace fl {
 	namespace utils {
@@ -61,6 +63,7 @@ namespace fl {
 		{
 			return convertStringTo<T>(src.c_str(), nextChar, base);
 		}
+
 		template <>
 		inline const std::string convertStdStringTo<std::string>(const std::string &src, char **nextChar, int base)
 		{
@@ -85,6 +88,25 @@ namespace fl {
 		{
 			return getCheckSum32(value.c_str(), value.size());
 		}
+		
+		template <typename T> bool explode(const char *str, std::vector<T> &array, char delimiter = ',', int base = 10)
+		{
+			if (!str)
+				return false;
+			
+			const char *pStr = str;
+			const char *pEnd = pStr + strlen(str);
+			while (pStr < pEnd) {
+				char *pNext;
+				auto val = convertStringTo<T>(pStr, &pNext, base);
+				array.push_back(val);
+				if(*pNext != delimiter)
+					break;
+				pStr = pNext + 1;
+			}
+			return !array.empty();
+		}	
+
 		bool fileExists(const char *fileName);
 	};
 };

@@ -50,6 +50,7 @@ namespace fl {
 			bool setCharacterSet(const char *characterSet);
 			const char *getCharacterSet() const;
 			static void setDefaultCharacterSet(const char *characterSet);
+			bool setServerOption(const enum enum_mysql_set_option option);
 
 			TMysqlResultPtr query(const char *queryStr);
 			TMysqlResultPtr query(const class MysqlQuery &mysqlQuery);
@@ -67,6 +68,8 @@ namespace fl {
 			unsigned long affectedRows() const;
 
 			void addRealEscape(BString &buf, const char *value, const long length);
+			
+			bool nextResult();
 			
 			class MysqlQuery createQuery(const BString::TSize reserved = BString::DEFAULT_RESERVED_SIZE);
 		private:
@@ -197,8 +200,11 @@ namespace fl {
 			MYSQL_ROW _currentRow;
 		};
 		
-		struct Escape {};
-		const Escape ESC = {};
+		struct MysqlQueryEscape {};
+		const MysqlQueryEscape ESC = {};
+		
+		struct MysqlQueryClear {};
+		const MysqlQueryClear CLR = {};
 		
 		class MysqlQuery : public BString
 		{
@@ -206,8 +212,13 @@ namespace fl {
 			MysqlQuery(MysqlQuery &&src);
 			MysqlQuery &operator= (MysqlQuery &&src);
 			
+			MysqlQuery &operator<< (const MysqlQueryClear)
+			{
+				clear();
+				return *this;
+			}
 		
-			MysqlQuery &operator<< (const Escape)
+			MysqlQuery &operator<< (const MysqlQueryEscape)
 			{
 				_needEscape = true;
 				return *this;
@@ -243,11 +254,28 @@ namespace fl {
 					BString::operator<<(str);
 				return *this;
 			}
+			
 			template <typename T>
 			MysqlQuery& operator<< (const T value)
 			{
 				_needEscape = false;
 				BString::operator<<(value);
+				return *this;
+			}
+			template <typename T>
+			MysqlQuery& operator<< (const std::vector<T> &array)
+			{
+				auto needEscape = _needEscape;
+				operator<<('"');
+				for (auto v = array.begin(); v != array.end(); v++) {
+					_needEscape = needEscape;
+					operator<<(*v);
+					operator<<(',');
+				}
+				if (!array.empty())
+					trimLast();
+				operator<<('"');
+				_needEscape = false;
 				return *this;
 			}
 			void clear();

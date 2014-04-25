@@ -126,7 +126,8 @@ BOOST_AUTO_TEST_SUITE( WorkerThreadSystem )
 
 BOOST_AUTO_TEST_CASE( WorkerThread )
 {
-	BOOST_CHECK_NO_THROW (
+	try
+	{
 		const u_int32_t QUEUE_LENGTH = 1000;
 		const u_int32_t WORKER_STACK_SIZE = 100000;
 		EPollWorkerThread worker(QUEUE_LENGTH, NULL, WORKER_STACK_SIZE);
@@ -162,7 +163,9 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		worker.cancel();
 		worker.waitMe();
 		close(fd);
-	);
+	} catch (...) {
+		BOOST_CHECK_NO_THROW(throw);
+	}
 }				
 
 BOOST_AUTO_TEST_SUITE_END()

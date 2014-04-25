@@ -34,4 +34,17 @@ BOOST_AUTO_TEST_CASE( testFileExists )
 	BOOST_CHECK(fileExists("/"));
 }
 
+BOOST_AUTO_TEST_CASE( testExplode )
+{
+	const char *str = "1,2,3,4,5";
+	std::vector<int> ids;
+	BOOST_CHECK( explode<int>(str, ids) );
+	BOOST_CHECK( ids.size() == 5 );
+	auto id = ids.begin();
+	for (int i = 1; i <= 5; i++) {
+		BOOST_CHECK(*id == i);
+		id++;
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()

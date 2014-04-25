@@ -54,6 +54,11 @@ bool Mysql::setCharacterSet(const char *characterSet)
 		return true;
 }
 
+bool Mysql::setServerOption(const enum enum_mysql_set_option option)
+{
+	return (mysql_set_server_option(_mysql.get(), option) == 0);
+}
+
 const char *Mysql::getCharacterSet() const
 {
 	return mysql_character_set_name(_mysql.get());
@@ -172,6 +177,12 @@ void Mysql::addRealEscape(BString &buf, const char *value, const long length)
 	auto currentSize = buf.size();
 	currentSize += mysql_real_escape_string(_mysql.get(), buf.reserveBuffer(length * 2  + 1), value, length);
 	buf.trim(currentSize);
+}
+
+
+bool Mysql::nextResult()
+{
+	return (mysql_next_result(_mysql.get()) == 0);
 }
 
 MysqlQuery Mysql::createQuery(const BString::TSize reserved)

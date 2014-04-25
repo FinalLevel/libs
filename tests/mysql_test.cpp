@@ -56,4 +56,31 @@ BOOST_AUTO_TEST_CASE( QueryTest )
 	}
 }
 
+BOOST_AUTO_TEST_CASE( QueryVectorTest )
+{
+	try 
+	{
+		Mysql sql;
+		std::vector<int> ints = {1,2,3,4,5};
+		auto query = sql.createQuery();
+		query << "SELECT id FROM " << "table" << " WHERE ids=" << ESC << ints;
+		BOOST_CHECK(query == "SELECT id FROM table WHERE ids=\"1,2,3,4,5\"");
+
+		std::vector<std::string> strings = {"ab","bc", "cd", "de"};
+		query.clear();
+		query << "SELECT id FROM " << "table" << " WHERE strings=" << ESC << strings;
+		BOOST_CHECK(query == "SELECT id FROM table WHERE strings=\"'ab','bc','cd','de'\"");
+		
+		std::vector<int> emptyVector;
+		query.clear();
+		query << "SELECT id FROM " << "table" << " WHERE id=" << ESC << emptyVector;
+		BOOST_CHECK(query == "SELECT id FROM table WHERE id=\"\"");
+
+	}
+	catch (...) 
+	{
+		BOOST_CHECK_NO_THROW(throw);
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()				
