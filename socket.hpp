@@ -47,6 +47,14 @@ namespace fl {
 			bool reopen();
 			
 			static const size_t DEFAULT_CONNECT_TIMEOUT = 15 * 1000;
+			enum EConnectResult
+			{
+				CN_ERORR,
+				CN_CONNECTED,
+				CN_NOT_READY,
+				CN_NEED_RESET,
+			};
+			EConnectResult connectNonBlock(const TIPv4 ip, const uint32_t port);
 			bool connect(const TIPv4 ip, const uint32_t port, const size_t timeout = DEFAULT_CONNECT_TIMEOUT);
 			
 			const TDescriptor descr() const
@@ -63,6 +71,10 @@ namespace fl {
 			static TIPv4 ip2Long(const char *ipStr);
 			static bool setNonBlockIO(const TDescriptor descr);
 			static bool setNoDelay(const TDescriptor descr, int flag);
+			bool setNonBlockIO()
+			{
+				return setNonBlockIO(_descr);
+			}
 		private:
 			bool _open();
 			TDescriptor _descr;

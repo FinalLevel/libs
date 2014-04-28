@@ -12,6 +12,7 @@
 #include "webdav_interface.hpp"
 #include "socket.hpp"
 #include "accept_thread.hpp"
+#include "compatibility.hpp"
 
 using namespace fl::network;
 using namespace fl::events;
@@ -29,42 +30,53 @@ public:
 	}
 	static std::string ANSWER;
 	static std::string SMALL_FILE;
-protected:
-	virtual bool _put(const char *dataStart) 
+	typedef uint8_t TStatus;
+	static const TStatus ST_PUT = 0x1;
+	static const TStatus ST_FILE_PUT = 0x2;
+	static bool checkStatus()
 	{
-		if (dataStart == MockPutWebDavInterface::SMALL_FILE)
-			return true;
-		else {
-			_error = ERROR_400_BAD_REQUEST;
-			return false;
-		}
+		return _status == (ST_PUT | ST_FILE_PUT);
 	}
-	virtual bool _putFile()
+protected:
+	static TStatus _status;
+	virtual EFormResult _formPut(BString &networkBuffer, class HttpEvent *http) override
 	{
+		auto result = WebDavInterface::_formPut(networkBuffer, http);
+		if (WebDavInterface::_status & ST_POST_SPLITED) {
+			_error = ERROR_400_BAD_REQUEST;
+			if (!_postTmpFile.descr())
+				return EFormResult::RESULT_ERROR;
+			auto fileSize = _postTmpFile.fileSize();
+			if (fileSize != (ssize_t)(_maxPostInMemmorySize + 1))
+				return EFormResult::RESULT_ERROR;
+			_postTmpFile.seek(0, SEEK_SET);
+			BString data;
+			char *buf = data.reserveBuffer(fileSize);
+			if (_postTmpFile.read(buf, fileSize) != fileSize)
+				return EFormResult::RESULT_ERROR;
+			for (int i = 0; i < fileSize; i++)
+				if (buf[i] != ('0' + (i % 32)))
+					return EFormResult::RESULT_ERROR;
+			_error = ERROR_200_OK;
+			_status |= ST_FILE_PUT;
+			return result;
+	
+		} else {
+			if (_putData.c_str() == MockPutWebDavInterface::SMALL_FILE) {
+				_status |= ST_PUT;
+				return result;
+			}
+		}
 		_error = ERROR_400_BAD_REQUEST;
-
-		if (!_postTmpFile.descr())
-			return false;
-		auto fileSize = _postTmpFile.fileSize();
-		if (fileSize != (ssize_t)(_maxPostInMemmorySize + 1))
-			return false;
-		_postTmpFile.seek(0, SEEK_SET);
-		BString data;
-		char *buf = data.reserveBuffer(fileSize);
-		if (_postTmpFile.read(buf, fileSize) != fileSize)
-			return false;
-		for (int i = 0; i < fileSize; i++)
-			if (buf[i] != ('0' + (i % 32)))
-				return false;
-		_error = ERROR_200_OK;
-		return true;
+		return EFormResult::RESULT_ERROR;
 	}
 };
 
 std::string MockPutWebDavInterface::ANSWER("HTTP/1.1 201 Created\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n\
 Connection: Keep-Alive\r\nContent-Length: 0000000000\r\n\r\n");
 
-std::string MockPutWebDavInterface::SMALL_FILE("Small test file\n"); 
+std::string MockPutWebDavInterface::SMALL_FILE("Small test file\n");
+MockPutWebDavInterface::TStatus MockPutWebDavInterface::_status = 0;
 
 BOOST_AUTO_TEST_CASE( PutCheck )
 {
@@ -97,6 +109,7 @@ BOOST_AUTO_TEST_CASE( PutCheck )
 		answer.clear();
 		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
 		BOOST_REQUIRE(answer == MockPutWebDavInterface::ANSWER.c_str());
+		BOOST_REQUIRE(MockPutWebDavInterface::checkStatus());
 	}
 	catch (...)
 	{

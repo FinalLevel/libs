@@ -124,6 +124,28 @@ bool Socket::listen(const char *listenIP, int port, const int maxListenBacklog)
 	return true;
 }
 
+Socket::EConnectResult Socket::connectNonBlock(const TIPv4 ip, const uint32_t port)
+{
+	sockaddr_in addr;
+	bzero(&addr, sizeof(sockaddr_in));
+	addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = ntohl(ip);
+	addr.sin_port = htons(port);
+	
+
+	auto res = ::connect(_descr, (sockaddr *)&addr, sizeof(addr));
+	if (res == 0)
+		return CN_CONNECTED;
+	if (errno == EISCONN)
+		return CN_CONNECTED;
+	if ((errno == EINPROGRESS) || (errno == EAGAIN) || (errno == ENOTCONN))
+		return CN_NOT_READY;
+
+	if (errno == EBADF || errno == EPIPE)
+		return CN_NEED_RESET;
+	return CN_ERORR;
+}
+
 bool Socket::connect(const TIPv4 ip, const uint32_t port, const size_t timeout)
 {
 	sockaddr_in addr;

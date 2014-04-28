@@ -34,6 +34,7 @@ bool WebDavInterface::reset()
 		_host.clear();
 		_fileName.clear();
 		_postTmpFile.close();
+		_putData.clear();
 		return true;
 	}
 	else
@@ -121,12 +122,7 @@ bool WebDavInterface::_savePartialPOSTData(const uint32_t postStartPosition, Net
 	if (_status & ST_POST_SPLITED) {
 		if (_contentLength <= (size_t)buf.size()) {
 			if (_savePostChunk(buf.c_str(), buf.size())) {
-				if (_putFile())
-					return true;
-				else {
-					parseError = true;
-					return false;
-				}
+				return true;
 			}
 			else {
 				parseError = true;
@@ -139,12 +135,8 @@ bool WebDavInterface::_savePartialPOSTData(const uint32_t postStartPosition, Net
 		return false;
 	} else {
 		if (postStartPosition + _contentLength <= (size_t)buf.size()) {	
-			if (_put(buf.c_str() + postStartPosition))
-				return true;
-			else {
-				parseError = true;
-				return false;	
-			}
+			_putData.add(buf.c_str() + postStartPosition, _contentLength);
+			return true;
 		}
 		else {
 			if (_contentLength > _maxPostInMemmorySize) {
@@ -231,7 +223,7 @@ HttpEventInterface::EFormResult WebDavInterface::formResult(BString &networkBuff
 	case ERequestType::GET:
 		break;
 	case ERequestType::PUT:
-		return _formPut(networkBuffer);
+		return _formPut(networkBuffer, http);
 	case ERequestType::OPTIONS:
 		return _formOptions(networkBuffer);
 	case ERequestType::PROPFIND:
@@ -299,7 +291,7 @@ HttpEventInterface::EFormResult WebDavInterface::_formMkCOL(BString &networkBuff
 	}
 }
 
-HttpEventInterface::EFormResult WebDavInterface::_formPut(BString &networkBuffer)
+HttpEventInterface::EFormResult WebDavInterface::_formPut(BString &networkBuffer, class HttpEvent *http)
 {
 	HttpAnswer answer(networkBuffer, HTTP_CREATED_STATUS, "text/xml; charset=\"utf-8\"", (_status & ST_KEEP_ALIVE));
 	answer.setContentLength();

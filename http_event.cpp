@@ -8,6 +8,7 @@
 // Description: Http events system implementation
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <unistd.h>
 #include "http_event.hpp"
 #include "log.hpp"
 

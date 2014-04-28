@@ -26,9 +26,8 @@ namespace fl {
 		{
 		public:
 			WebDavInterface();
-			virtual ~WebDavInterface() 
-			{
-			}
+			virtual ~WebDavInterface() {};
+
 			virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 				const std::string &host, const std::string &fileName, const std::string &query);
 			virtual bool parsePOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError);
@@ -103,8 +102,8 @@ namespace fl {
 
 			
 			bool _savePartialPOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError);
-			virtual bool _put(const char *dataStart) = 0;
-			EFormResult _formPut(BString &networkBuffer);
+			BString _putData;
+			virtual EFormResult _formPut(BString &networkBuffer, class HttpEvent *http);
 			
 			bool _parsePropFind(const char *data);
 			
@@ -119,7 +118,6 @@ namespace fl {
 			}
 			bool _savePostChunk(const char *data, const size_t size);
 			File _postTmpFile;
-			virtual bool _putFile() = 0;
 			
 			EFormResult _formMkCOL(BString &networkBuffer);
 			virtual bool _mkCOL()
