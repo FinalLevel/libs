@@ -22,6 +22,58 @@ using namespace fl::http;
 
 BOOST_AUTO_TEST_SUITE( WebDavInterafaceTest )
 
+class MockGetWebDavInterface : public WebDavInterface
+{
+public:
+	MockGetWebDavInterface()
+	{
+	}
+	static std::string ANSWER;
+protected:
+	static TStatus _status;
+	virtual EFormResult _formGet(BString &networkBuffer, class HttpEvent *http) override
+	{
+		networkBuffer << ANSWER;
+		return EFormResult::RESULT_OK_KEEP_ALIVE;
+	}
+};
+
+std::string MockGetWebDavInterface::ANSWER("HTTP/1.1 200 OK\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n\
+Connection: Keep-Alive\r\nContent-Length: 0000000010\r\n\r\n1234567890");
+
+BOOST_AUTO_TEST_CASE( GetCheck )
+{
+	try
+	{
+		HttpMockEventFactory<MockGetWebDavInterface> factory;
+		TestHttpEventFramework testEventFramework(&factory);
+		BString request;
+		request << "GET /test HTTP/1.1\r\n";
+		request << "Content-length: " << 0 << "\r\n";
+		request << "\r\n"; 
+		
+		Socket conn;
+		BOOST_REQUIRE(testEventFramework.connect(conn));
+		BString answer(MockGetWebDavInterface::ANSWER.size() + 1);
+		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+		BOOST_REQUIRE(answer == MockGetWebDavInterface::ANSWER.c_str());
+		
+		request.clear();
+		request << "GET /test HTTP/1.1\r\n";
+		request << "Content-length: " << 0 << "\r\n";
+		request << "\r\n"; 
+		answer.clear();
+		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+		BOOST_REQUIRE(answer == MockGetWebDavInterface::ANSWER.c_str());
+	}
+	catch (...)
+	{
+		BOOST_CHECK_NO_THROW(throw);
+	}
+}
+
+
+
 class MockPutWebDavInterface : public WebDavInterface
 {
 public:

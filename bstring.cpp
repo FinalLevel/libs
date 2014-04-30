@@ -134,6 +134,14 @@ BString::TSize BString::sprintfSet(const char *fmt, ...)
 	}
 }
 
+
+const bool BString::operator==(const BString &str) const
+{
+	if (str._size != _size)
+		return false;
+	return !memcmp(_data, str._data, _size);
+}
+
 const bool BString::operator==(const char *compareWith) const
 {
 	TSize strLen = strlen(compareWith);

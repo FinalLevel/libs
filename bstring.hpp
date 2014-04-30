@@ -59,6 +59,7 @@ namespace fl {
 			void add(const char *str, TSize len);
 			
 			const bool operator==(const char *compareWith) const;
+			const bool operator==(const BString &str) const;
 			
 			void clear()
 			{

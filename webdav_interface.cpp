@@ -81,6 +81,7 @@ bool WebDavInterface::parseHeader(const char *name, const size_t nameLength, con
 const std::string WebDavInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 200 OK\r\n",
 	"HTTP/1.1 400 Bad Request\r\n",
+	"HTTP/1.1 404 Not found\r\n",
 	"HTTP/1.1 405 Method Not Allowed\r\n"
 	"HTTP/1.1 409 Conflict\r\n"
 	"HTTP/1.1 411 Length Required\r\n",
@@ -221,7 +222,7 @@ HttpEventInterface::EFormResult WebDavInterface::formResult(BString &networkBuff
 	switch (_requestType)
 	{
 	case ERequestType::GET:
-		break;
+		return _formGet(networkBuffer, http);
 	case ERequestType::PUT:
 		return _formPut(networkBuffer, http);
 	case ERequestType::OPTIONS:
@@ -289,6 +290,12 @@ HttpEventInterface::EFormResult WebDavInterface::_formMkCOL(BString &networkBuff
 		formError(state, networkBuffer);
 		return _keepAliveState();
 	}
+}
+
+HttpEventInterface::EFormResult WebDavInterface::_formGet(BString &networkBuffer, class HttpEvent *http)
+{
+	_error = ERROR_405_METHOD_NOT_ALLOWED;
+	return EFormResult::RESULT_ERROR;
 }
 
 HttpEventInterface::EFormResult WebDavInterface::_formPut(BString &networkBuffer, class HttpEvent *http)

@@ -68,6 +68,7 @@ namespace fl {
 			{
 				ERROR_200_OK = 0,
 				ERROR_400_BAD_REQUEST,
+				ERROR_404_NOT_FOUND,
 				ERROR_405_METHOD_NOT_ALLOWED,
 				ERROR_409_CONFLICT,
 				ERROR_411_LENGTH_REQUIRED,
@@ -104,6 +105,7 @@ namespace fl {
 			bool _savePartialPOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError);
 			BString _putData;
 			virtual EFormResult _formPut(BString &networkBuffer, class HttpEvent *http);
+			virtual EFormResult _formGet(BString &networkBuffer, class HttpEvent *http);
 			
 			bool _parsePropFind(const char *data);
 			
