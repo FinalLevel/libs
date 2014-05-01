@@ -22,6 +22,7 @@ namespace fl {
 		
 		typedef int TEventDescriptor;
 		typedef uint32_t TEvents;
+		const TEventDescriptor INVALID_EVENT = -1;
 		
 		const TEvents E_OUTPUT = EPOLLOUT;
 		const TEvents E_INPUT	 = EPOLLIN;

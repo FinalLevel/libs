@@ -61,6 +61,12 @@ inline void EPollWorkerThread::_addEvent(WorkEvent *ev)
 	ev->setListPosition(_events.insert(_events.rend().base(), ev));
 }
 
+
+void EPollWorkerThread::addToDeletedNL(class Event *ev)
+{
+	_deletedEvents.push_back(ev);
+}
+
 void EPollWorkerThread::run()
 {
 	EPoll::TEventVector changedEvents;
@@ -84,6 +90,10 @@ void EPollWorkerThread::run()
 				_events.erase(event->listPosition());
 				delete event;
 			}
+			
+			for (auto ev = _deletedEvents.begin(); ev != _deletedEvents.end(); ev++)
+				delete (*ev);
+			_deletedEvents.clear();
 			changedEvents.clear();
 			endedEvents.clear();
 		}
@@ -174,9 +184,10 @@ Time EPollWorkerGroup::curTime;
 EPollWorkerGroup::UpdateTimeEvent *EPollWorkerGroup::_updateTimeEvent = NULL;
 
 EPollWorkerGroup::UpdateTimeEvent::UpdateTimeEvent()
-	: TimerEvent(1, 0, 1, 0) // call event every second
+	: TimerEvent() // call event every second
 {
-	
+	if (!setTimer(1, 0, 1, 0))
+		throw fl::exceptions::Error("Can't set timer");
 }
 
 const Event::ECallResult EPollWorkerGroup::UpdateTimeEvent::call(const TEvents events)

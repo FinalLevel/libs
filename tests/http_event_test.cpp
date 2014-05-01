@@ -597,8 +597,10 @@ public:
 		DependedMockHttpEventInterface *_parent;
 		static const int long CALL_AFTER = 100000000; // 100 ms
 		DependedEvent(DependedMockHttpEventInterface *parent)
-			: TimerEvent(0, CALL_AFTER, 0, 0), _parent(parent) // call after CALL_AFTER nanosecond
+			: TimerEvent(), _parent(parent) // call after CALL_AFTER nanosecond
 		{
+			if (!setTimer(0, CALL_AFTER, 0, 0))
+				throw std::exception();
 			DependedMockHttpEventInterface::_status |= ST_DEPENDED_CREATE;
 		}
 			

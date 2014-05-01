@@ -17,6 +17,7 @@ HttpAnswer::HttpAnswer(BString &buf, const std::string &httpStatus, const char *
 	const std::string& headers)
 	: _buf(buf)
 {
+	buf.clear();
 	buf << httpStatus;
 	buf << "Content-Type: " << contentType << "\r\n" << headers;
 	if (isKeepAlive)
@@ -37,7 +38,11 @@ void HttpAnswer::addHeaders(const std::string& headers)
 
 void HttpAnswer::setContentLength()
 {
-	auto contentLength = _buf.size() - _headersEnd;
+	setContentLength(_buf.size() - _headersEnd);
+}
+
+void HttpAnswer::setContentLength(const uint32_t contentLength)
+{
 	char *pDigitsStart = _buf.data() + _contentLengthStart + sizeof("Content-Length:");
 	auto res = snprintf(pDigitsStart, 11, "%010u", contentLength);
 	if (res != 10) {

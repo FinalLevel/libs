@@ -87,6 +87,7 @@ namespace fl {
 			{
 				return _threadSpecificData;
 			}
+			void addToDeletedNL(class Event *ev);
 		private:
 			virtual void run();
 			EPoll _poll;
@@ -95,6 +96,8 @@ namespace fl {
 			void _addEvent(class WorkEvent *ev);
 			TWorkEventList _events;
 			fl::threads::Mutex _eventsSync;
+			typedef std::vector<class Event *> TEventList;
+			TEventList _deletedEvents;
 		};
 		
 		

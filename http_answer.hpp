@@ -30,6 +30,7 @@ namespace fl {
 				const std::string& headers = std::string());
 			void addHeaders(const std::string &headers);
 			void setContentLength();
+			void setContentLength(const uint32_t contentLength);
 		private:
 			BString &_buf;
 			BString::TSize _contentLengthStart;

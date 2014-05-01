@@ -16,15 +16,24 @@
 
 namespace fl {
 	namespace events {
+		class TimerEventInterface
+		{
+		public:
+			virtual void timerCall(class TimerEvent *te) = 0;
+		};
 		class TimerEvent : public Event
 		{
 		public:
-			TimerEvent(const time_t fromSeconds, const long int fromNanoSeconds, 
-				const time_t everySeconds, const long int everyNanoSeconds);
+			TimerEvent();
+			bool setTimer(const time_t fromSeconds, const long int fromNanoSeconds, 
+				const time_t everySeconds, const long int everyNanoSeconds, TimerEventInterface *interface = NULL);
+			void stop();
+	
 			virtual ~TimerEvent();
-			virtual const ECallResult call(const TEvents events) = 0;
+			virtual const ECallResult call(const TEvents events);
 		protected:
 			Event::ECallResult _readTimer();
+			TimerEventInterface *_interface;
 		};
 	};
 };
