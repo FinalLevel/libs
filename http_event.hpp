@@ -31,6 +31,7 @@ namespace fl {
 				ST_REQUEST_RECEIVED,
 				ST_SEND,
 				ST_SEND_AND_CLOSE,
+				ST_SEND_AND_CHECK,
 				ST_WAIT_EXTERNAL_EVENT,
 				ST_FINISHED
 			};
@@ -71,11 +72,17 @@ namespace fl {
 				 RESULT_OK_KEEP_ALIVE,
 				 RESULT_OK_WAIT,
 				 RESULT_ERROR,
+				 RESULT_FINISH,
+				 RESULT_OK_PARTIAL_SEND,
 			};
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
 			virtual bool reset()
 			{
 				return false;
+			}
+			virtual EFormResult getMoreDataToSend(BString &networkBuffer, class HttpEvent *http)
+			{
+				return RESULT_FINISH;
 			}
 		protected:
 			static bool _parseKeepAlive(const char *name, const size_t nameLength, const char *value, bool &isKeepAlive);
@@ -106,7 +113,7 @@ namespace fl {
 			{
 				return _networkBuffer;
 			}
-			void sendAnswer(const HttpEventInterface::EFormResult result);
+			HttpEvent::ECallResult sendAnswer(const HttpEventInterface::EFormResult result);
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);

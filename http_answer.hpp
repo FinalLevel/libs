@@ -13,6 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "bstring.hpp"
+#include <map>
 
 namespace fl {
 	namespace http {
@@ -35,6 +36,29 @@ namespace fl {
 			BString &_buf;
 			BString::TSize _contentLengthStart;
 			BString::TSize _headersEnd;
+		};
+		
+		class MimeType
+		{
+		public:
+			enum EMimeType : uint8_t
+			{
+				E_UNKNOWN,
+				E_JPEG,
+				E_GIF,
+				E_PNG,				
+				E_MAX,
+			};
+			static const char *getMimeTypeStrFromFileName(const std::string &fileName)
+			{
+				return _MIME_TYPES[getMimeTypeFromFileName(fileName)];
+			}
+			static EMimeType getMimeTypeFromFileName(const std::string &fileName);
+		private:
+			static const size_t MAX_EXT_LENGTH = 4;
+			static const char *_MIME_TYPES[E_MAX];
+			typedef std::map<std::string, EMimeType> TExtMimeTypeMap;
+			static TExtMimeTypeMap _mimeTypes;
 		};
 	};
 };

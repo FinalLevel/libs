@@ -234,5 +234,28 @@ BOOST_AUTO_TEST_CASE( MinimalCheck )
 		BOOST_CHECK_NO_THROW(throw);
 	}
 }
-	
+
+class FormErrorCheckWebDavInterface : public WebDavInterface
+{
+public:
+	FormErrorCheckWebDavInterface()
+	{
+	}
+	void set507Error()
+	{
+		_error = ERROR_507_INSUFFICIENT_STORAGE;
+	}
+};
+
+BOOST_AUTO_TEST_CASE( FormErrorCheck )
+{
+	FormErrorCheckWebDavInterface interface;
+	BString answer;
+	EHttpState::EHttpState state;
+	interface.set507Error();
+	interface.formError(state, answer);
+	std::string ERROR_507_STR("HTTP/1.1 507 Insufficient Storage\r\n");
+	BOOST_CHECK(!memcmp(answer.c_str(), ERROR_507_STR.c_str(), ERROR_507_STR.size()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

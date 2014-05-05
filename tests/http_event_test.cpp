@@ -10,6 +10,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "mock_http_util.hpp"
+#include "compatibility.hpp"
 
 using namespace fl::network;
 using namespace fl::events;
@@ -637,6 +638,74 @@ BOOST_AUTO_TEST_CASE( Depended )
 		BOOST_CHECK_NO_THROW(throw);
 	}
 	BOOST_CHECK(DependedMockHttpEventInterface::checkStatus());
+}
+
+class PartialMockHttpEventInterface : public HttpEventInterface
+{
+public:
+	typedef uint32_t TStatus;
+	static const TStatus ST_CREATE = 0x1;
+	static const TStatus ST_DESTROY = 0x2;
+	static const TStatus ST_FORM_CALLED = 0x4;
+	static const TStatus ST_GET_MORE_DATA_CALLED = 0x8;
+	
+	static TStatus _status;
+	PartialMockHttpEventInterface()
+	{
+		_status |= ST_CREATE;
+	}
+	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
+			const std::string &host, const std::string &fileName, const std::string &query)
+	{
+		return true;
+	}
+	static const std::string ANSWER_PART1;
+	virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) override
+	{
+		_status |= ST_FORM_CALLED;
+		networkBuffer << ANSWER_PART1;
+		return RESULT_OK_PARTIAL_SEND;
+	}
+	static const std::string ANSWER_PART2;
+	virtual EFormResult getMoreDataToSend(BString &networkBuffer, class HttpEvent *http) override
+	{
+		_status |= ST_GET_MORE_DATA_CALLED;
+		networkBuffer << ANSWER_PART2;
+		return RESULT_OK_CLOSE;
+	}
+	virtual ~PartialMockHttpEventInterface()
+	{
+		_status |= ST_DESTROY;
+	}
+	static bool checkStatus()
+	{
+		return _status == (ST_CREATE | ST_DESTROY | ST_FORM_CALLED | ST_GET_MORE_DATA_CALLED);
+	}	
+};
+
+PartialMockHttpEventInterface::TStatus PartialMockHttpEventInterface::_status = 0;
+const std::string PartialMockHttpEventInterface::ANSWER_PART1("HTTP/1.0 200 OK\r\n\r\n");
+const std::string PartialMockHttpEventInterface::ANSWER_PART2("Next data bla bla");
+
+
+BOOST_AUTO_TEST_CASE( PartialSend )
+{
+	try
+	{
+		HttpMockEventFactory<PartialMockHttpEventInterface> factory;
+		TestHttpEventFramework testEventFramework(&factory);
+		BString answer(PartialMockHttpEventInterface::ANSWER_PART1.size() 
+			+ PartialMockHttpEventInterface::ANSWER_PART2.size()  + 1);
+		BOOST_REQUIRE(testEventFramework.doRequest("GET / HTTP/1.0\r\n\r\n", answer));
+		BString resultAnswer;
+		resultAnswer << PartialMockHttpEventInterface::ANSWER_PART1 << PartialMockHttpEventInterface::ANSWER_PART2;
+		BOOST_CHECK(answer == resultAnswer);
+	}
+	catch (...)
+	{
+		BOOST_CHECK_NO_THROW(throw);
+	}
+	BOOST_CHECK(PartialMockHttpEventInterface::checkStatus());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

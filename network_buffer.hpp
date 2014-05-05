@@ -25,6 +25,9 @@ namespace fl {
 				: BString(reserved), _sended(0)
 			{
 			}
+			NetworkBuffer(NetworkBuffer &&moveFrom);
+			NetworkBuffer& operator=(NetworkBuffer &&moveFrom);
+
 
 			enum EResult
 			{
@@ -41,6 +44,7 @@ namespace fl {
 				_sended = 0;
 				BString::clear();
 			}
+			void setSended(const TSize sended);
 		protected:
 			TSize _sended;
 		};

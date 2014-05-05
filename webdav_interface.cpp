@@ -20,7 +20,7 @@ size_t WebDavInterface::_maxPostInMemmorySize = DEFALUT_POST_INMEMMORY_SIZE;
 std::string WebDavInterface::_tmpPath("/tmp");
 
 WebDavInterface::WebDavInterface()
-	: _status(0), _error(EError::ERROR_200_OK), _requestType(ERequestType::UNKNOWN), _contentLength(0)
+	: _status(0), _error(ERROR_400_BAD_REQUEST), _requestType(ERequestType::UNKNOWN), _contentLength(0)
 {
 }
 
@@ -28,7 +28,7 @@ bool WebDavInterface::reset()
 {
 	if (_status & ST_KEEP_ALIVE) {
 		_status = 0;
-		_error = EError::ERROR_200_OK;
+		_error = ERROR_400_BAD_REQUEST;;
 		_requestType = ERequestType::UNKNOWN;
 		_contentLength = 0;
 		_host.clear();
@@ -82,8 +82,8 @@ const std::string WebDavInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 200 OK\r\n",
 	"HTTP/1.1 400 Bad Request\r\n",
 	"HTTP/1.1 404 Not found\r\n",
-	"HTTP/1.1 405 Method Not Allowed\r\n"
-	"HTTP/1.1 409 Conflict\r\n"
+	"HTTP/1.1 405 Method Not Allowed\r\n",
+	"HTTP/1.1 409 Conflict\r\n",
 	"HTTP/1.1 411 Length Required\r\n",
 	"HTTP/1.1 503 Service Unavailable\r\n",
 	"HTTP/1.1 507 Insufficient Storage\r\n",

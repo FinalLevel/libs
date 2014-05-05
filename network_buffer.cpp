@@ -14,6 +14,26 @@
 using namespace fl::network;
 
 
+NetworkBuffer::NetworkBuffer(NetworkBuffer &&moveFrom)
+	: BString(std::move(moveFrom)), _sended(moveFrom._sended)
+{
+	moveFrom._sended = 0;
+}
+
+NetworkBuffer& NetworkBuffer::operator=(NetworkBuffer &&moveFrom)
+{
+	BString::operator=(std::move(moveFrom));
+	std::swap(_sended, moveFrom._sended);
+	return *this;
+}
+
+void NetworkBuffer::setSended(const TSize sended)
+{
+	if (sended > _size)
+		throw BString::Error("Try to set sended out of size");
+	_sended = sended;
+}
+
 NetworkBuffer::EResult NetworkBuffer::send(const TDescriptor descr)
 {
 	TSize leftSend = _size - _sended;

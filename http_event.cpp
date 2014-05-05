@@ -266,6 +266,10 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 		else
 			return FINISHED;
 	} else if (res == NetworkBuffer::OK) {
+		if (_state == EHttpState::ST_SEND_AND_CHECK) {
+			_networkBuffer->clear();
+			return sendAnswer(_interface->getMoreDataToSend(*_networkBuffer, this));
+		}
 		if (_state != EHttpState::ST_SEND_AND_CLOSE) {
 			if (_reset())
 				return CHANGE;
@@ -313,7 +317,7 @@ const HttpEvent::ECallResult HttpEvent::_setWaitExternalEvent()
 		return FINISHED;	
 }
 
-void HttpEvent::sendAnswer(const HttpEventInterface::EFormResult result)
+HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResult result)
 {
 	ECallResult sendResult = SKIP;
 	switch (result) {
@@ -325,15 +329,23 @@ void HttpEvent::sendAnswer(const HttpEventInterface::EFormResult result)
 			_state = EHttpState::ST_SEND_AND_CLOSE;
 			sendResult = _sendAnswer();
 		break;
+		case HttpEventInterface::RESULT_OK_PARTIAL_SEND:
+			_state = EHttpState::ST_SEND_AND_CHECK;
+			sendResult = _sendAnswer();
+		break;
 		case HttpEventInterface::RESULT_OK_WAIT:
 			sendResult = _setWaitExternalEvent();
 		break;
 		case HttpEventInterface::RESULT_ERROR:
 			sendResult = _sendError();
 		break;
+		case HttpEventInterface::RESULT_FINISH:
+			sendResult = FINISHED;
+		break;
 	};
 	if (sendResult == FINISHED)
 		_endWork();
+	return sendResult;
 }
 
 const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
@@ -357,22 +369,7 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 		}
 		if (_state == EHttpState::ST_REQUEST_RECEIVED) {
 			_networkBuffer->clear();
-			auto res = _interface->formResult(*_networkBuffer, this);
-			switch (res) {
-				case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
-					_state = EHttpState::ST_SEND;
-					return _sendAnswer();
-				break;
-				case HttpEventInterface::RESULT_OK_CLOSE:
-					_state = EHttpState::ST_SEND_AND_CLOSE;
-					return _sendAnswer();
-				break;
-				case HttpEventInterface::RESULT_OK_WAIT:
-					return _setWaitExternalEvent();
-				case HttpEventInterface::RESULT_ERROR:
-					return _sendError();
-				break;
-			};
+			return sendAnswer(_interface->formResult(*_networkBuffer, this));
 		} else {
 			_updateTimeout();
 			return CHANGE;

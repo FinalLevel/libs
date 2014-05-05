@@ -37,5 +37,16 @@ BOOST_AUTO_TEST_CASE( HttpAnswerSetContentLength )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( MimeTypeFromFileName )
+{
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("test.Jpg") == MimeType::E_JPEG);
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("test.jPeG") == MimeType::E_JPEG);
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("t.gif") == MimeType::E_GIF);
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("t.png") == MimeType::E_PNG);
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName(".png") == MimeType::E_UNKNOWN);
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("png") == MimeType::E_UNKNOWN);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
 
