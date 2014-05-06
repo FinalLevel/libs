@@ -45,6 +45,10 @@ namespace fl {
 				BString::clear();
 			}
 			void setSended(const TSize sended);
+			TSize sended() const
+			{
+				return _sended;
+			}
 		protected:
 			TSize _sended;
 		};
