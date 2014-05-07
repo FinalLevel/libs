@@ -67,6 +67,7 @@ namespace fl {
 			enum EError : uint8_t
 			{
 				ERROR_200_OK = 0,
+				ERROR_204_NO_CONTENT,
 				ERROR_400_BAD_REQUEST,
 				ERROR_404_NOT_FOUND,
 				ERROR_405_METHOD_NOT_ALLOWED,
@@ -106,6 +107,7 @@ namespace fl {
 			BString _putData;
 			virtual EFormResult _formPut(BString &networkBuffer, class HttpEvent *http);
 			virtual EFormResult _formGet(BString &networkBuffer, class HttpEvent *http);
+			virtual EFormResult _formDelete(BString &networkBuffer, class HttpEvent *http);
 			
 			bool _parsePropFind(const char *data);
 			

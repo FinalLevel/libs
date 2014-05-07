@@ -167,6 +167,14 @@ void EPollWorkerGroup::cancelThreads()
 	}	
 }
 
+EPollWorkerThread *EPollWorkerGroup::getThread(size_t number)
+{
+	if (number < _threads.size())
+		return _threads[number];
+	else
+		return NULL;
+}
+
 void EPollWorkerGroup::waitThreads()
 {
 	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {

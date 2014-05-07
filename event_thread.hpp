@@ -124,6 +124,7 @@ namespace fl {
 			};
 			void waitThreads();
 			void cancelThreads();
+			EPollWorkerThread *getThread(size_t number);
 		private:
 			static UpdateTimeEvent *_updateTimeEvent;
 			typedef std::vector<EPollWorkerThread*> TWorkerThreadVector;

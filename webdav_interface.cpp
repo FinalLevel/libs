@@ -80,6 +80,7 @@ bool WebDavInterface::parseHeader(const char *name, const size_t nameLength, con
 
 const std::string WebDavInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 200 OK\r\n",
+	"HTTP/1.1 204 No Content\r\n",
 	"HTTP/1.1 400 Bad Request\r\n",
 	"HTTP/1.1 404 Not found\r\n",
 	"HTTP/1.1 405 Method Not Allowed\r\n",
@@ -227,6 +228,8 @@ HttpEventInterface::EFormResult WebDavInterface::formResult(BString &networkBuff
 		return _formPut(networkBuffer, http);
 	case ERequestType::OPTIONS:
 		return _formOptions(networkBuffer);
+	case ERequestType::DELETE:
+		return _formDelete(networkBuffer, http);
 	case ERequestType::PROPFIND:
 		return _formPropFind(networkBuffer);
 	case ERequestType::MKCOL:
@@ -303,6 +306,14 @@ HttpEventInterface::EFormResult WebDavInterface::_formPut(BString &networkBuffer
 	HttpAnswer answer(networkBuffer, HTTP_CREATED_STATUS, "text/xml; charset=\"utf-8\"", (_status & ST_KEEP_ALIVE));
 	answer.setContentLength();
 	return _keepAliveState();	
+}
+
+HttpEventInterface::EFormResult WebDavInterface::_formDelete(BString &networkBuffer, class HttpEvent *http)
+{
+	HttpAnswer answer(networkBuffer, _ERROR_STRINGS[ERROR_204_NO_CONTENT], "text/xml; charset=\"utf-8\"", 
+		(_status & ST_KEEP_ALIVE));
+	answer.setContentLength();
+	return _keepAliveState();
 }
 
 bool WebDavInterface::_parseOverwrite(const char *name, const size_t nameLength, const char *value, 
