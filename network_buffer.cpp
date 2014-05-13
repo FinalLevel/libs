@@ -57,6 +57,10 @@ NetworkBuffer::EResult NetworkBuffer::send(const TDescriptor descr)
 NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr)
 {
 	_sended = 0;
+	if (!_reserved) {
+		static TSize MIN_RESERVE = 32 * 1024;
+		reserve(MIN_RESERVE);
+	}
 	int chunkSize = _reserved;
 	if (_size) {
 		chunkSize -= _size;
@@ -102,7 +106,7 @@ void NetworkBufferPool::free(NetworkBuffer *buf)
 {
 	if (_freeBuffers.size() < _freeBuffersLimit) {
 		buf->clear();
-		if (buf->reserved() > _bufferSize)
+		if (buf->reserved() != _bufferSize)
 			buf->reserve(_bufferSize);
 		_freeBuffers.push_back(buf);
 	} else {
