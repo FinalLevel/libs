@@ -33,7 +33,7 @@ namespace fl {
 			virtual bool parsePOSTData(const uint32_t postStartPosition, NetworkBuffer &buf, bool &parseError);
 			virtual bool parseHeader(const char *name, const size_t nameLength, const char *value, const size_t valueLen, 
 				const char *pEndHeader);
-			virtual bool formError(EHttpState::EHttpState &state, BString &result);
+			virtual bool formError(class BString &result, class HttpEvent *http);
 			
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http);
 			virtual bool reset();
@@ -64,20 +64,6 @@ namespace fl {
 			static const std::string HTTP_MULTI_STATUS;
 			static const std::string HTTP_CREATED_STATUS;
 
-			enum EError : uint8_t
-			{
-				ERROR_200_OK = 0,
-				ERROR_204_NO_CONTENT,
-				ERROR_400_BAD_REQUEST,
-				ERROR_404_NOT_FOUND,
-				ERROR_405_METHOD_NOT_ALLOWED,
-				ERROR_409_CONFLICT,
-				ERROR_411_LENGTH_REQUIRED,
-				ERROR_503_SERVICE_UNAVAILABLE,
-				ERROR_507_INSUFFICIENT_STORAGE,
-				ERROR_MAX,
-			};
-			static const std::string _ERROR_STRINGS[ERROR_MAX];
 			EError _error;
 			enum class ERequestType : uint8_t
 			{

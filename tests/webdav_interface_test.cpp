@@ -251,9 +251,8 @@ BOOST_AUTO_TEST_CASE( FormErrorCheck )
 {
 	FormErrorCheckWebDavInterface interface;
 	BString answer;
-	EHttpState::EHttpState state;
 	interface.set507Error();
-	interface.formError(state, answer);
+	interface.formError(answer, NULL);
 	std::string ERROR_507_STR("HTTP/1.1 507 Insufficient Storage\r\n");
 	BOOST_CHECK(!memcmp(answer.c_str(), ERROR_507_STR.c_str(), ERROR_507_STR.size()));
 }

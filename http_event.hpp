@@ -22,20 +22,6 @@ namespace fl {
 		using fl::network::NetworkBufferPool;
 		using fl::strings::BString;
 		
-		namespace EHttpState
-		{
-			enum EHttpState : uint8_t
-			{
-				ST_WAIT_REQUEST,
-				ST_WAIT_ADDITIONAL_DATA,
-				ST_REQUEST_RECEIVED,
-				ST_SEND,
-				ST_SEND_AND_CLOSE,
-				ST_SEND_AND_CHECK,
-				ST_WAIT_EXTERNAL_EVENT,
-				ST_FINISHED
-			};
-		};
 		namespace EHttpVersion
 		{
 			enum EHttpVersion : uint8_t
@@ -62,7 +48,7 @@ namespace fl {
 			{
 				return true;
 			}
-			virtual bool formError(EHttpState::EHttpState &state, BString &result)
+			virtual bool formError(class BString &result, class HttpEvent *http)
 			{
 				return false;
 			}
@@ -101,6 +87,22 @@ namespace fl {
 			};
 			static EHttpRequestType _parseHTTPCmd(const char cmdStart); 
 			static void _addConnectionHeader(BString &networkBuffer, const bool isKeepAlive);
+			
+			enum EError : uint8_t
+			{
+				ERROR_200_OK = 0,
+				ERROR_204_NO_CONTENT,
+				ERROR_400_BAD_REQUEST,
+				ERROR_404_NOT_FOUND,
+				ERROR_405_METHOD_NOT_ALLOWED,
+				ERROR_409_CONFLICT,
+				ERROR_411_LENGTH_REQUIRED,
+				ERROR_503_SERVICE_UNAVAILABLE,
+				ERROR_507_INSUFFICIENT_STORAGE,
+				ERROR_MAX,
+			};
+			static const std::string _ERROR_STRINGS[ERROR_MAX];
+
 		};
 		
 		class HttpEvent : public WorkEvent
@@ -114,6 +116,17 @@ namespace fl {
 				return _networkBuffer;
 			}
 			HttpEvent::ECallResult sendAnswer(const HttpEventInterface::EFormResult result);
+			typedef uint8_t TStatus;
+			static const TStatus ST_KEEP_ALIVE = 0x1;
+			static const TStatus ST_CHECK_AFTER_SEND = 0x2;
+			void setKeepAlive()
+			{
+				_status |= ST_KEEP_ALIVE;
+			}
+			void clearKeepAlive()
+			{
+				_status &= (~ST_KEEP_ALIVE);
+			}
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);
@@ -129,9 +142,17 @@ namespace fl {
 			HttpEventInterface *_interface;
 			NetworkBuffer *_networkBuffer;
 			uint32_t _headerStartPosition;
-			EHttpState::EHttpState _state;
+			enum EHttpState : uint8_t
+			{
+				ST_WAIT_REQUEST,
+				ST_WAIT_ADDITIONAL_DATA,
+				ST_REQUEST_RECEIVED,
+				ST_SEND,
+				ST_WAIT_EXTERNAL_EVENT,
+				ST_FINISHED
+			};
+			EHttpState _state;
 			uint8_t _chunkNumber;
-			typedef uint8_t TStatus;
 			TStatus _status;
 		};
 

@@ -78,23 +78,13 @@ bool WebDavInterface::parseHeader(const char *name, const size_t nameLength, con
 	return true;
 }
 
-const std::string WebDavInterface::_ERROR_STRINGS[ERROR_MAX] = {
-	"HTTP/1.1 200 OK\r\n",
-	"HTTP/1.1 204 No Content\r\n",
-	"HTTP/1.1 400 Bad Request\r\n",
-	"HTTP/1.1 404 Not found\r\n",
-	"HTTP/1.1 405 Method Not Allowed\r\n",
-	"HTTP/1.1 409 Conflict\r\n",
-	"HTTP/1.1 411 Length Required\r\n",
-	"HTTP/1.1 503 Service Unavailable\r\n",
-	"HTTP/1.1 507 Insufficient Storage\r\n",
-};
-
-bool WebDavInterface::formError(EHttpState::EHttpState &state, BString &result)
+bool WebDavInterface::formError(class BString &result, class HttpEvent *http)
 {
 	HttpAnswer answer(result, _ERROR_STRINGS[_error], "text/xml; charset=\"utf-8\"", (_status & ST_KEEP_ALIVE));
 	answer.setContentLength();
-	state = (_status & ST_KEEP_ALIVE) ? EHttpState::ST_SEND : EHttpState::ST_SEND_AND_CLOSE;
+	if (_status & ST_KEEP_ALIVE) {
+		http->setKeepAlive();
+	}
 	return true;
 }
 
@@ -289,9 +279,7 @@ HttpEventInterface::EFormResult WebDavInterface::_formMkCOL(BString &networkBuff
 		answer.setContentLength();
 		return _keepAliveState();	
 	} else {
-		EHttpState::EHttpState state;
-		formError(state, networkBuffer);
-		return _keepAliveState();
+		return EFormResult::RESULT_ERROR;
 	}
 }
 

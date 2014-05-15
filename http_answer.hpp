@@ -46,12 +46,17 @@ namespace fl {
 				E_UNKNOWN,
 				E_JPEG,
 				E_GIF,
-				E_PNG,				
+				E_PNG,
+				E_TXT,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)
 			{
 				return _MIME_TYPES[getMimeTypeFromFileName(fileName)];
+			}
+			static const char *getMimeTypeStr(const EMimeType type) 
+			{
+				return _MIME_TYPES[type];
 			}
 			static EMimeType getMimeTypeFromFileName(const std::string &fileName);
 		private:

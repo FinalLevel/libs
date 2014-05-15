@@ -266,11 +266,11 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 		else
 			return FINISHED;
 	} else if (res == NetworkBuffer::OK) {
-		if (_state == EHttpState::ST_SEND_AND_CHECK) {
+		if (_status & ST_CHECK_AFTER_SEND) {
 			_networkBuffer->clear();
 			return sendAnswer(_interface->getMoreDataToSend(*_networkBuffer, this));
 		}
-		if (_state != EHttpState::ST_SEND_AND_CLOSE) {
+		if (_status & ST_KEEP_ALIVE) {
 			if (_reset())
 				return CHANGE;
 		}
@@ -280,9 +280,10 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 
 HttpEvent::ECallResult HttpEvent::_sendError()
 {
-	_state = EHttpState::ST_SEND_AND_CLOSE;
+	_state = ST_SEND;
+	_status &= ~(ST_KEEP_ALIVE);
 	_networkBuffer->clear();
-	if (!_interface->formError(_state, *_networkBuffer))
+	if (!_interface->formError(*_networkBuffer, this))
 		_networkBuffer->sprintfSet("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n");
 	return _sendAnswer();
 }
@@ -319,18 +320,22 @@ const HttpEvent::ECallResult HttpEvent::_setWaitExternalEvent()
 
 HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResult result)
 {
+	_status &= ~(ST_KEEP_ALIVE | ST_CHECK_AFTER_SEND);
+	
 	ECallResult sendResult = SKIP;
 	switch (result) {
 		case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
 			_state = EHttpState::ST_SEND;
+			_status |= ST_KEEP_ALIVE;
 			sendResult = _sendAnswer();
 		break;
 		case HttpEventInterface::RESULT_OK_CLOSE:
-			_state = EHttpState::ST_SEND_AND_CLOSE;
+			_state = EHttpState::ST_SEND;
 			sendResult = _sendAnswer();
 		break;
 		case HttpEventInterface::RESULT_OK_PARTIAL_SEND:
-			_state = EHttpState::ST_SEND_AND_CHECK;
+			_state = EHttpState::ST_SEND;
+			_status |= ST_CHECK_AFTER_SEND;
 			sendResult = _sendAnswer();
 		break;
 		case HttpEventInterface::RESULT_OK_WAIT:
@@ -377,7 +382,7 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 	}
 	
 	if (events & E_OUTPUT) {
-		if ((_state == EHttpState::ST_SEND) ||  (_state == EHttpState::ST_SEND_AND_CLOSE)) {
+		if (_state == EHttpState::ST_SEND) {
 			return _sendAnswer();
 		} else {
 			log::Error::L("Output event is in error state (%u/%u)\n", _events, _state);
@@ -496,3 +501,15 @@ void HttpEventInterface::_addConnectionHeader(BString &networkBuffer, const bool
 	else
 		networkBuffer << "Connection: Close\r\n";
 }
+
+const std::string HttpEventInterface::_ERROR_STRINGS[ERROR_MAX] = {
+	"HTTP/1.1 200 OK\r\n",
+	"HTTP/1.1 204 No Content\r\n",
+	"HTTP/1.1 400 Bad Request\r\n",
+	"HTTP/1.1 404 Not found\r\n",
+	"HTTP/1.1 405 Method Not Allowed\r\n",
+	"HTTP/1.1 409 Conflict\r\n",
+	"HTTP/1.1 411 Length Required\r\n",
+	"HTTP/1.1 503 Service Unavailable\r\n",
+	"HTTP/1.1 507 Insufficient Storage\r\n",
+};

@@ -59,6 +59,7 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"image/jpeg",
 	"image/gif",
 	"image/png",
+	"text/plain",
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
@@ -66,6 +67,7 @@ MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
 	{"jpg", E_JPEG},
 	{"gif", E_GIF},
 	{"png", E_PNG},
+	{"txt", E_TXT},
 };
 
 MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileName)
