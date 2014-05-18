@@ -108,6 +108,7 @@ namespace fl {
 		}	
 
 		bool fileExists(const char *fileName);
+		size_t parseSizeString(const char *str);
 	};
 };
 

@@ -47,4 +47,13 @@ BOOST_AUTO_TEST_CASE( testExplode )
 	}
 }
 
+BOOST_AUTO_TEST_CASE( testParseSizeString )
+{
+	BOOST_CHECK( parseSizeString("0k")  == 0);
+	BOOST_CHECK( parseSizeString("10")  == 10);
+	BOOST_CHECK( parseSizeString("10k")  == (10 * 1024));
+	BOOST_CHECK( parseSizeString("10M")  == (10 * 1024 * 1024));
+	BOOST_CHECK( parseSizeString("1g")  == (1 * 1024 * 1024 * 1024));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
