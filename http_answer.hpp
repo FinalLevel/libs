@@ -32,6 +32,15 @@ namespace fl {
 			void addHeaders(const std::string &headers);
 			void setContentLength();
 			void setContentLength(const uint32_t contentLength);
+			void addLastModified(const time_t unixTime);
+			static void formLastModified(const time_t unixTime, BString &buf);
+			BString::TSize headersEnd() const
+			{
+				return _headersEnd;
+			}
+			void add(const char *data, const size_t size);
+			static const std::string CONNECTION_KEEP_ALIVE;
+			static const std::string CONNECTION_CLOSE;
 		private:
 			BString &_buf;
 			BString::TSize _contentLengthStart;

@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "http_event.hpp"
 #include "log.hpp"
+#include "time.hpp"
 
 using namespace fl::events;
 
@@ -401,6 +402,19 @@ HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxReq
 }
 
 
+bool HttpEventInterface::_parseIfModifiedSince(const char *name, const size_t nameLength, 
+	const char *value, const size_t valueLen, time_t &ifModifiedSince)
+{
+	static const std::string IF_MODIFIED_SINCE_HEADER("If-Modified-Since");
+	if (nameLength != IF_MODIFIED_SINCE_HEADER.size())
+		return false;
+	if (strncasecmp(name, IF_MODIFIED_SINCE_HEADER.c_str(), IF_MODIFIED_SINCE_HEADER.size()))
+		return false;
+	else {
+		ifModifiedSince = fl::chrono::Time::parseHttpDate(value, valueLen);
+		return true;
+	}
+}
 bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLength, const char *value, 
 	bool &isKeepAlive)
 {

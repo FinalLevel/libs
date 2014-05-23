@@ -72,6 +72,8 @@ namespace fl {
 			}
 		protected:
 			static bool _parseKeepAlive(const char *name, const size_t nameLength, const char *value, bool &isKeepAlive);
+			static bool _parseIfModifiedSince(const char *name, const size_t nameLength, 
+				const char *value, const size_t valueLen, time_t &ifModifiedSince);
 			static bool _parseContentLength(const char *name, const size_t nameLength, const char *value, 
 				size_t &contentLength);
 			static bool _parseHost(const char *name, const size_t nameLength, const char *value, const size_t valueLen, 

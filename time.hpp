@@ -29,6 +29,7 @@ namespace fl {
 			{
 				_unix = unix;
 			}
+			static time_t parseHttpDate(const char *value, const size_t valueLen);
 		protected:
 			time_t _unix;
 		};
