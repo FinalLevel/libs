@@ -12,6 +12,7 @@
 // Description: Timer events manipulations class
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <cstdlib>
 #include "event_queue.hpp"
 
 namespace fl {
