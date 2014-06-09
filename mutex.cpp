@@ -7,6 +7,7 @@
 // Description: Mutex primitive wrapper class
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <algorithm>
 #include "mutex.hpp"
 
 using namespace fl::threads;
@@ -23,7 +24,7 @@ Mutex::~Mutex()
 
 void Mutex::lock()
 {
-	  pthread_mutex_lock(&_mutex);
+	pthread_mutex_lock(&_mutex);
 }
 
 bool Mutex::tryLock()
@@ -35,7 +36,11 @@ bool Mutex::tryLock()
 
 void Mutex::unLock()
 {
-	  pthread_mutex_unlock(&_mutex);
+	pthread_mutex_unlock(&_mutex);
 }
 
-
+AutoMutex &AutoMutex::operator=(AutoMutex &&autoSync)
+{
+	std::swap(_sync, autoSync._sync);
+	return *this;
+}

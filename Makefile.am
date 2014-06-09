@@ -7,7 +7,7 @@ libfl_a_CPPFLAGS = $(AM_CPPFLAGS)
 
 
 if NEED_MYSQL
-  libfl_a_SOURCES += mysql.cpp
+  libfl_a_SOURCES += mysql.cpp mysql_pool.cpp
   libfl_a_CPPFLAGS += $(MYSQL_INCLUDE)
 endif
 

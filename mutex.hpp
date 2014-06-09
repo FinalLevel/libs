@@ -20,6 +20,12 @@ namespace fl {
 		public:
 			Mutex();
 			~Mutex();
+			Mutex(const Mutex&) = delete;
+			Mutex &operator=(const Mutex&) = delete;
+			
+			Mutex(const Mutex&&) = delete;
+			Mutex &operator=(Mutex&&) = delete;
+			
 			void lock();
 			bool tryLock();
 			void unLock();
@@ -39,6 +45,18 @@ namespace fl {
 			{
 				_sync->lock();
 			}
+			
+			AutoMutex(const AutoMutex &autoMutex) = delete;
+			AutoMutex& operator=(const AutoMutex &) = delete;
+			
+			AutoMutex(AutoMutex &&autoSync)
+				: _sync(autoSync._sync)
+			{
+				autoSync._sync = NULL;
+			}
+			
+			AutoMutex &operator=(AutoMutex &&autoSync);
+			
 			~AutoMutex()
 			{
 				if (_sync) {
@@ -65,8 +83,7 @@ namespace fl {
 				}
 				else
 					return false;
-			}			
-			AutoMutex(const AutoMutex &autoMutex) = delete;
+			}
 		private:
 			Mutex *_sync;
 		};
