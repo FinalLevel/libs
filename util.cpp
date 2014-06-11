@@ -37,5 +37,28 @@ namespace fl {
 				return (size * 1024 * 1024 * 1024);
 			return size;
 		}
+		
+		void hex2Binary(const char *hexStr, uint8_t *binary, const size_t binarySize)
+		{
+			uint8_t lower, upper; 
+			
+			for (size_t i = 0; i < binarySize; i++) {
+			 upper = hexStr[2 * i + 0]; 
+			 lower = hexStr[2 * i + 1];
+			 binary[i] = (digit2Int(upper) << 4) | digit2Int(lower);
+			}
+		}
+		void hex2BinaryBackOrder(const char *hexStr, uint8_t *binary, const size_t binarySize)
+		{
+			uint8_t lower, upper; 
+			
+			uint8_t *pBin = binary + binarySize - sizeof(uint8_t);
+			for (size_t i = 0; i < binarySize; i++) {
+			 upper = hexStr[2 * i + 0]; 
+			 lower = hexStr[2 * i + 1];
+			 *pBin = (digit2Int(upper) << 4) | digit2Int(lower);
+			 pBin--;
+			}
+		}
 	};
 };

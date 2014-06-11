@@ -109,6 +109,12 @@ namespace fl {
 
 		bool fileExists(const char *fileName);
 		size_t parseSizeString(const char *str);
+		
+		inline uint8_t digit2Int(const char d) {
+			return (d & 0x1f) + ((d >> 6) * 0x19) - 0x10;
+		}
+		void hex2BinaryBackOrder(const char *hexStr, uint8_t *binary, const size_t binarySize);
+		void hex2Binary(const char *hexStr, uint8_t *binary, const size_t binarySize);
 	};
 };
 

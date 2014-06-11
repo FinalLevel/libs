@@ -34,6 +34,15 @@ namespace fl {
 			MysqlPool(const MysqlPool&) = delete;
 			MysqlPool(MysqlPool&&) = delete;
 			
+			const std::string &host() const
+			{
+				return _dbHost;
+			}
+			const uint16_t port() const
+			{
+				return _dbPort;
+			}
+			
 			class Connection
 			{
 			public:

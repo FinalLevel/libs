@@ -56,4 +56,20 @@ BOOST_AUTO_TEST_CASE( testParseSizeString )
 	BOOST_CHECK( parseSizeString("1g")  == (1 * 1024 * 1024 * 1024));
 }
 
+BOOST_AUTO_TEST_CASE( testHex2Binary )
+{
+	const std::string hex("d950b8ccbb5be478");
+	uint64_t binary;
+	hex2BinaryBackOrder(hex.c_str(), (uint8_t*)&binary, sizeof(binary));
+	BOOST_CHECK( binary == strtoull(hex.c_str(), NULL, 16));
+	
+	const std::string bigHex("0102030405060708090a0B0C0D0E0F1011121314");
+	uint8_t bigBinary[20];
+	hex2BinaryBackOrder(bigHex.c_str(), bigBinary, sizeof(bigBinary));
+	for (uint8_t i = 0; i < sizeof(bigBinary); i++) {
+		BOOST_CHECK( bigBinary[ i ] == sizeof(bigBinary) - i );
+	}
+	
+}
+
 BOOST_AUTO_TEST_SUITE_END()

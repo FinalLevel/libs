@@ -8,8 +8,7 @@
 // Description: A Mysql connection pool implementation class
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <bits/unique_ptr.h>
-
+#include <memory>
 #include "mysql_pool.hpp"
 
 using namespace fl::db;
@@ -50,6 +49,6 @@ MysqlPool::Connection MysqlPool::get(const uint32_t key)
 		}
 		_connections[idx] = conn.release();
 	}
-	return Connection(autoMutex, _connections[idx], &_queryBuffs[idx]);
+	return Connection(std::move(autoMutex), _connections[idx], &_queryBuffs[idx]);
 }
 
