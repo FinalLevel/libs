@@ -45,6 +45,7 @@ namespace fl {
 			~EPoll();
 			bool ctrl(class Event *event);
 			bool ctrl(class Event *event, const TEventDescriptor descr, const int op, const TEvents events);
+			bool remove(class Event *event);
 			
 			bool dispatch(const int timeout);
 			

@@ -60,6 +60,7 @@ namespace fl {
 				 RESULT_ERROR,
 				 RESULT_FINISH,
 				 RESULT_OK_PARTIAL_SEND,
+				 RESULT_SKIP,
 			};
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
 			virtual bool reset()
@@ -121,32 +122,16 @@ namespace fl {
 			typedef uint8_t TStatus;
 			static const TStatus ST_KEEP_ALIVE = 0x1;
 			static const TStatus ST_CHECK_AFTER_SEND = 0x2;
-			static const TStatus ST_BLOCK_FINISH = 0x4;
 			
-			virtual bool isFinished()
-			{
-				if (_status & ST_BLOCK_FINISH) {
-					return false;
-				} else {
-					return true;
-				}
-			}
 			void setKeepAlive()
 			{
 				_status |= ST_KEEP_ALIVE;
-			}
-			void setBlockFinish()
-			{
-				_status |= ST_BLOCK_FINISH;
-			}
-			void clearBlockFinish()
-			{
-				_status &= (~ST_BLOCK_FINISH);
 			}
 			void clearKeepAlive()
 			{
 				_status &= (~ST_KEEP_ALIVE);
 			}
+			bool unAttach();
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);
@@ -169,6 +154,7 @@ namespace fl {
 				ST_REQUEST_RECEIVED,
 				ST_SEND,
 				ST_WAIT_EXTERNAL_EVENT,
+				ST_UNATTACHED,
 				ST_FINISHED
 			};
 			EHttpState _state;

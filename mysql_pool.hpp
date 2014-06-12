@@ -56,11 +56,21 @@ namespace fl {
 					std::swap(conn._query, _query);
 					return *this;
 				}
-			private:
-				friend class MysqlPool;
-				Connection(AutoMutex &&sync, Mysql *conn, MysqlQuery *query)
-					: _autoSync(std::move(sync)), _conn(conn), _query(query)
+				Connection()
+					: _conn(NULL), _query(NULL)
 				{
+				}
+				operator bool() const
+				{
+					return _conn != NULL;
+				}
+				Mysql &conn()
+				{
+					return *_conn;
+				}
+				MysqlQuery &query()
+				{
+					return *_query;
 				}
 				Connection(Connection &&conn)
 					: _autoSync(std::move(conn._autoSync)), _conn(conn._conn), _query(conn._query)
@@ -68,12 +78,24 @@ namespace fl {
 					conn._conn = NULL;
 					conn._query = NULL;
 				}
+				~Connection()
+				{
+					if (_query)
+						_query->clear();
+				}
+			private:
+				friend class MysqlPool;
+				Connection(AutoMutex &&sync, Mysql *conn, MysqlQuery *query)
+					: _autoSync(std::move(sync)), _conn(conn), _query(query)
+				{
+				}
 				AutoMutex _autoSync;
 				Mysql *_conn;
 				MysqlQuery *_query;
 			};
 			
-			Connection get(const uint32_t key);
+			Connection getByKey(const uint32_t key);
+			Connection get();
 		private:
 			std::string _dbHost;
 			std::string _dbUser;
@@ -87,6 +109,8 @@ namespace fl {
 			TMysqlQueryVector _queryBuffs;
 			typedef std::vector<Mutex*> TMutexVector;
 			TMutexVector _syncs;
+			
+			void _createConnection(size_t idx);
 		};
 	};
 };

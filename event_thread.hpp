@@ -88,6 +88,7 @@ namespace fl {
 				return _threadSpecificData;
 			}
 			void addToDeletedNL(class Event *ev);
+			bool unAttachNL(class WorkEvent* ev);
 		private:
 			virtual void run();
 			EPoll _poll;

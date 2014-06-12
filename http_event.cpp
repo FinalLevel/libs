@@ -307,6 +307,15 @@ bool HttpEvent::_readPostData()
 	return true;
 }
 
+bool HttpEvent::unAttach()
+{
+	if (_thread->unAttachNL(this)) {
+		_state = EHttpState::ST_UNATTACHED;
+		return true;
+	} else {
+		return false;
+	}
+}
 const HttpEvent::ECallResult HttpEvent::_setWaitExternalEvent()
 {
 	_state = EHttpState::ST_WAIT_EXTERNAL_EVENT;
@@ -348,6 +357,8 @@ HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResu
 		case HttpEventInterface::RESULT_FINISH:
 			sendResult = FINISHED;
 		break;
+		case HttpEventInterface::RESULT_SKIP:
+			return SKIP;
 	};
 	if (sendResult == FINISHED)
 		_endWork();

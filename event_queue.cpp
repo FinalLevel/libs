@@ -31,10 +31,23 @@ EPoll::~EPoll()
 	delete [] _events;
 }
 
+bool EPoll::remove(class Event *event)
+{
+	struct epoll_event ev;
+	bzero(&ev, sizeof(ev));
+	ev.data.ptr = event;
+
+	if (epoll_ctl(_eventFD, EPOLL_CTL_MOD, event->descr(), &ev) == -1)
+		return false;
+	
+	event->setOp(EPOLL_CTL_ADD);
+	return true;
+}
+
 bool EPoll::ctrl(Event *event, const TEventDescriptor descr, const int op, const TEvents events)
 {
 	struct epoll_event ev;
-	memset(&ev, 0, sizeof(ev));
+	bzero(&ev, sizeof(ev));
 	ev.data.ptr = event;
 	ev.events = events;
 	

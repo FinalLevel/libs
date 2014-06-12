@@ -20,6 +20,7 @@ namespace fl {
 		{
 		public:
 			Thread();
+			Thread(const Thread&) = delete;
 			virtual ~Thread();
 			bool create();
 			void setStackSize(unsigned int steckSize);

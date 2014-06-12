@@ -20,6 +20,7 @@ namespace fl {
 		
 		typedef int TDescriptor;
 		typedef uint32_t TIPv4;
+		typedef uint16_t TPort16;
 		const TDescriptor INVALID_SOCKET = -1;
 		using fl::strings::BString;
 		
@@ -38,6 +39,13 @@ namespace fl {
 			Socket();
 			Socket(const TDescriptor descr);
 			~Socket();
+			
+			Socket(const Socket &) = delete;
+			Socket &operator=(const Socket &) = delete;
+			
+			Socket(Socket &&sock);
+			Socket &operator=(Socket &&sock);
+			
 			static const int MAX_LISTEN_BACKLOG = 512;
 			bool listen(const char *listenIP, int port, const int maxListenBacklog = MAX_LISTEN_BACKLOG);
 			

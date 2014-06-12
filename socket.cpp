@@ -59,6 +59,18 @@ void Socket::reset(const TDescriptor descr)
 	_descr = descr;
 }
 
+Socket::Socket(Socket &&sock)
+	: _descr(sock._descr)
+{
+	sock._descr = INVALID_SOCKET;
+}
+
+Socket &Socket::operator=(Socket &&sock)
+{
+	std::swap(sock._descr, _descr);
+	return *this;
+}
+
 bool Socket::setDeferAccept(const int timeOut)
 {
 	int val = timeOut;

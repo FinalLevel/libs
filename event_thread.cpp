@@ -67,6 +67,14 @@ void EPollWorkerThread::addToDeletedNL(class Event *ev)
 	_deletedEvents.push_back(ev);
 }
 
+bool EPollWorkerThread::unAttachNL(class WorkEvent* ev)
+{
+	if (!_poll.remove(ev))
+		return false;
+	_events.erase(ev->listPosition());
+	return true;
+}
+
 void EPollWorkerThread::run()
 {
 	EPoll::TEventVector changedEvents;
