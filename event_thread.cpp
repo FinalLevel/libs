@@ -37,6 +37,17 @@ EPollWorkerThread::~EPollWorkerThread()
 	delete _threadSpecificData;
 }
 
+bool EPollWorkerThread::addEvent(class WorkEvent *ev)
+{
+	AutoMutex autoSync(&_eventsSync);
+	if (!ctrl(ev))
+		return false;
+	
+	ev->setThread(this);
+	_addEvent(ev);
+	return true;	
+}
+
 bool EPollWorkerThread::addConnection(WorkEvent* ev, class Socket *acceptSocket)
 {
 	AutoMutex autoSync(&_eventsSync);
@@ -72,6 +83,7 @@ bool EPollWorkerThread::unAttachNL(class WorkEvent* ev)
 	if (!_poll.remove(ev))
 		return false;
 	_events.erase(ev->listPosition());
+	ev->setListPosition(_events.end());
 	return true;
 }
 

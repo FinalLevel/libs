@@ -42,6 +42,7 @@ void MysqlPool::_createConnection(size_t idx)
 	std::unique_ptr<Mysql> conn(new Mysql());
 	if (!conn->connect(_dbHost.c_str(), _dbUser.c_str(), _dbPassword.c_str(), _dbName.c_str(), _dbPort))
 		throw MysqlError("MysqlPool can't establish connection to DB");
+	log::Info::L("MysqlPool: Connection to %s:%u has been established\n", _dbHost.c_str(), _dbPort);
 	while (_queryBuffs.size() <= idx) {
 		_queryBuffs.push_back(conn->createQuery());
 	}

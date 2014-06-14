@@ -89,6 +89,7 @@ namespace fl {
 			}
 			void addToDeletedNL(class Event *ev);
 			bool unAttachNL(class WorkEvent* ev);
+			bool addEvent(class WorkEvent *ev);
 		private:
 			virtual void run();
 			EPoll _poll;

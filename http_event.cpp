@@ -307,6 +307,15 @@ bool HttpEvent::_readPostData()
 	return true;
 }
 
+bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result)
+{
+	_updateTimeout();
+	if (!_thread->addEvent(this))
+		return false;
+	sendAnswer(result);
+	return true;
+}
+
 bool HttpEvent::unAttach()
 {
 	if (_thread->unAttachNL(this)) {

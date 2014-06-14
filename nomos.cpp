@@ -88,6 +88,7 @@ void Nomos::_connect()
 		log::Error::L("Nomos: can't connect %s:%u\n",  Socket::ip2String(_ip).c_str(), _port);
 		throw ConnectionError();
 	}
+	log::Info::L("Nomos: Connection to %s:%u has been established\n", Socket::ip2String(_ip).c_str(), _port);
 }
 
 NomosPool::NomosPool(const size_t maxConnectionsPerServer, const uint32_t timeout)

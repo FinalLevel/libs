@@ -132,6 +132,7 @@ namespace fl {
 				_status &= (~ST_KEEP_ALIVE);
 			}
 			bool unAttach();
+			bool attachAndSendAnswer(const HttpEventInterface::EFormResult result);
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);

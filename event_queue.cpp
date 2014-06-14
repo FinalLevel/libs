@@ -37,7 +37,7 @@ bool EPoll::remove(class Event *event)
 	bzero(&ev, sizeof(ev));
 	ev.data.ptr = event;
 
-	if (epoll_ctl(_eventFD, EPOLL_CTL_MOD, event->descr(), &ev) == -1)
+	if (epoll_ctl(_eventFD, EPOLL_CTL_DEL, event->descr(), &ev) == -1)
 		return false;
 	
 	event->setOp(EPOLL_CTL_ADD);
