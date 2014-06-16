@@ -62,7 +62,7 @@ namespace fl {
 
 			bool execute(const char *queryStr);
 			bool execute(const class MysqlQuery &mysqlQuery);
-			bool execute(const char *queryStr, const unsigned long length);
+			bool execute(const char *queryStr, const unsigned long length, const char *cmd = "execute");
 
 			unsigned long insertID() const;
 			unsigned long affectedRows() const;

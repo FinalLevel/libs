@@ -31,13 +31,15 @@ namespace fl {
 			{
 			}
 		};
-		
+
 		class SHA1Holder
 		{
 		public:
+			typedef uint8_t* TBinaryPtr;
+			
 			SHA1Holder();
 			SHA1Holder(const char *textSHA1, const size_t size);
-			SHA1Holder(const uint8_t *bytes, const size_t size);
+			SHA1Holder(const TBinaryPtr bytes, const size_t size);
 			SHA1Holder(fl::utils::Buffer &buf);
 			bool operator==(const SHA1Holder &a);
 			

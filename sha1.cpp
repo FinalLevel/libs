@@ -38,7 +38,7 @@ void SHA1Holder::setHex(const char *textSHA1, const size_t size)
 	fl::utils::hex2Binary(textSHA1, _bytes, SHA1_BINARY_SIZE);
 }
 
-SHA1Holder::SHA1Holder(const uint8_t *bytes, const size_t size)
+SHA1Holder::SHA1Holder(const TBinaryPtr bytes, const size_t size)
 {
 	if (size != SHA1_BINARY_SIZE)
 		throw SHA1Exeption("Bad binarySHA1 size");

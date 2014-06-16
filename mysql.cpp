@@ -103,14 +103,15 @@ bool Mysql::_repeatQuery(const char *queryStr, const unsigned long length)
 
 TMysqlResultPtr Mysql::query(const char *queryStr, const unsigned long length)
 {
-	if (!execute(queryStr, length))
+	if (!execute(queryStr, length, "q"))
 		return TMysqlResultPtr();
 
 	MYSQL_RES *result = mysql_store_result(_mysql.get());
-	if (result)
-		return TMysqlResultPtr(new MysqlResult(result));
-	else
-	{
+	if (result) {
+		TMysqlResultPtr res(new MysqlResult(result));
+		log::Info::L("q: [%s], r: %u\n", queryStr, res->numRows());
+		return res;
+	} else {
 		_errorQuery("store_result", queryStr, length);
 		return TMysqlResultPtr();
 	}
@@ -128,14 +129,14 @@ TMysqlResultPtr Mysql::queryUse(const MysqlQuery &mysqlQuery)
 
 TMysqlResultPtr Mysql::queryUse(const char *queryStr, const unsigned long length)
 {
-	if (!execute(queryStr, length))
+	if (!execute(queryStr, length, "qu"))
 		return TMysqlResultPtr();
 
 	MYSQL_RES *result = mysql_use_result(_mysql.get());
-	if (result)
+	if (result) {
+		log::Info::L("qu: [%s]\n", queryStr);
 		return TMysqlResultPtr(new MysqlResult(result));
-	else
-	{
+	} else {
 		_errorQuery("use_result", queryStr, length);
 		return TMysqlResultPtr();
 	}
@@ -151,13 +152,16 @@ bool Mysql::execute(const MysqlQuery &mysqlQuery)
 	return execute(mysqlQuery.c_str(), mysqlQuery.size());
 }
 
-bool Mysql::execute(const char *queryStr, const unsigned long length)
+bool Mysql::execute(const char *queryStr, const unsigned long length, const char *cmd)
 {
 	auto res = mysql_real_query(_mysql.get(), queryStr, length);
   if (res && !_repeatQuery(queryStr, length)) {
-		_errorQuery("execute", queryStr, length);
+		_errorQuery(cmd, queryStr, length);
 		return false;
 	} else {
+		if (cmd[0] == 'e') {
+			log::Info::L("ex: [%s], ar: %u\n", queryStr, affectedRows());
+		}
 		return true;
 	}
 }

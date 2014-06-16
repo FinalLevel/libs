@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_SUITE( SHA1 )
 BOOST_AUTO_TEST_CASE( testSHA1HolderCreate )
 {
 	BOOST_CHECK_THROW(SHA1Holder("AAAA00", sizeof("AAAA00")), SHA1Exeption);
-	BOOST_CHECK_THROW(SHA1Holder((const uint8_t*)("AAAA00"), sizeof("AAAA00")), SHA1Exeption);
+	BOOST_CHECK_THROW(SHA1Holder((SHA1Holder::TBinaryPtr)("AAAA00"), sizeof("AAAA00")), SHA1Exeption);
 	try 
 	{
 		const char * const HEX_SHA1 = "d950b8ccbb5be47815b10293faf5a9acdae9e821";
