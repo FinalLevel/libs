@@ -10,7 +10,6 @@
 
 #include "nomos.hpp"
 #include "log.hpp"
-#include "mysql.hpp"
 
 using namespace fl::db;
 
@@ -106,7 +105,7 @@ NomosPool::~NomosPool()
 void NomosPool::addServer(const uint32_t serverId, const TIPv4 ip, const TPort16 port)
 {
 	AutoMutex autoSync(&_sync);
-	auto res = _servers.insert(TNomosVectorMap::value_type(serverId, NULL));
+	auto res = _servers.insert(TNomosVectorMap::value_type(serverId, (Server*)NULL));
 	if (!res.second) {
 		delete res.first->second;
 	}
