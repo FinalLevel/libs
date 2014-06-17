@@ -68,6 +68,7 @@ namespace fl {
 			unsigned long affectedRows() const;
 
 			void addRealEscape(BString &buf, const char *value, const long length);
+			void addRealEscape(BString &buf, const std::string &value);
 			
 			bool nextResult();
 			

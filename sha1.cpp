@@ -54,3 +54,17 @@ SHA1Holder::SHA1Holder(fl::utils::Buffer &buf)
 {
 	SHA1(buf.begin(), buf.writtenSize(), _bytes);
 }
+
+void SHA1Holder::toBString(BString &dst) const
+{
+	static const char hexChars[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	char *buf = dst.reserveBuffer(SHA1_HEX_SIZE);
+	for (size_t i = 0; i < SHA1_BINARY_SIZE; i++) 
+	{
+		*buf = hexChars[(_bytes[i] & 0xF0) >> 4];
+		buf++;
+		*buf = hexChars[_bytes[i] & 0x0F];
+		buf++;
+	}
+	*buf = 0; 
+}

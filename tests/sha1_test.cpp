@@ -29,7 +29,10 @@ BOOST_AUTO_TEST_CASE( testSHA1HolderCreate )
 		fl::utils::hex2Binary(HEX_SHA1, binary, SHA1_BINARY_SIZE);
 		SHA1Holder sha1FromBinary(binary, SHA1_BINARY_SIZE);
 		BOOST_CHECK(sha1FromHex == sha1FromBinary);
-		
+		BString backConv;
+		sha1FromBinary.toBString(backConv);
+		BOOST_CHECK(strcasecmp(backConv.c_str(), HEX_SHA1) == 0);
+
 		SHA1Holder sha1Zero;
 		SHA1Holder sha1ZeroFromHex("0000000000000000000000000000000000000000", SHA1_HEX_SIZE);
 		BOOST_CHECK( sha1Zero == sha1ZeroFromHex );

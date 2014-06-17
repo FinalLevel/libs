@@ -183,6 +183,11 @@ void Mysql::addRealEscape(BString &buf, const char *value, const long length)
 	buf.trim(currentSize);
 }
 
+void Mysql::addRealEscape(BString &buf, const std::string &value)
+{
+	addRealEscape(buf, value.c_str(), value.size());
+}
+
 
 bool Mysql::nextResult()
 {

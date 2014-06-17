@@ -16,10 +16,12 @@
 #include <cstddef>
 #include "exception.hpp"
 #include "buffer.hpp"
+#include "bstring.hpp"
 
 
 namespace fl {
 	namespace crypto {
+		using fl::strings::BString;
 		const size_t SHA1_BINARY_SIZE = 20;
 		const size_t SHA1_HEX_SIZE = SHA1_BINARY_SIZE * 2;
 		
@@ -44,6 +46,7 @@ namespace fl {
 			bool operator==(const SHA1Holder &a);
 			
 			void setHex(const char *textSHA1, const size_t size);
+			void toBString(BString &dst) const;
 		private:
 			uint8_t _bytes[SHA1_BINARY_SIZE];
 		};
