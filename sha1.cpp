@@ -45,7 +45,7 @@ SHA1Holder::SHA1Holder(const TBinaryPtr bytes, const size_t size)
 	memcpy(_bytes, bytes, size);
 }
 
-bool SHA1Holder::operator==(const SHA1Holder &a)
+bool SHA1Holder::operator==(const SHA1Holder &a) const
 {
 	return !memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE);
 }
@@ -67,4 +67,9 @@ void SHA1Holder::toBString(BString &dst) const
 		buf++;
 	}
 	*buf = 0; 
+}
+
+size_t SHA1Holder::crc64() const
+{
+	return fl::utils::getCheckSum64((const char*)_bytes, SHA1_BINARY_SIZE);
 }

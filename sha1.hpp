@@ -43,14 +43,28 @@ namespace fl {
 			SHA1Holder(const char *textSHA1, const size_t size);
 			SHA1Holder(const TBinaryPtr bytes, const size_t size);
 			SHA1Holder(fl::utils::Buffer &buf);
-			bool operator==(const SHA1Holder &a);
+			bool operator==(const SHA1Holder &a) const;
 			
 			void setHex(const char *textSHA1, const size_t size);
 			void toBString(BString &dst) const;
+			size_t crc64() const;
 		private:
 			uint8_t _bytes[SHA1_BINARY_SIZE];
 		};
 	};
+};
+
+namespace std
+{
+	using fl::crypto::SHA1Holder;
+	
+	template<> struct hash<SHA1Holder> 
+	{
+		size_t operator()(const SHA1Holder& val) const
+		{
+			return val.crc64();
+		}
+	};	
 };
 
 #endif	// __FL_SHA1_HPP

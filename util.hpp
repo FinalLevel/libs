@@ -79,6 +79,14 @@ namespace fl {
 			return sum;
 		}
 		
+		inline u_int32_t getCheckSum64(const char *str, u_int32_t len, u_int32_t sum = 0)
+		{
+			for (register size_t i = 0; i < len; i++) {
+				sum = str[i] + (sum << 10) + (sum << 24) - sum;
+			}
+			return sum;
+		}
+		
 		template<class T> inline u_int32_t getCheckSum32Tmpl(const T& value)
 		{
 			return value;
