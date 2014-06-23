@@ -48,6 +48,8 @@ namespace fl {
 			void setHex(const char *textSHA1, const size_t size);
 			void toBString(BString &dst) const;
 			size_t crc64() const;
+			uint16_t getUINT16() const;
+			bool empty() const;
 		private:
 			uint8_t _bytes[SHA1_BINARY_SIZE];
 		};

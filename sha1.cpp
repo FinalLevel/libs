@@ -73,3 +73,21 @@ size_t SHA1Holder::crc64() const
 {
 	return fl::utils::getCheckSum64((const char*)_bytes, SHA1_BINARY_SIZE);
 }
+
+uint16_t SHA1Holder::getUINT16() const
+{
+	uint16_t val = _bytes[0];
+	val <<= 8;
+	val |= _bytes[1];
+	return val;
+}
+
+bool SHA1Holder::empty() const
+{
+	for (uint8_t i = 0; i < SHA1_BINARY_SIZE; i++) {
+		if (_bytes[i] != 0) {
+			return false;
+		}
+	}
+	return true;
+}
