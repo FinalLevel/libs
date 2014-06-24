@@ -153,6 +153,18 @@ namespace fl {
 							return 0;
 					}
 			};
+			
+			template<typename S>
+			struct get_impl<int64_t, S>
+			{
+					static int64_t get(MysqlResult *result, const int pos)
+					{ 
+						if (result->_currentRow[pos])
+							return strtoll(result->_currentRow[pos], NULL, 10);
+						else
+							return 0;
+					}
+			};
 
 			template<typename S>
 			struct get_impl<int, S>
