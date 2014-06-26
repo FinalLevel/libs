@@ -52,6 +52,10 @@ namespace fl {
 			{
 				return false;
 			}
+			virtual bool canContinue()
+			{
+				return true;
+			}
 			enum EFormResult
 			{
 				 RESULT_OK_CLOSE = 0,
@@ -122,6 +126,7 @@ namespace fl {
 			typedef uint8_t TStatus;
 			static const TStatus ST_KEEP_ALIVE = 0x1;
 			static const TStatus ST_CHECK_AFTER_SEND = 0x2;
+			static const TStatus ST_EXPECT_100 = 0x4;
 			
 			void setKeepAlive()
 			{
@@ -139,11 +144,13 @@ namespace fl {
 			bool _parseHeader(const char *pStartHeader, const char *pEndHeader);
 			void _endWork();
 			bool _readPostData();
+			ECallResult _send100Continue();
 			ECallResult _sendAnswer();
 			ECallResult _sendError();
 			void _updateTimeout();
 			bool _reset();
 			const ECallResult _setWaitExternalEvent();
+			bool _checkExpect(const char *name, const size_t nameLength, const char *value, const size_t valueLen);
 			
 			HttpEventInterface *_interface;
 			NetworkBuffer *_networkBuffer;

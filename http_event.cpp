@@ -153,6 +153,24 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	return _interface->parseURI(cmdStart, version, hostName, fileName, query);	
 }
 
+bool HttpEvent::_checkExpect(const char *name, const size_t nameLength, const char *value, const size_t valueLen)
+{
+	static const std::string EXPECT_HEADER("Expect");
+	if (nameLength != EXPECT_HEADER.size())
+		return false;
+	if (strncasecmp(name, EXPECT_HEADER.c_str(), EXPECT_HEADER.size()))
+		return false;
+	else {
+		static const std::string VALUE_100_CONTINUE("100-Continue");
+		if (!strncasecmp(value, VALUE_100_CONTINUE.c_str(), VALUE_100_CONTINUE.size())) {
+			_status |= ST_EXPECT_100; 
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
+
 bool HttpEvent::_parseHeader(const char *pStartHeader, const char *pEndHeader)
 {
 	const char *pBeginName = pStartHeader;
@@ -169,7 +187,12 @@ bool HttpEvent::_parseHeader(const char *pStartHeader, const char *pEndHeader)
 			int valueLen = pEndHeader - pStartHeader;
 			if (valueLen <= 0)
 				return true;
-			return _interface->parseHeader(pBeginName, nameLength, pStartHeader, valueLen, pEndHeader);
+			if (_checkExpect(pBeginName, nameLength, pStartHeader, valueLen)) {
+				return _interface->canContinue();
+			}
+			else {	
+				return _interface->parseHeader(pBeginName, nameLength, pStartHeader, valueLen, pEndHeader);
+			}
 		}
 		pStartHeader++;
 	}
@@ -275,6 +298,15 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 			if (_reset())
 				return CHANGE;
 		}
+		if (_status & ST_EXPECT_100) {
+			setWaitRead();
+			if (_thread->ctrl(this)) {
+				_updateTimeout();
+				_status &= (~ST_EXPECT_100);
+				_state = EHttpState::ST_WAIT_ADDITIONAL_DATA;
+				return CHANGE;
+			}
+		}
 	}
 	return FINISHED;	
 }
@@ -374,6 +406,16 @@ HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResu
 	return sendResult;
 }
 
+HttpEvent::ECallResult HttpEvent::_send100Continue()
+{
+	_state = EHttpState::ST_SEND;
+	_networkBuffer->clear();
+	static const std::string HTTP_CONTINUE_HEADER("HTTP/1.1 100 Continue\r\n\r\n");
+	*_networkBuffer << HTTP_CONTINUE_HEADER;
+	_headerStartPosition = _networkBuffer->size();
+	return _sendAnswer();
+}
+
 const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 {
 	if (_state == EHttpState::ST_FINISHED)
@@ -390,8 +432,11 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 				return _sendError();
 		}
 		if (_state == EHttpState::ST_WAIT_ADDITIONAL_DATA) {
-			if (!_readPostData())
+			if (_status & ST_EXPECT_100) {
+				return _send100Continue();
+			} else if (!_readPostData()) {
 				return _sendError();
+			}
 		}
 		if (_state == EHttpState::ST_REQUEST_RECEIVED) {
 			_networkBuffer->clear();
