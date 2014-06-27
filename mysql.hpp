@@ -69,6 +69,7 @@ namespace fl {
 
 			void addRealEscape(BString &buf, const char *value, const long length);
 			void addRealEscape(BString &buf, const std::string &value);
+			void addRealEscape(BString &buf, const BString &value);
 			
 			bool nextResult();
 			

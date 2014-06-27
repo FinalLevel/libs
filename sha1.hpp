@@ -42,11 +42,13 @@ namespace fl {
 			SHA1Holder();
 			SHA1Holder(const char *textSHA1, const size_t size);
 			SHA1Holder(const TBinaryPtr bytes, const size_t size);
-			SHA1Holder(fl::utils::Buffer &buf);
+			SHA1Holder(const fl::utils::Buffer &buf);
+			SHA1Holder(const fl::strings::BString &str);
 			bool operator==(const SHA1Holder &a) const;
 			
 			void setHex(const char *textSHA1, const size_t size);
 			void toBString(BString &dst) const;
+			BString getBString() const;
 			size_t crc64() const;
 			uint16_t getUINT16() const;
 			bool empty() const;

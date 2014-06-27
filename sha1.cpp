@@ -50,9 +50,22 @@ bool SHA1Holder::operator==(const SHA1Holder &a) const
 	return !memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE);
 }
 
-SHA1Holder::SHA1Holder(fl::utils::Buffer &buf)
+SHA1Holder::SHA1Holder(const fl::utils::Buffer &buf)
 {
 	SHA1(buf.begin(), buf.writtenSize(), _bytes);
+}
+
+SHA1Holder::SHA1Holder(const fl::strings::BString &str)
+{
+	SHA1((unsigned char*)str.c_str(), str.size(), _bytes);
+}
+
+
+BString SHA1Holder::getBString() const
+{
+	BString buf(SHA1_HEX_SIZE + 1);
+	toBString(buf);
+	return buf;
 }
 
 void SHA1Holder::toBString(BString &dst) const
