@@ -142,6 +142,13 @@ const bool BString::operator==(const BString &str) const
 	return !memcmp(_data, str._data, _size);
 }
 
+const bool BString::operator==(const std::string &str) const
+{
+	if (str.size() != (size_t)_size)
+		return false;
+	return !memcmp(_data, str.c_str(), _size);
+}
+
 const bool BString::operator==(const char *compareWith) const
 {
 	TSize strLen = strlen(compareWith);

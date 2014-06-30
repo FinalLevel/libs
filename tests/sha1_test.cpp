@@ -23,15 +23,15 @@ BOOST_AUTO_TEST_CASE( testSHA1HolderCreate )
 	BOOST_CHECK_THROW(SHA1Holder((SHA1Holder::TBinaryPtr)("AAAA00"), sizeof("AAAA00")), SHA1Exeption);
 	try 
 	{
-		const char * const HEX_SHA1 = "d950b8ccbb5be47815b10293faf5a9acdae9e821";
-		SHA1Holder sha1FromHex(HEX_SHA1, SHA1_HEX_SIZE);
+		const std::string HEX_SHA1 = "D950B8CCBB5BE47815B10293FAF5A9ACDAE9E821";
+		SHA1Holder sha1FromHex(HEX_SHA1.c_str(), HEX_SHA1.size());
 		uint8_t binary[SHA1_BINARY_SIZE];
-		fl::utils::hex2Binary(HEX_SHA1, binary, SHA1_BINARY_SIZE);
+		fl::utils::hex2Binary(HEX_SHA1.c_str(), binary, SHA1_BINARY_SIZE);
 		SHA1Holder sha1FromBinary(binary, SHA1_BINARY_SIZE);
 		BOOST_CHECK(sha1FromHex == sha1FromBinary);
 		BString backConv;
 		sha1FromBinary.toBString(backConv);
-		BOOST_CHECK(strcasecmp(backConv.c_str(), HEX_SHA1) == 0);
+		BOOST_CHECK(backConv == HEX_SHA1);
 
 		SHA1Holder sha1Zero;
 		SHA1Holder sha1ZeroFromHex("0000000000000000000000000000000000000000", SHA1_HEX_SIZE);
@@ -52,6 +52,17 @@ BOOST_AUTO_TEST_CASE( testSHA1Calculation )
 	SHA1Holder sha1Hex("661295c9cbf9d6b2f6428414504a8deed3020641", SHA1_HEX_SIZE);
 	
 	BOOST_CHECK( sha1Calc == sha1Hex );
+}
+
+BOOST_AUTO_TEST_CASE( testLowerUpper )
+{
+	const std::string HEX_SHA1_UPPER = "D950B8CCBB5BE47815B10293FAF5A9ACDAE9E821";
+	SHA1Holder sha1Upper(HEX_SHA1_UPPER.c_str(), HEX_SHA1_UPPER.size());
+	
+	const std::string HEX_SHA1_LOWER = "d950b8ccbb5be47815b10293faf5a9acdae9e821";
+	SHA1Holder sha1Lower(HEX_SHA1_LOWER.c_str(), HEX_SHA1_LOWER.size());
+	
+	BOOST_CHECK( sha1Upper == sha1Lower );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
