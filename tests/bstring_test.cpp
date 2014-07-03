@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE( addJSONEscapedUTF8Test )
 		BString str;
 		const std::string TEST_STR("Дра\tа\"л\\'s\r\n");
 		str.addJSONEscapedUTF8(TEST_STR.c_str(), TEST_STR.size());
-		BOOST_CHECK(str == "Дра\\tа\\\"л\\\\\\'s\\r\\n");
+		BOOST_CHECK(str == "Дра\\tа\\\"л\\\\'s\\r\\n");
 		
 		const std::string TEST_STR2("драал\\s.mp3");
 		str.clear();

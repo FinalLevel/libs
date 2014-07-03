@@ -234,7 +234,7 @@ void BString::addJSONEscapedUTF8(const char *str, TSize len)
 			pBuf++;
 			*pBuf = '\\';
 			pBuf++;
-		} else if (ch > '\'') {
+		} else if (ch > '"') {
 			*pBuf = ch;
 			pBuf++;
 		} else {
@@ -262,12 +262,6 @@ void BString::addJSONEscapedUTF8(const char *str, TSize len)
 					*pBuf = '\\';
 					pBuf++;
 					*pBuf = '"';
-					pBuf++;
-					break;
-				case '\'':
-					*pBuf = '\\';
-					pBuf++;
-					*pBuf = '\'';
 					pBuf++;
 					break;
 				default:
