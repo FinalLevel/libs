@@ -58,6 +58,7 @@ namespace fl {
 			BString &operator<<(const BString &str);
 			
 			void add(const char *str, TSize len);
+			void addJSONEscapedUTF8(const char *str, TSize len);
 			
 			const bool operator==(const char *compareWith) const;
 			const bool operator==(const std::string &str) const;

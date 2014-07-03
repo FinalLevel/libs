@@ -219,6 +219,67 @@ void BString::add(const char *str, TSize len)
 	_data[_size] = 0;
 }
 
+void BString::addJSONEscapedUTF8(const char *str, TSize len)
+{
+	TSize startSize = _size;
+	char *pBufStart = reserveBuffer(len * 2 + 1);
+	char *pBuf = pBufStart;
+	const char *pstr = str;
+	const char *strEnd = str + len;
+	while (pstr < strEnd) {
+		unsigned char ch = *pstr;
+		pstr++;
+		if (ch == '\\') {
+			*pBuf = '\\';
+			pBuf++;
+			*pBuf = '\\';
+			pBuf++;
+		} else if (ch > '\'') {
+			*pBuf = ch;
+			pBuf++;
+		} else {
+			switch (ch)
+			{
+				case '\n':
+					*pBuf = '\\';
+					pBuf++;
+					*pBuf = 'n';
+					pBuf++;
+					break;
+				case '\t':
+					*pBuf = '\\';
+					pBuf++;
+					*pBuf = 't';
+					pBuf++;
+					break;
+				case '\r':
+					*pBuf = '\\';
+					pBuf++;
+					*pBuf = 'r';
+					pBuf++;
+					break;
+				case '\"':
+					*pBuf = '\\';
+					pBuf++;
+					*pBuf = '"';
+					pBuf++;
+					break;
+				case '\'':
+					*pBuf = '\\';
+					pBuf++;
+					*pBuf = '\'';
+					pBuf++;
+					break;
+				default:
+					*pBuf = ch;
+					pBuf++;
+					break;
+			}
+		}
+	}
+	trim(startSize + (pBuf - pBufStart));
+}
+
 BString::TDataPtr BString::reserveBuffer(const TSize size)
 {
 	TSize oldSize = _size;

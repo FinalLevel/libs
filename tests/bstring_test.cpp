@@ -225,4 +225,24 @@ BOOST_AUTO_TEST_CASE( streamOperatorsTest )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( addJSONEscapedUTF8Test )
+{
+	try
+	{
+		BString str;
+		const std::string TEST_STR("Дра\tа\"л\\'s\r\n");
+		str.addJSONEscapedUTF8(TEST_STR.c_str(), TEST_STR.size());
+		BOOST_CHECK(str == "Дра\\tа\\\"л\\\\\\'s\\r\\n");
+		
+		const std::string TEST_STR2("драал\\s.mp3");
+		str.clear();
+		str.addJSONEscapedUTF8(TEST_STR2.c_str(), TEST_STR2.size());
+		BOOST_CHECK(str == "драал\\\\s.mp3");
+	}
+	catch (...)
+	{
+		BOOST_CHECK_NO_THROW(throw);
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
