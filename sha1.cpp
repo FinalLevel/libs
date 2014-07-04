@@ -50,6 +50,11 @@ bool SHA1Holder::operator==(const SHA1Holder &a) const
 	return !memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE);
 }
 
+bool SHA1Holder::operator!=(const SHA1Holder &a) const
+{
+	return memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE);
+}
+
 SHA1Holder::SHA1Holder(const fl::utils::Buffer &buf)
 {
 	SHA1(buf.begin(), buf.writtenSize(), _bytes);

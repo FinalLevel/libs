@@ -45,6 +45,7 @@ namespace fl {
 			SHA1Holder(const fl::utils::Buffer &buf);
 			SHA1Holder(const fl::strings::BString &str);
 			bool operator==(const SHA1Holder &a) const;
+			bool operator!=(const SHA1Holder &a) const;
 			
 			void setHex(const char *textSHA1, const size_t size);
 			void toBString(BString &dst) const;
