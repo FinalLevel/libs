@@ -33,6 +33,41 @@ namespace fl {
 			pthread_mutex_t _mutex;
 		};
 
+		class WeekAutoMutex
+		{
+		public:
+			WeekAutoMutex(Mutex *sync)
+				: _sync(sync), _locked(true)
+			{
+					_sync->lock();
+			}
+			~WeekAutoMutex()
+			{
+				if (_locked) {
+					_sync->unLock();
+				}
+			}
+			void lock()
+			{
+				if (_locked)
+					return;
+				_sync->lock();
+				_locked = true;
+			}
+			void unLock()
+			{
+				if (!_locked)
+					return;
+				_sync->unLock();
+				_locked = false;
+			}
+			WeekAutoMutex(const WeekAutoMutex &) = delete;
+			WeekAutoMutex& operator=(const WeekAutoMutex &) = delete;
+		private:
+			Mutex *_sync;
+			bool _locked;
+		};
+		
 		class AutoMutex
 		{
 		public:
