@@ -9,6 +9,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <sys/stat.h>
+#include <sys/prctl.h>
+#include <sys/resource.h>
+#include <unistd.h>
+
 #include "util.hpp"
 
 namespace fl {
@@ -58,6 +62,39 @@ namespace fl {
 			 lower = hexStr[2 * i + 1];
 			 *pBin = (digit2Int(upper) << 4) | digit2Int(lower);
 			 pBin--;
+			}
+		}
+		bool enableCoreDump()
+		{
+			prctl(PR_SET_DUMPABLE, 1);
+			struct rlimit limit;
+			limit.rlim_cur = limit.rlim_max = RLIM_INFINITY;
+			if (setrlimit(RLIMIT_CORE, &limit) == 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		bool setMaxOpenFiles(const int maxOpenFiles)
+		{
+			struct rlimit limit;
+			limit.rlim_cur = limit.rlim_max = maxOpenFiles;
+			if (setrlimit(RLIMIT_NOFILE, &limit) == 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		bool setMaxProcess(const int maxProcess)
+		{
+			struct rlimit limit;
+			limit.rlim_cur = limit.rlim_max = maxProcess;
+			if (setrlimit(RLIMIT_NPROC, &limit) == 0) {
+				return true;
+			} else {
+				return false;
 			}
 		}
 	};
