@@ -46,7 +46,7 @@ bool WebDavInterface::parseURI(const char *cmdStart, const EHttpVersion::EHttpVe
 {
 	if (version != EHttpVersion::HTTP_1_1) {
 		log::Error::L("WebDAV can work only over HTTP/1.1 protocol\n");
-		_error = ERROR_400_BAD_REQUEST;
+		_error = ERROR_505_HTTP_VERSION_NOT_SUPPORTED;
 		return false;
 	}
 	_status |= ST_KEEP_ALIVE;

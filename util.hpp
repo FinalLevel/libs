@@ -123,6 +123,10 @@ namespace fl {
 		}
 		void hex2BinaryBackOrder(const char *hexStr, uint8_t *binary, const size_t binarySize);
 		void hex2Binary(const char *hexStr, uint8_t *binary, const size_t binarySize);
+		
+		bool enableCoreDump();
+		bool setMaxOpenFiles(const int maxOpenFiles);
+		bool setMaxProcess(const int maxProcess);
 	};
 };
 
