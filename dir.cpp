@@ -47,6 +47,19 @@ void Directory::rewind()
 	rewinddir(_dir);
 }
 
+bool Directory::isDirectory(const char *path) const
+{
+	struct stat fStat;
+	if (lstat(path, &fStat) != 0) {
+		throw Error("isDirectory: Can't check directory");
+	}
+	if (S_ISDIR(fStat.st_mode)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 bool Directory::makeDirRecursive(const char *path, int mode)
 {
 	BString pathBuf;
@@ -75,20 +88,21 @@ bool Directory::rmDirRecursive(const char *path)
 		BString cpath;
 		while (dir.next()) {
 			cpath.sprintfSet("%s/%s", path, dir.name());
-			if (dir.isDirectory()) {
+			if (dir.isDirectory(cpath.c_str())) {
 				if (dir.name()[0] == '.' && ((dir.name()[1] == '.' &&  dir.name()[2] == 0) || dir.name()[1] == 0)) {
 					// skip ".." and "." 
 					continue;
 				}
 				if (!rmDirRecursive(cpath.c_str()))
 					return false;
-			}
-			else
+			} else {
 				if (unlink(cpath.c_str()))
 					return false;
+			}
 		}
-		if (rmdir(path))
+		if (rmdir(path)) {
 			return false;
+		}
 	}
 	catch (Error &co)
 	{

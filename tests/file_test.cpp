@@ -53,6 +53,7 @@ BOOST_AUTO_TEST_CASE( FileTouch )
 	struct stat fStat;
 	BOOST_REQUIRE(lstat(fileName.data(), &fStat) == 0);
 	BOOST_REQUIRE(fStat.st_mtim.tv_sec == setTime);
+	BOOST_REQUIRE(unlink(fileName.data()) == 0);
 }
 
 BOOST_AUTO_TEST_CASE( FileTrancate )
