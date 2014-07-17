@@ -60,7 +60,7 @@ namespace fl {
 			NetworkBuffer *get();
 			void free(NetworkBuffer *buf);
 		private:
-			int _bufferSize;
+			NetworkBuffer::TSize _bufferSize;
 			uint32_t _freeBuffersLimit;
 			
 			typedef std::vector<NetworkBuffer*> TNetworkBufferVector;

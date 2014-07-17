@@ -36,17 +36,19 @@ void NetworkBuffer::setSended(const TSize sended)
 
 NetworkBuffer::EResult NetworkBuffer::send(const TDescriptor descr)
 {
-	TSize leftSend = _size - _sended;
-	if (leftSend <= 0)
+	if (_size <= _sended)
 		return OK;
+	TSize leftSend = _size - _sended;
 
 	int res;
 	while ((res = ::send(descr, _data + _sended, leftSend, MSG_NOSIGNAL)) > 0)	{
 		_sended += res;
-		if (res < leftSend)
+		if (leftSend > static_cast<TSize>(res))
 			leftSend -= res;
-		else
+		else {
+			leftSend = 0;
 			return OK;
+		}
 	}
 	if (errno == EAGAIN || errno == EINTR)
 		return IN_PROGRESS;
@@ -61,7 +63,7 @@ NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr)
 		static TSize MIN_RESERVE = 32 * 1024;
 		reserve(MIN_RESERVE);
 	}
-	int chunkSize = _reserved;
+	TSize chunkSize = _reserved;
 	if (_size) {
 		chunkSize -= _size;
 		if (chunkSize < (_reserved / 4))

@@ -82,7 +82,7 @@ BString& BString::operator=(BString &&moveFrom)
 
 inline bool BString::_reserveForSprintf(const int sprintfRes, const TSize leftSpace)
 {
-	if ((sprintfRes >= 0) && (sprintfRes < leftSpace))
+	if ((sprintfRes >= 0) && (static_cast<TSize>(sprintfRes) < leftSpace))
 		return true;
 
 	int newReservedSize = _reserved;

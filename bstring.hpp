@@ -31,7 +31,7 @@ namespace fl {
 				}
 			};
 			
-			typedef int TSize;
+			typedef uint32_t TSize;
 			typedef char *TDataPtr;
 			static const TSize DEFAULT_RESERVED_SIZE = 0;
 			
