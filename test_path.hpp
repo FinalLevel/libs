@@ -51,7 +51,7 @@ namespace fl {
 				BString fileName;
 				while (dir.next())
 				{
-					fileName.snprintf("%s/%s", path.c_str(), dir.name());
+					fileName.sprintfSet("%s/%s", path.c_str(), dir.name());
 					if (dir.isDirectory(fileName.c_str()))
 						continue;
 					count++;
