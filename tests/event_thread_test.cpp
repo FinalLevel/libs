@@ -137,7 +137,6 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		int fd = socket(PF_INET, SOCK_STREAM, 0);
 		BOOST_CHECK(fd > 0 );
 		BOOST_CHECK( worker.addConnection(new WorkTestEvent(SOCKET_EVENT, fd), NULL) != false);
-		BOOST_CHECK( worker.addConnection(new WorkTestEvent(STDOUT_EVENT, fileno(stdout)), NULL) != false);
 		BOOST_CHECK( worker.addConnection(new WorkTestEvent(STDIN_EVENT, fileno(stdin)), NULL) != false);
 		
 		for (int c = 0; c < 4; c++)
