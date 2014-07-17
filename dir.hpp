@@ -41,10 +41,8 @@ namespace fl {
 			{
 				return _entry.d_name;
 			}
-			bool isDirectory() const
-			{
-				return (_entry.d_type == DT_DIR);
-			}
+			bool isDirectory(const char *path) const;
+
 			static const int DEFAULT_DIR_MODE = S_IRWXU;
 			static bool makeDirRecursive(const char *path, int mode = DEFAULT_DIR_MODE);
 			static bool rmDirRecursive(const char *path);

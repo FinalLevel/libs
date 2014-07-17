@@ -48,9 +48,11 @@ namespace fl {
 				path.sprintfSet("%s/%s", _path.c_str(), subdir);
 				int count = 0;
 				Directory dir(path.c_str());
+				BString fileName;
 				while (dir.next())
 				{
-					if (dir.isDirectory())
+					fileName.sprintfSet("%s/%s", path.c_str(), dir.name());
+					if (dir.isDirectory(fileName.c_str()))
 						continue;
 					count++;
 				}

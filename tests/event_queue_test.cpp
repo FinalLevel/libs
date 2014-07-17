@@ -7,30 +7,33 @@
 // Description: Event queue system unit tests
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
 #include <boost/test/unit_test.hpp>
-#include <boost/test/output_test_stream.hpp> 
 
 #include "event_queue.hpp"
-
-using boost::test_tools::output_test_stream;
-
 using namespace fl::events;
 
 
 class TestEvent : public Event
 {
 public:
-	TestEvent(output_test_stream &output)
-		: Event(fileno(stdout)), output(output)
+	TestEvent()
+		: Event(socket(PF_INET, SOCK_STREAM, 0)), wasCalled(false)
 	{
 		_events = E_OUTPUT;
 	}
+	~TestEvent()
+	{
+		close(_descr);
+	}
 	virtual const ECallResult call(const TEvents events)
 	{
-		output << "TestEvent::call";
+		wasCalled = true;
 		return CHANGE;
 	}
-	output_test_stream &output;
+	bool wasCalled;
 };
 
 BOOST_AUTO_TEST_SUITE( EPollTest )
@@ -44,14 +47,13 @@ BOOST_AUTO_TEST_CASE(testEPoll)
 	const int QUEUE_LENGTH = 100;
 	BOOST_CHECK_NO_THROW (
 		EPoll epoll(QUEUE_LENGTH);
-		output_test_stream output;
-		TestEvent ev(output);
+		TestEvent ev;
 		BOOST_CHECK(epoll.ctrl(&ev) != false);
 		BOOST_CHECK(epoll.dispatch(1) != false);
 		BOOST_CHECK(epoll.callActive(changedEvents, endedEvents) != false);
 		BOOST_CHECK(changedEvents.empty() == false);
 		BOOST_CHECK(endedEvents.empty() == true);
-		BOOST_CHECK(output.is_equal("TestEvent::call"));
+		BOOST_CHECK(ev.wasCalled == true);
 	);
 }
 
