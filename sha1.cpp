@@ -11,8 +11,7 @@
 #include <cstring>
 #include "sha1.hpp"
 #include "util.hpp"
-
-#include <openssl/sha.h>
+#include "log.hpp"
 
 using namespace fl::crypto;
 
@@ -65,6 +64,39 @@ SHA1Holder::SHA1Holder(const fl::strings::BString &str)
 	SHA1((unsigned char*)str.c_str(), str.size(), _bytes);
 }
 
+SHA1Holder::SHA1Holder(fl::fs::File &file, const size_t readSize, fl::utils::BString &buf)
+{
+	if (!fromFile(file, readSize, buf)) {
+		throw SHA1Exeption("SHA1Holder can't calc SHA1 from file");
+	}
+}
+
+bool SHA1Holder::fromFile(fl::fs::File &file, const size_t readSize, fl::utils::BString &buf)
+{
+	if (buf.reserved() < 1) {
+		log::Fatal::L("Buffer can't have zero size");
+		return false;
+	}
+	
+	SHA1Builder builder;
+	auto leftSize = readSize;
+	while (leftSize > 0) {
+		buf.clear();
+		auto chunkSize = buf.reserved() - 1;
+		if (chunkSize > leftSize) {
+			chunkSize = leftSize;
+		}
+		if (file.read(buf.reserveBuffer(chunkSize), chunkSize) != chunkSize) {
+			log::Error::L("SHA1Holder can't read %u chunk\n", chunkSize);
+			return false;
+		}
+		builder.update(buf.c_str(), buf.size());
+		leftSize -= chunkSize;
+	}
+	builder.finish(*this);
+	return true;
+}
+
 
 BString SHA1Holder::getBString() const
 {
@@ -108,4 +140,32 @@ bool SHA1Holder::empty() const
 		}
 	}
 	return true;
+}
+
+SHA1Builder::SHA1Builder()
+{
+	if (!SHA1_Init(&_ctx)) {
+		throw SHA1Exeption("Can't initialize sha1 ctx");
+	}
+}
+
+void SHA1Builder::clear()
+{
+	if (!SHA1_Init(&_ctx)) {
+		throw SHA1Exeption("Can't initialize sha1 ctx");
+	}
+}
+
+void SHA1Builder::update( const void *data, unsigned long len)
+{
+	if (!SHA1_Update(&_ctx, data, len)) {
+		throw SHA1Exeption("Can't update sha1 ctx");
+	}
+}
+
+void SHA1Builder::finish(SHA1Holder &sha1)
+{
+	if (!SHA1_Final(sha1._bytes, &_ctx)) {
+		throw SHA1Exeption("Can't finish sha1 ctx");
+	}
 }

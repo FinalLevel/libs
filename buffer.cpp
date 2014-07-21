@@ -115,6 +115,8 @@ void Buffer::truncate(const TSize seek)
 	if (seek > writtenSize())
 		throw Error("Seek out of range");
 	_writePos = _begin + seek;
+	if (_readPos > _writePos)
+		_readPos = _writePos;
 }
 
 void Buffer::seekReadPos(const TSize seek)

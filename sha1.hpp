@@ -14,9 +14,12 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <openssl/sha.h>
+
 #include "exception.hpp"
 #include "buffer.hpp"
 #include "bstring.hpp"
+#include "file.hpp"
 
 
 namespace fl {
@@ -44,6 +47,8 @@ namespace fl {
 			SHA1Holder(const TBinaryPtr bytes, const size_t size);
 			SHA1Holder(const fl::utils::Buffer &buf);
 			SHA1Holder(const fl::strings::BString &str);
+			SHA1Holder(fl::fs::File &file, const size_t readSize, fl::utils::BString &buf);
+			bool fromFile(fl::fs::File &file, const size_t readSize, fl::utils::BString &buf);
 			bool operator==(const SHA1Holder &a) const;
 			bool operator!=(const SHA1Holder &a) const;
 			
@@ -54,7 +59,19 @@ namespace fl {
 			uint16_t getUINT16() const;
 			bool empty() const;
 		private:
+			friend class SHA1Builder;
 			uint8_t _bytes[SHA1_BINARY_SIZE];
+		};
+		
+		class SHA1Builder
+		{
+		public:
+			SHA1Builder();
+			void update( const void *data, unsigned long len);
+			void finish(SHA1Holder &sha1);
+			void clear();
+		private:
+			SHA_CTX _ctx;
 		};
 	};
 };
