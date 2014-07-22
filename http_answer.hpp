@@ -57,6 +57,7 @@ namespace fl {
 				E_GIF,
 				E_PNG,
 				E_TXT,
+				E_MP3,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)
@@ -68,6 +69,7 @@ namespace fl {
 				return _MIME_TYPES[type];
 			}
 			static EMimeType getMimeTypeFromFileName(const std::string &fileName);
+			static EMimeType getMimeTypeFromExt(const char *ext, const size_t extLen);
 		private:
 			static const size_t MAX_EXT_LENGTH = 4;
 			static const char *_MIME_TYPES[E_MAX];

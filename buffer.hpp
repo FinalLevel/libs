@@ -105,6 +105,10 @@ namespace fl {
 			{
 				return _begin;
 			}
+			const TDataPtr readPtr() const
+			{
+				return _readPos;
+			}
 			TDataPtr reserveBuffer(const TSize size);
 			TDataPtr mapBuffer(const TSize size);
 			void skip(const TSize size);

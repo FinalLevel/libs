@@ -77,6 +77,7 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"image/gif",
 	"image/png",
 	"text/plain",
+	"audio/mpeg",
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
@@ -85,6 +86,7 @@ MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
 	{"gif", E_GIF},
 	{"png", E_PNG},
 	{"txt", E_TXT},
+	{"mp3", E_MP3},
 };
 
 MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileName)
@@ -108,6 +110,17 @@ MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileNam
 		ext--;
 	}
 	return E_UNKNOWN;
+}
+
+MimeType::EMimeType MimeType::getMimeTypeFromExt(const char *ext, const size_t extLen)
+{
+	std::string extStr(ext, extLen);
+	std::transform(extStr.begin(), extStr.end(), extStr.begin(), ::tolower);
+	auto f = _mimeTypes.find(extStr);
+	if (f == _mimeTypes.end())
+		return E_UNKNOWN;
+	else 
+		return f->second;	
 }
 
 void HttpAnswer::formLastModified(const time_t unixTime, BString &buf)
