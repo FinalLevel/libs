@@ -70,6 +70,18 @@ namespace fl {
 			);
 		};
 		
+		class StdErrorTarget : public Target
+		{
+			virtual void log(
+				const int level, 
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
+		};
+		
 		class FileTarget : public Target
 		{
 		public:

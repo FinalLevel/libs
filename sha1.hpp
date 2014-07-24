@@ -58,6 +58,10 @@ namespace fl {
 			size_t crc64() const;
 			uint16_t getUINT16() const;
 			bool empty() const;
+			uint8_t const * bytes() const
+			{
+				return _bytes;
+			}
 		private:
 			friend class SHA1Builder;
 			uint8_t _bytes[SHA1_BINARY_SIZE];

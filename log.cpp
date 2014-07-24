@@ -30,6 +30,17 @@ const char *ErrorLevelTable[ELogLevel::MAX_LOG_LEVEL] =
 	" ", // INFO
 };
 
+void StdErrorTarget::log(
+	const int level, 
+	const char *tag, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, va_list args
+) {
+	fprintf(stderr, "[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	vfprintf(stderr, fmt, args);
+}
+
 void ScreenTarget::log(
 	const int level, 
 	const char *tag, 
