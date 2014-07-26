@@ -21,6 +21,11 @@ SHA1Holder::SHA1Holder()
 	bzero(_bytes, SHA1_BINARY_SIZE);
 }
 
+void SHA1Holder::clear()
+{
+	bzero(_bytes, SHA1_BINARY_SIZE);
+}
+
 SHA1Holder::SHA1Holder(const char *textSHA1, const size_t size)
 {
 	if (size != SHA1_HEX_SIZE)
@@ -52,6 +57,11 @@ bool SHA1Holder::operator==(const SHA1Holder &a) const
 bool SHA1Holder::operator!=(const SHA1Holder &a) const
 {
 	return memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE);
+}
+
+bool SHA1Holder::operator<(const SHA1Holder &a) const
+{
+	return memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE) < 0;
 }
 
 SHA1Holder::SHA1Holder(const fl::utils::Buffer &buf)
@@ -143,6 +153,7 @@ bool SHA1Holder::empty() const
 }
 
 SHA1Builder::SHA1Builder()
+	: updated(false)
 {
 	if (!SHA1_Init(&_ctx)) {
 		throw SHA1Exeption("Can't initialize sha1 ctx");
@@ -154,6 +165,7 @@ void SHA1Builder::clear()
 	if (!SHA1_Init(&_ctx)) {
 		throw SHA1Exeption("Can't initialize sha1 ctx");
 	}
+	updated = false;
 }
 
 void SHA1Builder::update( const void *data, unsigned long len)
@@ -161,11 +173,17 @@ void SHA1Builder::update( const void *data, unsigned long len)
 	if (!SHA1_Update(&_ctx, data, len)) {
 		throw SHA1Exeption("Can't update sha1 ctx");
 	}
+	updated = true;
 }
 
 void SHA1Builder::finish(SHA1Holder &sha1)
 {
-	if (!SHA1_Final(sha1._bytes, &_ctx)) {
-		throw SHA1Exeption("Can't finish sha1 ctx");
+	if (updated) {
+		if (!SHA1_Final(sha1._bytes, &_ctx)) {
+			throw SHA1Exeption("Can't finish sha1 ctx");
+		}
+		updated = false;
+	} else {
+		sha1.clear();
 	}
 }

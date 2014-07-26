@@ -51,6 +51,7 @@ namespace fl {
 			bool fromFile(fl::fs::File &file, const size_t readSize, fl::utils::BString &buf);
 			bool operator==(const SHA1Holder &a) const;
 			bool operator!=(const SHA1Holder &a) const;
+			bool operator<(const SHA1Holder &a) const;
 			
 			void setHex(const char *textSHA1, const size_t size);
 			void toBString(BString &dst) const;
@@ -62,6 +63,7 @@ namespace fl {
 			{
 				return _bytes;
 			}
+			void clear();
 		private:
 			friend class SHA1Builder;
 			uint8_t _bytes[SHA1_BINARY_SIZE];
@@ -76,6 +78,7 @@ namespace fl {
 			void clear();
 		private:
 			SHA_CTX _ctx;
+			bool updated;
 		};
 	};
 };

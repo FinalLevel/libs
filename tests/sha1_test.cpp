@@ -82,6 +82,10 @@ BOOST_AUTO_TEST_CASE( testSHA1Builder )
 		
 		BOOST_CHECK( sha1Calc == buildedSHA1 );
 	}
+	SHA1Builder emptyBuilder;
+	SHA1Holder emptySHA1;
+	emptyBuilder.finish(emptySHA1);
+	BOOST_CHECK(emptySHA1 == SHA1Holder());
 }
 
 BOOST_AUTO_TEST_CASE( testSHA1HolderFromFile )
