@@ -13,7 +13,7 @@
 
 using namespace fl::utils;
 
-ProgramOption::ProgramOption(const int argc, const char *argv[])
+ProgramOption::ProgramOption(const int argc, const char * const argv[])
 {
 	if (argc == 0) {
 		return;
@@ -21,11 +21,14 @@ ProgramOption::ProgramOption(const int argc, const char *argv[])
 	_programName = argv[0];
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') { // found option name
-			if ((i + 1) < argc) {
-				_options.push_back(Option(argv[i][1], std::string(argv[i + 1])));
+			int next = i + 1;
+			if ((next >= argc) || (argv[next][0] == '-')) {
+				_options.push_back(Option(argv[i][1], ""));
+			} else if (next < argc) {
+				_options.push_back(Option(argv[i][1], std::string(argv[next])));
 				++i;
-				continue;
 			}
+			continue;
 		}
 		_options.push_back(Option(' ', std::string(argv[i])));
 	}

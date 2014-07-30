@@ -20,7 +20,7 @@ namespace fl {
 		class ProgramOption
 		{
 		public:
-			ProgramOption(const int argc, const char *argv[]);
+			ProgramOption(const int argc, const char * const argv[]);
 			struct Option 
 			{
 				Option(const unsigned char name, const std::string &value);

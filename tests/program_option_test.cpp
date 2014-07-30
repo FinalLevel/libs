@@ -17,11 +17,13 @@ BOOST_AUTO_TEST_SUITE( utils_ProgramOption )
 
 BOOST_AUTO_TEST_CASE( ProgramOptionParse )
 {
-	const int argc = 5;
-	const char *argv[argc] = {"test_program", "-c", "config", "-d", "data"};
+	const int argc = 7;
+	const char *argv[argc] = {"test_program", "-c", "config", "-f",  "-d", "data", "-p"};
 	ProgramOption options(argc, argv);
 	BOOST_CHECK(options.options()[0].name == 'c' && options.options()[0].value == "config");
-	BOOST_CHECK(options.options()[1].name == 'd' && options.options()[1].value == "data");
+	BOOST_CHECK(options.options()[1].name == 'f' && options.options()[1].value.empty());
+	BOOST_CHECK(options.options()[2].name == 'd' && options.options()[2].value == "data");
+	BOOST_CHECK(options.options()[3].name == 'p' && options.options()[3].value.empty());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
