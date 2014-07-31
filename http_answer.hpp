@@ -30,6 +30,7 @@ namespace fl {
 			HttpAnswer(BString &buf, const std::string &httpStatus, const char *contentType, const bool isKeepAlive,
 				const std::string& headers = std::string());
 			void addHeaders(const std::string &headers);
+			void addHeaders(const char *headers, const size_t length);
 			void setContentLength();
 			void setContentLength(const uint32_t contentLength);
 			void addLastModified(const time_t unixTime);

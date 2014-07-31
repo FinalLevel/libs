@@ -33,11 +33,18 @@ HttpAnswer::HttpAnswer(BString &buf, const std::string &httpStatus, const char *
 	_headersEnd = buf.size();
 }
 
-void HttpAnswer::addHeaders(const std::string& headers)
+
+void HttpAnswer::addHeaders(const char *headers, const size_t length)
 {
 	_buf.trim(_buf.size() - 2); // remove end \r\n
-	_buf << headers << "\r\n";
-	_headersEnd = _buf.size();
+	_buf.add(headers, length);
+	_buf << "\r\n";
+	_headersEnd = _buf.size();	
+}
+
+void HttpAnswer::addHeaders(const std::string& headers)
+{
+	addHeaders(headers.c_str(), headers.size());
 }
 
 void HttpAnswer::addLastModified(const time_t unixTime)
