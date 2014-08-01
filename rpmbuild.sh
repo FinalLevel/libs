@@ -6,7 +6,6 @@ cd $GITROOT
 
 REPO=$(git config --get remote.origin.url)
 
-VER=1.0
 REL=$(git rev-parse --short HEAD)git
 RPMTOPDIR=$GITROOT/rpm-build
 echo "Ver: $VER, Release: $REL, Repo: $REPO"
