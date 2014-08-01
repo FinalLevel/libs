@@ -40,6 +40,10 @@ namespace fl {
 				return _headersEnd;
 			}
 			void add(const char *data, const size_t size);
+			BString &buffer()
+			{
+				return _buf; 
+			}
 			static const std::string CONNECTION_KEEP_ALIVE;
 			static const std::string CONNECTION_CLOSE;
 		private:
