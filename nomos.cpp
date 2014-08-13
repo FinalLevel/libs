@@ -161,7 +161,15 @@ bool NomosPool::get(const std::string &level, const uint64_t subLevel, const uin
 		}
 		catch (Nomos::ConnectionError &ce)
 		{
-			
+			try
+			{
+				if ((*s)->get(level, subLevel, key, lifeTime, data))
+					return true;
+			}
+			catch (Nomos::ConnectionError &ce)
+			{
+				
+			}
 		}
 	}
 	return false;
