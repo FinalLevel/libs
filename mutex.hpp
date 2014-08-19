@@ -55,7 +55,7 @@ namespace fl {
 			{
 				unLock();
 				_sync = sync;
-				_sync->lock();
+				lock();
 			}
 			void lock()
 			{
