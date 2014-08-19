@@ -36,6 +36,10 @@ namespace fl {
 		class WeekAutoMutex
 		{
 		public:
+			WeekAutoMutex()
+				: _sync(NULL), _locked(false)
+			{
+			}
 			WeekAutoMutex(Mutex *sync)
 				: _sync(sync), _locked(true)
 			{
@@ -46,6 +50,12 @@ namespace fl {
 				if (_locked) {
 					_sync->unLock();
 				}
+			}
+			void resetAndLock(Mutex *sync)
+			{
+				unLock();
+				_sync = sync;
+				_sync->lock();
 			}
 			void lock()
 			{

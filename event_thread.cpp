@@ -37,9 +37,9 @@ EPollWorkerThread::~EPollWorkerThread()
 	delete _threadSpecificData;
 }
 
-bool EPollWorkerThread::addEvent(class WorkEvent *ev)
+bool EPollWorkerThread::addEvent(class WorkEvent *ev, fl::threads::WeekAutoMutex &autoSync)
 {
-	AutoMutex autoSync(&_eventsSync);
+	autoSync.resetAndLock(&_eventsSync);
 	if (!ctrl(ev))
 		return false;
 	
