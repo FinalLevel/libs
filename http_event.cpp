@@ -341,8 +341,9 @@ bool HttpEvent::_readPostData()
 
 bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result)
 {
+	fl::threads::WeekAutoMutex autoSync;
 	_updateTimeout();
-	if (!_thread->addEvent(this))
+	if (!_thread->addEvent(this, autoSync))
 		return false;
 	sendAnswer(result);
 	return true;

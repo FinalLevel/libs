@@ -89,7 +89,7 @@ namespace fl {
 			}
 			void addToDeletedNL(class Event *ev);
 			bool unAttachNL(class WorkEvent* ev);
-			bool addEvent(class WorkEvent *ev);
+			bool addEvent(class WorkEvent *ev, fl::threads::WeekAutoMutex &autoSync);
 		private:
 			virtual void run();
 			EPoll _poll;
