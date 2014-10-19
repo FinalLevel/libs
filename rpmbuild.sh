@@ -6,9 +6,7 @@ cd $GITROOT
 
 REPO=$(git config --get remote.origin.url)
 
-REL=$(git rev-parse --short HEAD)git
 RPMTOPDIR=$GITROOT/rpm-build
-echo "Ver: $VER, Release: $REL, Repo: $REPO"
 
 rm -rf $RPMTOPDIR
 
@@ -16,16 +14,23 @@ rm -rf $RPMTOPDIR
 mkdir -p $RPMTOPDIR/{SOURCES,SPECS}
 
 
-git clone --recursive --depth 1 ${REPO} $RPMTOPDIR/SOURCES/${NAME}-${VER}-${REL}
-cd $RPMTOPDIR/SOURCES/${NAME}-${VER}-${REL}/
-sh autogen.sh
+git clone --recursive --depth 1 ${REPO} $RPMTOPDIR/SOURCES/${NAME}-${VER}
+cd $RPMTOPDIR/SOURCES/${NAME}-${VER}/
+REL=$(git rev-parse --short HEAD)git
+
+echo "Ver: $VER, Release: $REL, Repo: $REPO"
 cd ..
-tar -czf ${NAME}-${VER}-${REL}.tar.gz ${NAME}-${VER}-${REL}
-cd $GITROOT
+mv ${NAME}-${VER} ${NAME}-${VER}-${REL}
+cd ${NAME}-${VER}-${REL}
 
 # Convert git log to RPM's ChangeLog format (shown with rpm -qp --changelog <rpm file>)
 sed -e "s/%{ver}/$VER/" -e "s/%{rel}/$REL/" packaging/${NAME}.spec > $RPMTOPDIR/SPECS/${NAME}.spec
 #git log --format="* %cd %aN%n- (%h) %s%d%n" --date=local | sed -r 's/[0-9]+:[0-9]+:[0-9]+ //' >> $RPMTOPDIR/SPECS/${NAME}.spec
+
+sh autogen.sh
+cd ..
+tar -czf ${NAME}-${VER}-${REL}.tar.gz ${NAME}-${VER}-${REL}
+cd $GITROOT
 
 # make RPMs directory
 mkdir -p RPMS
