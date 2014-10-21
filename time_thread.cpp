@@ -26,6 +26,8 @@ TimeThread::TimeThread(const uint32_t tickSecTime, const uint32_t tickNonoTime)
 	
 	static const uint32_t TIME_THREAD_STACK_SIZE = 100000;
 	setStackSize(TIME_THREAD_STACK_SIZE);
+	if (!create())
+		throw std::exception();
 };
 
 void TimeThread::_calcNextDailyCall()
