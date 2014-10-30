@@ -45,6 +45,17 @@ namespace fl {
 				const char *fmt, 
 				va_list args
 			) = 0;
+			
+			virtual void log(
+				const int level, 
+				const char *fileName,
+				const int lineNumber,
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			) = 0;
 			virtual ~Target() {};
 		protected:
 			struct ProcessInfo
@@ -68,12 +79,33 @@ namespace fl {
 				const char *fmt, 
 				va_list args
 			);
+			
+			virtual void log(
+				const int level, 
+				const char *fileName,
+				const int lineNumber,
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
 		};
 		
 		class StdErrorTarget : public Target
 		{
 			virtual void log(
 				const int level, 
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
+			virtual void log(
+				const int level, 
+				const char *fileName,
+				const int lineNumber,
 				const char *tag, 
 				const time_t curTime, 
 				struct tm *ct, 
@@ -89,6 +121,16 @@ namespace fl {
 			virtual ~FileTarget();
 			virtual void log(
 				const int level, 
+				const char *tag, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
+			virtual void log(
+				const int level, 
+				const char *fileName,
+				const int lineNumber,
 				const char *tag, 
 				const time_t curTime, 
 				struct tm *ct, 
@@ -125,6 +167,16 @@ namespace fl {
 			bool _log(
 				const size_t target, 
 				const int level, 
+				const time_t curTime, 
+				struct tm *ct, 
+				const char *fmt, 
+				va_list args
+			);
+			bool _log(
+				const size_t target, 
+				const int level, 
+				const char *fileName,
+				const int lineNumber,
 				const time_t curTime, 
 				struct tm *ct, 
 				const char *fmt, 

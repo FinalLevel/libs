@@ -41,6 +41,22 @@ void StdErrorTarget::log(
 	vfprintf(stderr, fmt, args);
 }
 
+void StdErrorTarget::log(
+	const int level, 
+	const char *fileName,
+	const int lineNumber,
+	const char *tag, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, 
+	va_list args
+)
+{
+	fprintf(stderr, "[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _process.pid, 
+		ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	vfprintf(stderr, fmt, args);
+}
+
 void ScreenTarget::log(
 	const int level, 
 	const char *tag, 
@@ -50,6 +66,22 @@ void ScreenTarget::log(
 ) {
 	printf("[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
 	vprintf(fmt, args);	
+}
+
+void ScreenTarget::log(
+	const int level, 
+	const char *fileName,
+	const int lineNumber,
+	const char *tag, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, 
+	va_list args
+)
+{
+	printf("[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _process.pid, 
+		ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	vprintf(fmt, args);		
 }
 
 FileTarget::FileTarget(const char *fileName) 
@@ -80,6 +112,23 @@ void FileTarget::log(
 	fflush(_fd);
 }
 
+void FileTarget::log(
+	const int level, 
+	const char *fileName,
+	const int lineNumber,
+	const char *tag, 
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, 
+	va_list args
+)
+{
+	fprintf(_fd, "[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _process.pid, 
+		ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	vfprintf(_fd, fmt, args);
+	fflush(_fd);		
+}
+
 
 bool LogSystem::_log(
 	const size_t target, 
@@ -95,6 +144,25 @@ bool LogSystem::_log(
 	}
 	else
 		return false;
+}
+
+bool LogSystem::_log(
+	const size_t target, 
+	const int level, 
+	const char *fileName,
+	const int lineNumber,
+	const time_t curTime, 
+	struct tm *ct, 
+	const char *fmt, 
+	va_list args
+) 
+{
+	if (target < _targets.size()) {
+		_targets[target]->log(level, fileName, lineNumber, _tag, curTime, ct, fmt, args);
+		return true;
+	}
+	else
+		return false;	
 }
 
 void LogSystem::addTarget(Target *target)
