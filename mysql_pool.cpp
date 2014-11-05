@@ -13,7 +13,7 @@
 
 using namespace fl::db;
 
-MysqlPool::MysqlPool(const size_t connectionCount, const std::string &dbHost, std::string &dbUser, 
+MysqlPool::MysqlPool(const size_t connectionCount, const std::string &dbHost, const std::string &dbUser, 
 	const std::string &dbPassword, const std::string &dbName, const uint16_t dbPort)
 	: _dbHost(dbHost), _dbUser(dbUser), _dbPassword(dbPassword), _dbName(dbName), _dbPort(dbPort),
 		_connections(connectionCount, NULL)
