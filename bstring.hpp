@@ -62,6 +62,7 @@ namespace fl {
 			
 			const bool operator==(const char *compareWith) const;
 			const bool operator==(const std::string &str) const;
+			const bool operator!=(const std::string &str) const;
 			const bool operator==(const BString &str) const;
 			
 			void clear()
