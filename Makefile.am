@@ -18,12 +18,18 @@ if NEED_OPENSSL
   libfl_a_CPPFLAGS += $(OPENSSL_INCLUDES)
 endif
 
+if NEED_SQLITE
+  libfl_a_SOURCES += sqlite.cpp
+  libfl_a_CPPFLAGS += $(SQLITE3_CFLAGS)
+endif
+
 check_PROGRAMS = libfl_test
 libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp tests/dir_test.cpp \
   tests/bstring_test.cpp tests/file_test.cpp tests/socket_test.cpp tests/event_thread_test.cpp tests/thread_test.cpp \
   tests/event_queue_test.cpp tests/http_event_test.cpp tests/http_answer_test.cpp \
   tests/webdav_interface_test.cpp tests/time_test.cpp tests/file_lock_test.cpp tests/program_option_test.cpp
-libfl_test_LDFLAGS = $(BOOST_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)  $(MYSQL_LDFLAGS) $(OPENSSL_LDFLAGS)
+libfl_test_LDFLAGS = $(BOOST_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)  $(MYSQL_LDFLAGS) $(OPENSSL_LDFLAGS) \
+  $(SQLITE3_LDFLAGS)
 libfl_test_LDADD = $(LDADD) libfl.a $(OPENSSL_LIBS)
 libfl_test_CPPFLAGS = $(AM_CPPFLAGS)
 
@@ -35,6 +41,11 @@ endif
 if NEED_OPENSSL
   libfl_test_SOURCES += tests/sha1_test.cpp
   libfl_test_CPPFLAGS += $(OPENSSL_INCLUDES)
+endif
+
+if NEED_SQLITE
+  libfl_test_SOURCES += tests/sqlite_test.cpp
+  libfl_test_CPPFLAGS += $(SQLITE3_CFLAGS)
 endif
 
 TESTS = libfl_test
