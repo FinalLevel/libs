@@ -185,12 +185,12 @@ BString &BString::operator<<(const uint64_t num)
 	return *this;	
 }
 
-
-BString &BString::operator<<(const time_t num)
+BString &BString::operator<<(const int64_t num)
 {
-	sprintfAdd("%u", num);
+	sprintfAdd("%lld", num);
 	return *this;	
 }
+
 
 BString &BString::operator<<(const int num)
 {

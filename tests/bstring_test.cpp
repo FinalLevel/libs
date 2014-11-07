@@ -114,6 +114,26 @@ BOOST_AUTO_TEST_CASE( addString )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( Addint64Andtime_tTest )
+{
+	int64_t testValue = 8454070272;
+	BString str;
+	str << testValue;
+	BOOST_CHECK(str == "8454070272");
+	
+	time_t timeValue = 1415356991;
+	str.clear();
+	str << timeValue;
+	BOOST_CHECK(str == "1415356991");
+	
+	if (sizeof(time_t) > 4) {
+		timeValue = 8454070272;
+		str.clear();
+		str << timeValue;
+		BOOST_CHECK(str == "8454070272");
+	}
+}
+
 BOOST_AUTO_TEST_CASE( AddNumber )
 {
 	BOOST_CHECK_NO_THROW (

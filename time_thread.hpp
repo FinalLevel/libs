@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <map>
+#include <cstdint>
 #include "time.hpp"
 #include "mutex.hpp"
 #include "thread.hpp"
