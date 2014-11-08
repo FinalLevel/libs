@@ -26,7 +26,7 @@ namespace fl {
 		class MysqlPool
 		{
 		public:
-			MysqlPool(const size_t connectionCount, const std::string &dbHost, std::string &dbUser, 
+			MysqlPool(const size_t connectionCount, const std::string &dbHost, const std::string &dbUser, 
 				const std::string &dbPassword, const std::string &dbName, const uint16_t dbPort = 0);
 			~MysqlPool();
 			
