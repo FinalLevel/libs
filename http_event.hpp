@@ -83,6 +83,8 @@ namespace fl {
 				size_t &contentLength);
 			static bool _parseHost(const char *name, const size_t nameLength, const char *value, const size_t valueLen, 
 				std::string &host);
+			static bool _parseRange(const char *name, const size_t nameLength, const char *value, const size_t valueLen,
+				uint32_t &rangeStart, uint32_t &rangeEnd);
 			static bool _isCookieHeader(const char *name, const size_t nameLength);
 			static const char _nextParam(const char *&paramStart, const char *end, const char *&value, size_t &valueLength);
 			enum class EHttpRequestType : uint8_t
@@ -99,6 +101,7 @@ namespace fl {
 			{
 				ERROR_200_OK = 0,
 				ERROR_204_NO_CONTENT,
+				ERROR_206_PARTIAL_CONTENT,
 				ERROR_400_BAD_REQUEST,
 				ERROR_404_NOT_FOUND,
 				ERROR_405_METHOD_NOT_ALLOWED,

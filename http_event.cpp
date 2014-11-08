@@ -12,6 +12,7 @@
 #include "http_event.hpp"
 #include "log.hpp"
 #include "time.hpp"
+#include "util.hpp"
 
 using namespace fl::events;
 
@@ -481,6 +482,37 @@ bool HttpEventInterface::_parseIfModifiedSince(const char *name, const size_t na
 		return true;
 	}
 }
+
+bool HttpEventInterface::_parseRange(const char *name, const size_t nameLength, const char *value, const size_t valueLen,
+	uint32_t &rangeStart, uint32_t &rangeEnd)
+{
+	static const std::string RANGE_HEADER("Range");
+	if (nameLength != RANGE_HEADER.size())
+		return false;
+	if (strncasecmp(name, RANGE_HEADER.c_str(), RANGE_HEADER.size()))
+		return false;
+	else {
+		static const std::string BYTES("bytes=");
+		const char *pBytes = fl::utils::strncasestr(value, BYTES.c_str(), valueLen);
+		if (pBytes) {
+			pBytes += BYTES.size();
+			char *pEnd;
+			rangeStart = strtoul(pBytes, &pEnd, 10);
+			if (*pEnd == '-') {
+				rangeEnd = strtoul(pEnd + 1, NULL, 10);
+				if (pEnd == pBytes) { // only end range
+					rangeStart = rangeEnd + 1;
+				} else if (rangeStart > rangeEnd) {
+					log::Warning::L("Received bad range: %u-%u\n", rangeStart, rangeEnd);
+					rangeStart = 0;
+					rangeEnd = 0;
+				}
+			}
+		}
+		return true;
+	}	
+}
+
 bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLength, const char *value, 
 	bool &isKeepAlive)
 {
@@ -585,6 +617,7 @@ void HttpEventInterface::_addConnectionHeader(BString &networkBuffer, const bool
 const std::string HttpEventInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 200 OK\r\n",
 	"HTTP/1.1 204 No Content\r\n",
+	"HTTP/1.1 206 Partial Content\r\n"
 	"HTTP/1.1 400 Bad Request\r\n",
 	"HTTP/1.1 404 Not found\r\n",
 	"HTTP/1.1 405 Method Not Allowed\r\n",

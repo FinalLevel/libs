@@ -127,6 +127,22 @@ namespace fl {
 		bool enableCoreDump();
 		bool setMaxOpenFiles(const int maxOpenFiles);
 		bool setMaxProcess(const int maxProcess);
+		
+		inline char *strncasestr(const char *s, const char *find, size_t slen)
+		{
+			size_t paternLen = strlen(find);
+			if (slen < paternLen)
+				return 0;
+
+			const char *end = s + slen - paternLen;
+			const char *p = s;
+			int res = -1;
+			while (*p && p <= end && (res = strncasecmp(p, find, paternLen)))
+				p++;
+
+			return (char *) (res ? 0 : p);
+		}
+
 	};
 };
 
