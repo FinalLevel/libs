@@ -344,8 +344,12 @@ bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result
 {
 	fl::threads::WeekAutoMutex autoSync;
 	_updateTimeout();
-	if (!_thread->addEvent(this, autoSync))
+	if (!_thread->addEvent(this, autoSync)) {
+		// free buffer to prevent race condition on NetworkBufferPool 
+		delete _networkBuffer;
+		_networkBuffer = nullptr;
 		return false;
+	}
 	sendAnswer(result);
 	return true;
 }

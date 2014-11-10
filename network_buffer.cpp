@@ -56,6 +56,24 @@ NetworkBuffer::EResult NetworkBuffer::send(const TDescriptor descr)
 		return ERROR;
 }
 
+NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr, const TSize size)
+{
+	_sended = 0;
+	if (_size >= size) {
+		return EResult::OK;
+	}
+	TSize leftRead = size - _size;
+	do 
+	{
+		auto res = _read(descr, leftRead);
+		if (res != EResult::OK) {
+			return res;
+		}
+		leftRead = size - _size;
+	} while (leftRead > 0);
+	return EResult::OK;
+}
+
 NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr)
 {
 	_sended = 0;
@@ -70,7 +88,11 @@ NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr)
 			chunkSize = _reserved; // double buf after using of 1/4
 	}
 	chunkSize--;
+	return _read(descr, chunkSize);
+}
 
+NetworkBuffer::EResult NetworkBuffer::_read(const TDescriptor descr, const TSize chunkSize)
+{
 	char *data = reserveBuffer(chunkSize);
 	int res = recv(descr,  data,  chunkSize, MSG_NOSIGNAL | MSG_DONTWAIT);
 	if (res > 0) {
@@ -84,7 +106,7 @@ NetworkBuffer::EResult NetworkBuffer::read(const TDescriptor descr)
 	if (errno == EAGAIN)
 		return IN_PROGRESS;
 	else
-		return ERROR;
+		return ERROR;	
 }
 
 NetworkBufferPool::NetworkBufferPool(const int bufferSize, const uint32_t freeBuffersLimit)

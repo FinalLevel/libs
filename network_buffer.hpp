@@ -39,6 +39,7 @@ namespace fl {
 
 			EResult send(const TDescriptor descr);
 			EResult read(const TDescriptor descr);
+			EResult read(const TDescriptor descr, const TSize size);
 			void clear()
 			{
 				_sended = 0;
@@ -51,6 +52,7 @@ namespace fl {
 			}
 		protected:
 			TSize _sended;
+			EResult _read(const TDescriptor descr, const TSize chunkSize);
 		};
 		
 		class NetworkBufferPool

@@ -77,7 +77,7 @@ private:
 	virtual void run()
 	{
 		Socket listen;
-		BOOST_CHECK(listen.listen("127.0.0.1", 43000) != false);
+		BOOST_REQUIRE(listen.listen("127.0.0.1", 43000) != false);
 		
 		SendThread sendThread;
 		
