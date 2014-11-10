@@ -14,22 +14,31 @@
 
 using namespace fl::db;
 
+struct EmptyBaseFixture
+{
+	EmptyBaseFixture()
+	{
+		if (!sql.open("/tmp/testBase.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE)) {
+			
+			throw std::exception();
+		}
+	}
+	~EmptyBaseFixture()
+	{
+		unlink(sql.filename().c_str());
+	}
+	SQLite sql;
+};
+
 BOOST_AUTO_TEST_SUITE( SQLiteTest )
 
 BOOST_AUTO_TEST_CASE( SQLiteOpen )
 {
-	const char * testBase = "/tmp/testBase.db";
-	SQLite sql;
-	BOOST_REQUIRE(sql.open(testBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
-	BOOST_REQUIRE(sql.filename() == testBase);
-	unlink(testBase);
+	BOOST_CHECK_NO_THROW(EmptyBaseFixture());
 }
 
-BOOST_AUTO_TEST_CASE( SQLiteBasicSQLOperations )
+BOOST_FIXTURE_TEST_CASE( SQLiteBasicSQLOperations, EmptyBaseFixture )
 {
-	const char * testBase = "/tmp/testBase.db";
-	SQLite sql;
-	BOOST_REQUIRE(sql.open(testBase, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 	try
 	{
 		BString query;
