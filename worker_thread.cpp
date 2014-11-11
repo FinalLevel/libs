@@ -43,22 +43,20 @@ void WorkerThreadManager::stopAndWait()
 
 void WorkerThreadManager::doTasks(WorkerThread *thread)
 {
-	TWorkerTaskInterfaceVector tasks;
 	while (true) {
 		if (thread->isStopped()) {
 			return;
 		}
 		_sync.lock();
-		std::swap(_tasks, tasks);
-		_sync.unLock();
-		if (tasks.empty()) {
+		if (_tasks.empty()) {
+			_sync.unLock();
 			_threadCond.waitSignal();
-		} else {
-			for (auto &task : tasks) {
-				task->doTask();
-			}
-			tasks.clear();
 		}
+		auto task = _tasks.front();
+		_tasks.pop_front();
+		_sync.unLock();
+		
+		task->doTask();
 	}
 }
 

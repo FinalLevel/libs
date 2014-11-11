@@ -12,6 +12,7 @@
 // Description: Worker thread classes
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <list>
 #include <vector>
 #include <memory>
 #include "thread.hpp"
@@ -57,7 +58,7 @@ namespace fl {
 			void doTasks(WorkerThread *thread);
 			void stopAndWait();
 		private:
-			typedef std::vector<WorkerTaskInterface*> TWorkerTaskInterfaceVector;
+			typedef std::list<WorkerTaskInterface*> TWorkerTaskInterfaceVector;
 			TWorkerTaskInterfaceVector _tasks;
 
 			Mutex _sync;
