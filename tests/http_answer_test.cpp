@@ -47,6 +47,22 @@ BOOST_AUTO_TEST_CASE( MimeTypeFromFileName )
 	BOOST_CHECK(MimeType::getMimeTypeFromFileName("png") == MimeType::E_UNKNOWN);
 }
 
+BOOST_AUTO_TEST_CASE( MimeTypeFromFileNameFlac )
+{
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("t.flac") == MimeType::E_FLAC);
+}
+
+BOOST_AUTO_TEST_CASE( MimeTypeFromFileNameVorbis )
+{
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("t.ogg") == MimeType::E_VORBIS);
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("test.oga") == MimeType::E_VORBIS);
+}
+
+BOOST_AUTO_TEST_CASE( MimeTypeFromFileNameM4A )
+{
+	BOOST_CHECK(MimeType::getMimeTypeFromFileName("t.m4a") == MimeType::E_M4A);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
