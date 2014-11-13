@@ -24,7 +24,7 @@ WorkerThreadManager::WorkerThreadManager(const size_t countThreads, const size_t
 void WorkerThreadManager::add(WorkerTaskInterface *task)
 {
 	_sync.lock();
-	_tasks.emplace_back(task);
+	_tasks.push_back(task);
 	_sync.unLock();
 	
 	_threadCond.sendSignal();
@@ -51,6 +51,7 @@ void WorkerThreadManager::doTasks(WorkerThread *thread)
 		if (_tasks.empty()) {
 			_sync.unLock();
 			_threadCond.waitSignal();
+			continue;
 		}
 		auto task = _tasks.front();
 		_tasks.pop_front();
