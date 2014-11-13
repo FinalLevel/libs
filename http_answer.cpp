@@ -85,6 +85,9 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"image/png",
 	"text/plain",
 	"audio/mpeg",
+	"audio/x-flac",
+	"audio/ogg",
+	"audio/mp4"
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
@@ -94,6 +97,10 @@ MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
 	{"png", E_PNG},
 	{"txt", E_TXT},
 	{"mp3", E_MP3},
+	{"flac", E_FLAC},
+	{"ogg", E_VORBIS},
+	{"oga", E_VORBIS},
+	{"m4a", E_M4A},
 };
 
 MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileName)

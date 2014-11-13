@@ -63,6 +63,9 @@ namespace fl {
 				E_PNG,
 				E_TXT,
 				E_MP3,
+				E_FLAC,
+				E_VORBIS,
+				E_M4A,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)
