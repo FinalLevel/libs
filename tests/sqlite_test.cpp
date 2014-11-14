@@ -9,7 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <boost/test/unit_test.hpp>
-
+#include <string>
 #include "sqlite.hpp"
 
 using namespace fl::db;
@@ -87,6 +87,35 @@ BOOST_FIXTURE_TEST_CASE( SQLiteBasicSQLOperations, EmptyBaseFixture )
 	{
 		BOOST_CHECK_NO_THROW(throw);
 	}
+}
+
+BOOST_FIXTURE_TEST_CASE( SQLiteBinaryFields, EmptyBaseFixture )
+{
+	BString query;
+	query << "CREATE TABLE test (bin BINARY(32) PRIMARY KEY NOT NULL)";
+	BOOST_REQUIRE(sql.execute(query));
+	
+	std::string binData(32, ' ');
+	binData.at(0) = 0;
+	binData.at(10) = 2;
+	
+	query.clear();
+	query << "INSERT INTO test (bin) VALUES(?)";
+	auto st = sql.createStatement(query);
+	st.bind(1, binData);
+	BOOST_REQUIRE(st.execute());
+	
+	query.clear();
+	query << "SELECT 1 FROM test WHERE bin=?";
+	auto selectRes = sql.createStatement(query);
+	selectRes.bind(1, binData);
+	BOOST_REQUIRE(selectRes.next());
+	selectRes.reset();
+	
+	binData.at(2) = '"';
+	binData.at(3) = '\'';
+	selectRes.bind(1, binData);
+	BOOST_REQUIRE(selectRes.next() == false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

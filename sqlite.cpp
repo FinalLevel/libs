@@ -83,6 +83,7 @@ bool SQLiteStatement::execute()
 	if (res == SQLITE_DONE) {
 		return true;
 	} else {
+		log::Error::L("SQLiteStatement error %d (%s)\n", res, sqlite3_errmsg(_conn.get()));
 		throw Error(res);
 	}
 }
@@ -95,6 +96,7 @@ bool SQLiteStatement::next()
 	} else if (res == SQLITE_DONE) {
 		return false;
 	} else {
+		log::Error::L("SQLiteStatement error %d (%s)\n", res, sqlite3_errmsg(_conn.get()));
 		throw Error(res);
 	}
 }
@@ -128,7 +130,7 @@ void SQLiteStatement::bind(const int iValue, const double val)
 	}	
 }
 
-void SQLiteStatement::_bindText(const int iValue, const char * const text, const size_t length)
+void SQLiteStatement::bind(const int iValue, const char * const text, const size_t length)
 {
 	int res = sqlite3_bind_text(_ppStmt, iValue, text, length, SQLITE_STATIC);
 	if (res != SQLITE_OK) {
@@ -138,15 +140,15 @@ void SQLiteStatement::_bindText(const int iValue, const char * const text, const
 }
 void SQLiteStatement::bind(const int iValue, const std::string &val)
 {
-	_bindText(iValue, val.c_str(), val.size());
+	bind(iValue, val.c_str(), val.size());
 }
 
 void SQLiteStatement::bind(const int iValue, const BString &val)
 {
-	_bindText(iValue, val.c_str(), val.size());
+	bind(iValue, val.c_str(), val.size());
 }
 
 void SQLiteStatement::bind(const int iValue, const char * const text)
 {
-	_bindText(iValue, text, strlen(text));
+	bind(iValue, text, strlen(text));
 }

@@ -150,6 +150,7 @@ namespace fl {
 			void bind(const int iValue, const std::string &val);
 			void bind(const int iValue, const BString &val);
 			void bind(const int iValue, const char * const text);
+			void bind(const int iValue, const char * const text, const size_t length);
 			
 			void bindNull(const int iValue);
 
@@ -157,9 +158,7 @@ namespace fl {
 			friend class SQLite;
 			SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const BString &sql);
 			TSQLiteDescriptorSharedPtr _conn;
-			sqlite3_stmt *_ppStmt;
-			
-			void _bindText(const int iValue, const char * const text, const size_t length);
+			sqlite3_stmt *_ppStmt;		
 		};
 	};
 };
