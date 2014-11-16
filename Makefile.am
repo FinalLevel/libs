@@ -14,7 +14,7 @@ if NEED_MYSQL
 endif
 
 if NEED_OPENSSL
-  libfl_a_SOURCES += sha1.cpp
+  libfl_a_SOURCES += sha1.cpp sha256.cpp
   libfl_a_CPPFLAGS += $(OPENSSL_INCLUDES)
 endif
 

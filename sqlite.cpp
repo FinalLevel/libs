@@ -38,21 +38,31 @@ bool SQLite::open(const char * const filename, const int flags)
 
 class SQLiteStatement SQLite::createStatement(const BString &sql)
 {
-	return SQLiteStatement(_conn, sql);
+	return SQLiteStatement(_conn, sql.c_str(), sql.size());
+}
+
+class SQLiteStatement SQLite::createStatement(const char * const sql)
+{
+	return SQLiteStatement(_conn, sql, strlen(sql));
+}
+
+class SQLiteStatement SQLite::createStatement(const std::string &sql)
+{
+	return SQLiteStatement(_conn, sql.c_str(), sql.size());
 }
 
 bool SQLite::execute(const BString &query)
 {
-	SQLiteStatement sql(_conn, query);
+	SQLiteStatement sql(_conn, query.c_str(), query.size());
 	return sql.execute();
 }
 
-SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const BString &sql)
+SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size)
 	: _conn(conn), _ppStmt(NULL)
 {
-	int res = sqlite3_prepare_v2(_conn.get(), sql.c_str(), sql.size(),  &_ppStmt, NULL);
+	int res = sqlite3_prepare_v2(_conn.get(), sql, size,  &_ppStmt, NULL);
 	if (res != SQLITE_OK) {
-		log::Error::L("SQLiteStatement error [%s] %d (%s)\n", sql.c_str(), res, sqlite3_errmsg(_conn.get()));
+		log::Error::L("SQLiteStatement error [%s] %d (%s)\n", sql, res, sqlite3_errmsg(_conn.get()));
 		sqlite3_finalize(_ppStmt);
 		_ppStmt = NULL;
 		throw Error(res);
@@ -138,6 +148,12 @@ void SQLiteStatement::bind(const int iValue, const char * const text, const size
 		throw Error(res);
 	}		
 }
+
+void SQLiteStatement::bind(const int iValue, const uint8_t * const data, const size_t length)
+{
+	bind(iValue, reinterpret_cast<const char* const>(data), length);
+}
+
 void SQLiteStatement::bind(const int iValue, const std::string &val)
 {
 	bind(iValue, val.c_str(), val.size());

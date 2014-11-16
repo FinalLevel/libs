@@ -33,6 +33,8 @@ namespace fl {
 			}	
 			bool open(const char * const filename, const int flags);
 			class SQLiteStatement createStatement(const BString &sql);
+			class SQLiteStatement createStatement(const char * const sql);
+			class SQLiteStatement createStatement(const std::string &sql);
 			bool execute(const BString &sql);
 		private:
 			std::string _filename;
@@ -151,12 +153,13 @@ namespace fl {
 			void bind(const int iValue, const BString &val);
 			void bind(const int iValue, const char * const text);
 			void bind(const int iValue, const char * const text, const size_t length);
+			void bind(const int iValue, const uint8_t * const data, const size_t length);
 			
 			void bindNull(const int iValue);
 
 		private:
 			friend class SQLite;
-			SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const BString &sql);
+			SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size);
 			TSQLiteDescriptorSharedPtr _conn;
 			sqlite3_stmt *_ppStmt;		
 		};
