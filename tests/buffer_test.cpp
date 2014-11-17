@@ -175,5 +175,15 @@ BOOST_AUTO_TEST_CASE( TruncateTest )
 	);
 }
 
+BOOST_AUTO_TEST_CASE( ReserveSpoilReadBegin )
+{
+	Buffer buffer(10);
+	buffer.reserveBuffer(5);
+	uint32_t val;
+	buffer.get(val);
+	buffer.reserveBuffer(10);
+	BOOST_CHECK(buffer.readPos() == sizeof(uint32_t));
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
