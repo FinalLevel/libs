@@ -142,6 +142,16 @@ namespace fl {
 
 			return (char *) (res ? 0 : p);
 		}
+		
+		template <typename T> T toNumberSignificantFirst(const uint8_t *bytes, const size_t length)
+		{
+		  T sum = 0;
+			for(size_t i = 0; i < length; i++) {
+				const size_t shift = (length - 1 - i) * 8;
+				sum |= static_cast<T>(bytes[i]) << shift;
+			}
+			return sum;
+		}
 
 	};
 };

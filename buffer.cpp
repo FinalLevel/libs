@@ -67,10 +67,14 @@ void Buffer::reserve(const TSize newSize)
 				writtenSize = newSize;
 			memcpy(newData, _begin, writtenSize);
 		}
+		TSize readed = readPos();
+		if (readed > writtenSize) {
+			readed = writtenSize;
+		}
 		free(_begin);
 		_begin = newData;
 		_end = _begin + newSize;
-		_readPos = _begin;
+		_readPos = _begin + readed;
 		_writePos = _begin + writtenSize;
 	}
 }
