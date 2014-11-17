@@ -94,8 +94,8 @@ void EPollWorkerThread::run()
 	time_t lastCheckTime = 0;
 	while (1)
 	{
-		static const int EVENT_WAIT_TIME = 1; // wait 1 second
-		_poll.dispatch(EVENT_WAIT_TIME * 1000);
+		static const int EVENT_WAIT_TIME = 1 * 1000; // wait 1 second in milliseconds
+		_poll.dispatch(EVENT_WAIT_TIME);
 		_eventsSync.lock();
 		if (_poll.callActive(changedEvents, endedEvents)) {
 			
@@ -147,11 +147,11 @@ EPollWorkerGroup::EPollWorkerGroup(
 	for (uint32_t i = 0; i < maxWorkers; i++)
 	{
 		_threads.push_back(new EPollWorkerThread(queueLength, factory->create(), stackSize));
-		if (!_updateTimeEvent) // add time update event to first thread
-		{
-			_updateTimeEvent = new UpdateTimeEvent();
-			_threads.back()->ctrl(_updateTimeEvent);
-		}
+	}
+	if (!_updateTimeEvent) // add time update event to first thread
+	{
+		_updateTimeEvent = new UpdateTimeEvent();
+		_threads.back()->ctrl(_updateTimeEvent);
 	}
 }
 
