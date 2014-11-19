@@ -57,6 +57,11 @@ bool SQLite::execute(const BString &query)
 	return sql.execute();
 }
 
+sqlite3_int64 SQLite::insertId()
+{
+	return sqlite3_last_insert_rowid(_conn.get());
+}
+
 SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size)
 	: _conn(conn), _ppStmt(NULL)
 {
@@ -127,6 +132,15 @@ void SQLiteStatement::bind(const int iValue, const int val)
 	int res = sqlite3_bind_int(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
 		log::Error::L("Can't bind int to %d\n", iValue);
+		throw Error(res);
+	}
+}
+
+void SQLiteStatement::bind(const int iValue, const long int val)
+{
+	int res = sqlite3_bind_int64(_ppStmt, iValue, val);
+	if (res != SQLITE_OK) {
+		log::Error::L("Can't bind long int to %d\n", iValue);
 		throw Error(res);
 	}
 }

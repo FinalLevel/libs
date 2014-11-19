@@ -36,6 +36,7 @@ namespace fl {
 			class SQLiteStatement createStatement(const char * const sql);
 			class SQLiteStatement createStatement(const std::string &sql);
 			bool execute(const BString &sql);
+			sqlite3_int64 insertId();
 		private:
 			std::string _filename;
 			TSQLiteDescriptorSharedPtr _conn;
@@ -148,6 +149,7 @@ namespace fl {
 			};
 			
 			void bind(const int iValue, const int val);
+			void bind(const int iValue, const long int val);
 			void bind(const int iValue, const double val);
 			void bind(const int iValue, const std::string &val);
 			void bind(const int iValue, const BString &val);
