@@ -217,20 +217,13 @@ namespace fl {
 		struct MysqlQueryEscape {};
 		const MysqlQueryEscape ESC = {};
 		
-		struct MysqlQueryClear {};
-		const MysqlQueryClear CLR = {};
+		using fl::strings::CLR;
 		
 		class MysqlQuery : public BString
 		{
 		public:
 			MysqlQuery(MysqlQuery &&src);
 			MysqlQuery &operator= (MysqlQuery &&src);
-			
-			MysqlQuery &operator<< (const MysqlQueryClear)
-			{
-				clear();
-				return *this;
-			}
 		
 			MysqlQuery &operator<< (const MysqlQueryEscape)
 			{

@@ -19,6 +19,9 @@
 namespace fl {
 	namespace strings {
 		
+		struct BStringClear {};
+		const BStringClear CLR = {};
+		
 		class BString
 		{
 		public:
@@ -56,6 +59,11 @@ namespace fl {
 			BString &operator<<(const char ch);
 			BString &operator<<(const std::string &str);
 			BString &operator<<(const BString &str);
+			BString &operator<< (const BStringClear)
+			{
+				clear();
+				return *this;
+			}
 			
 			void add(const char *str, TSize len);
 			void addJSONEscapedUTF8(const char *str, TSize len);

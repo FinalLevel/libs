@@ -136,6 +136,15 @@ void SQLiteStatement::bind(const int iValue, const int val)
 	}
 }
 
+void SQLiteStatement::bind(const int iValue, const unsigned int val)
+{
+	int res = sqlite3_bind_int(_ppStmt, iValue, val);
+	if (res != SQLITE_OK) {
+		log::Error::L("Can't bind int to %d\n", iValue);
+		throw Error(res);
+	}
+}
+
 void SQLiteStatement::bind(const int iValue, const long int val)
 {
 	int res = sqlite3_bind_int64(_ppStmt, iValue, val);
