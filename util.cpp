@@ -9,7 +9,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <sys/stat.h>
+#ifndef NO_SYS_PRCTL
 #include <sys/prctl.h>
+#endif
+
 #include <sys/resource.h>
 #include <unistd.h>
 
@@ -64,6 +67,8 @@ namespace fl {
 			 pBin--;
 			}
 		}
+		
+#ifndef NO_SYS_PRCTL
 		bool enableCoreDump()
 		{
 			prctl(PR_SET_DUMPABLE, 1);
@@ -75,6 +80,7 @@ namespace fl {
 				return false;
 			}
 		}
+#endif
 		
 		bool setMaxOpenFiles(const int maxOpenFiles)
 		{

@@ -82,10 +82,12 @@ off_t File::seek(off_t offset, int whence)
 	return lseek(_descr, offset, whence);
 }
 
-__off64_t File::seek64(__off64_t offset, int whence)
+#ifndef NO_LSEEK64
+int64_t File::seek64(int64_t offset, int whence)
 {
 	return lseek64(_descr, offset, whence);
 }
+#endif
 
 bool File::truncate(const off_t size)
 {

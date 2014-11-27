@@ -8,6 +8,7 @@
 // Description: Buffer class declaration
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
 #include "buffer.hpp"
 
 using namespace fl::utils;

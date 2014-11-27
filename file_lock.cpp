@@ -8,6 +8,7 @@
 // Description: Basic file locking class implementation
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <stdlib.h>
 #include "file_lock.hpp"
 #include "file.hpp"
 #include "log.hpp"

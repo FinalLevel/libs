@@ -19,6 +19,7 @@
 #include <ctime>
 #include <cstdio>
 #include <vector>
+#include <unistd.h>
 
 namespace fl {
 	namespace log {

@@ -16,6 +16,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <stdlib.h>
 
 namespace fl {
 	namespace utils {
@@ -28,23 +29,30 @@ namespace fl {
 			return strtol(src, nextChar, base);
 		}
 		template <>
-		inline u_int8_t convertStringTo<u_int8_t>(const char *src, char **nextChar, int base)
+		inline uint8_t convertStringTo<uint8_t>(const char *src, char **nextChar, int base)
 		{
 			return strtoul(src, nextChar, base);
 		}
 		template <>
-		inline u_int16_t convertStringTo<u_int16_t>(const char *src, char **nextChar, int base)
+		inline uint16_t convertStringTo<uint16_t>(const char *src, char **nextChar, int base)
 		{
 			return strtoul(src, nextChar, base);
 		}
 
 		template <>
-		inline u_int32_t convertStringTo<u_int32_t>(const char *src, char **nextChar, int base)
+		inline uint32_t convertStringTo<uint32_t>(const char *src, char **nextChar, int base)
 		{
 			return strtoul(src, nextChar, base);
 		}
+		
 		template <>
-		inline u_int64_t convertStringTo<u_int64_t>(const char *src, char **nextChar, int base)
+		inline unsigned long convertStringTo<unsigned long>(const char *src, char **nextChar, int base)
+		{
+			return strtoull(src, nextChar, base);
+		}
+		
+		template <>
+		inline uint64_t convertStringTo<uint64_t>(const char *src, char **nextChar, int base)
 		{
 			return strtoull(src, nextChar, base);
 		}
@@ -81,7 +89,7 @@ namespace fl {
 		
 		inline u_int32_t getCheckSum64(const char *str, u_int32_t len, u_int32_t sum = 0)
 		{
-			for (register size_t i = 0; i < len; i++) {
+			for (size_t i = 0; i < len; i++) {
 				sum = str[i] + (sum << 10) + (sum << 24) - sum;
 			}
 			return sum;

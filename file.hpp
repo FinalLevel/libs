@@ -51,9 +51,9 @@ namespace fl {
 			ssize_t read(void *buf, const size_t size);
 			ssize_t write(const void *buf, const size_t size);
 			ssize_t fileSize();
-			__off64_t fileSize64();
+			int64_t fileSize64();
 			off_t seek(off_t offset, int whence);
-			__off64_t seek64(__off64_t offset, int whence);
+			int64_t seek64(int64_t offset, int whence);
 			
 			bool createUnlinkedTmpFile(const char* tmpDir);
 			
