@@ -129,26 +129,34 @@ void FileTarget::log(
 	fflush(_fd);		
 }
 
+LogSystem LogSystem::_defaultLog;
 
-bool LogSystem::_log(
+LogSystem::LogSystem()
+{
+	addTarget(new ScreenTarget());
+}
+
+bool LogSystem::log(
 	const size_t target, 
 	const int level, 
+	const char * const tag,
 	const time_t curTime, 
 	struct tm *ct, 
 	const char *fmt, 
 	va_list args
 ) {
 	if (target < _targets.size()) {
-		_targets[target]->log(level, _tag, curTime, ct, fmt, args);
+		_targets[target]->log(level, tag, curTime, ct, fmt, args);
 		return true;
 	}
 	else
 		return false;
 }
 
-bool LogSystem::_log(
+bool LogSystem::log(
 	const size_t target, 
 	const int level, 
+	const char * const tag,
 	const char *fileName,
 	const int lineNumber,
 	const time_t curTime, 
@@ -158,7 +166,7 @@ bool LogSystem::_log(
 ) 
 {
 	if (target < _targets.size()) {
-		_targets[target]->log(level, fileName, lineNumber, _tag, curTime, ct, fmt, args);
+		_targets[target]->log(level, fileName, lineNumber, tag, curTime, ct, fmt, args);
 		return true;
 	}
 	else
@@ -175,4 +183,10 @@ void LogSystem::clearTargets()
 	for (TTargetList::iterator target = _targets.begin(); target != _targets.begin(); target++)
 		delete *target;
 	_targets.clear();
+}
+
+void LogSystem::setStdErrorOnly()
+{
+	clearTargets();
+	addTarget(new fl::log::StdErrorTarget());
 }

@@ -144,10 +144,7 @@ namespace fl {
 		class LogSystem
 		{
 		public:
-			LogSystem(const char *tag)
-				: _tag(tag)
-			{
-			}
+			LogSystem();
 			~LogSystem()
 			{
 				clearTargets();
@@ -161,20 +158,19 @@ namespace fl {
 				va_list args
 			); // empty function
 			
-			void addTarget(Target *target);
-			void clearTargets();
-		protected:
-			bool _log(
+			bool log(
 				const size_t target, 
 				const int level, 
+				const char * const tag,
 				const time_t curTime, 
 				struct tm *ct, 
 				const char *fmt, 
 				va_list args
 			);
-			bool _log(
+			bool log(
 				const size_t target, 
 				const int level, 
+				const char * const tag,
 				const char *fileName,
 				const int lineNumber,
 				const time_t curTime, 
@@ -182,13 +178,22 @@ namespace fl {
 				const char *fmt, 
 				va_list args
 			);
+			void addTarget(Target *target);
+			void clearTargets();
+			void setStdErrorOnly();
+			static LogSystem &defaultLog()
+			{
+				return _defaultLog;
+			}
+		private:
+			static LogSystem _defaultLog;
 			TTargetList _targets;
-			const char *_tag;
 		};
 		
-		class LibLogSystem : public LogSystem
+		class LibLogSystem
 		{
 		public:
+			LibLogSystem();
 			static bool log(
 				const size_t target, 
 				const int level, 
@@ -198,9 +203,7 @@ namespace fl {
 				va_list args
 			)
 			{
-				static ScreenTarget screenTarget;
-				screenTarget.log(level, "fLib", curTime, ct, fmt, args);
-				return false;
+				return LogSystem::defaultLog().log(target, level, "fLib", curTime, ct, fmt, args);
 			}
 		};
 		

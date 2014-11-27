@@ -8,7 +8,6 @@
 // Description: Http answer utility class implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <algorithm>
 #include "http_answer.hpp"
 #include "log.hpp"
 
@@ -75,66 +74,6 @@ void HttpAnswer::setContentLength(const uint32_t contentLength)
 		throw std::exception();
 	}
 	*(pDigitsStart + res) = '\r';
-}
-
-
-const char *MimeType::_MIME_TYPES[E_MAX] = {
-	"application/octet-stream",
-	"image/jpeg",
-	"image/gif",
-	"image/png",
-	"text/plain",
-	"audio/mpeg",
-	"audio/x-flac",
-	"audio/ogg",
-	"audio/mp4"
-};
-
-MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
-	{"jpeg", E_JPEG}, 
-	{"jpg", E_JPEG},
-	{"gif", E_GIF},
-	{"png", E_PNG},
-	{"txt", E_TXT},
-	{"mp3", E_MP3},
-	{"flac", E_FLAC},
-	{"ogg", E_VORBIS},
-	{"oga", E_VORBIS},
-	{"m4a", E_M4A},
-};
-
-MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileName)
-{
-	const char *endFile = fileName.c_str() + fileName.size();
-	const char *ext = endFile;
-	while (ext > fileName.c_str()) {
-		if (*ext == '.') {
-			ext++;
-			size_t len = endFile - ext;
-			if (len < 1 || len > MAX_EXT_LENGTH)
-				return E_UNKNOWN;
-			std::string extStr(ext, len);
-			std::transform(extStr.begin(), extStr.end(), extStr.begin(), ::tolower);
-			auto f = _mimeTypes.find(extStr);
-			if (f == _mimeTypes.end())
-				return E_UNKNOWN;
-			else 
-				return f->second;	
-		}
-		ext--;
-	}
-	return E_UNKNOWN;
-}
-
-MimeType::EMimeType MimeType::getMimeTypeFromExt(const char *ext, const size_t extLen)
-{
-	std::string extStr(ext, extLen);
-	std::transform(extStr.begin(), extStr.end(), extStr.begin(), ::tolower);
-	auto f = _mimeTypes.find(extStr);
-	if (f == _mimeTypes.end())
-		return E_UNKNOWN;
-	else 
-		return f->second;	
 }
 
 void HttpAnswer::formLastModified(const time_t unixTime, BString &buf)
