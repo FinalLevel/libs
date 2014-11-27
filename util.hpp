@@ -52,7 +52,7 @@ namespace fl {
 		}
 		
 		template <>
-		inline uint64_t convertStringTo<uint64_t>(const char *src, char **nextChar, int base)
+		inline unsigned long long convertStringTo<unsigned long long>(const char *src, char **nextChar, int base)
 		{
 			return strtoull(src, nextChar, base);
 		}
