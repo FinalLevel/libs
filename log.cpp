@@ -157,9 +157,9 @@ bool LogSystem::log(
 bool LogSystem::log(
 	const size_t target, 
 	const int level, 
-	const char * const tag,
 	const char *fileName,
 	const int lineNumber,
+	const char * const tag,
 	const time_t curTime, 
 	struct tm *ct, 
 	const char *fmt, 
