@@ -304,7 +304,10 @@ namespace fl {
 			{
 			public:
 				static bool log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, 
-					va_list args);
+					va_list args)
+				{
+					return LogSystem::defaultLog().log(target, level, "fLib::MySQL", curTime, ct, fmt, args);
+				}
 			};
 			using fl::log::Log;
 			using fl::log::NeedLog;

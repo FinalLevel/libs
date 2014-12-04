@@ -144,7 +144,8 @@ bool LogSystem::log(
 	struct tm *ct, 
 	const char *fmt, 
 	va_list args
-) {
+) 
+{
 	if (target < _targets.size()) {
 		_targets[target]->log(level, tag, curTime, ct, fmt, args);
 		return true;

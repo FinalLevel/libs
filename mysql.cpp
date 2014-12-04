@@ -282,12 +282,3 @@ void MysqlQuery::_escape(const char *value, const size_t length)
 	trim(currentSize);
 	*this << '\'';
 }
-
-bool log::MysqlLogSystem::log(const size_t target, const int level, const time_t curTime, struct tm *ct, 
-	const char *fmt, va_list args)
-{
-	static fl::log::ScreenTarget screenTarget;
-	screenTarget.log(level, "fLib::MySQL", curTime, ct, fmt, args);
-	return false;
-}
-

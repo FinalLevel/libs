@@ -708,4 +708,55 @@ BOOST_AUTO_TEST_CASE( PartialSend )
 	BOOST_CHECK(PartialMockHttpEventInterface::checkStatus());
 }
 
+class HttpRangesInterface : public HttpEventInterface
+{
+public:
+	void testRanges()
+	{
+		const std::string RANGE_NAME{"Range"};
+		int32_t rangeStart {0};
+		uint32_t rangeEnd {0};
+		
+		const std::string fullRange {"bytes=1-9"};	
+		BOOST_REQUIRE(_parseRange(RANGE_NAME.c_str(), RANGE_NAME.size(), fullRange.c_str(), fullRange.size(),
+			rangeStart, rangeEnd));
+		BOOST_REQUIRE(rangeStart == 1);
+		BOOST_REQUIRE(rangeEnd == 9);
+		
+		const std::string startRange {"bytes=100-"};	
+		BOOST_REQUIRE(_parseRange(RANGE_NAME.c_str(), RANGE_NAME.size(), startRange.c_str(), startRange.size(),
+			rangeStart, rangeEnd));
+		BOOST_REQUIRE(rangeStart == 100);
+		BOOST_REQUIRE(rangeEnd == 0);
+		
+		const std::string endRange {"bytes=-200"};	
+		BOOST_REQUIRE(_parseRange(RANGE_NAME.c_str(), RANGE_NAME.size(), endRange.c_str(), endRange.size(),
+			rangeStart, rangeEnd));
+		BOOST_REQUIRE(rangeStart == -200);
+		BOOST_REQUIRE(rangeEnd == 0);
+		
+		rangeStart = rangeEnd = 100;
+		const std::string badRange {"bytes=200-100"};	
+		BOOST_REQUIRE(_parseRange(RANGE_NAME.c_str(), RANGE_NAME.size(), badRange.c_str(), badRange.size(),
+			rangeStart, rangeEnd));
+		BOOST_REQUIRE(rangeStart == 0);
+		BOOST_REQUIRE(rangeEnd == 0);
+	}
+	bool parseURI(const char*, fl::events::EHttpVersion::EHttpVersion, const std::string&, const std::string&, 
+		const std::string&) 
+	{
+		return false;
+	}
+	virtual EFormResult formResult(fl::strings::BString&, fl::events::HttpEvent*)
+	{
+		return RESULT_ERROR;
+	}
+};
+
+BOOST_AUTO_TEST_CASE( HttpRanges )
+{
+	HttpRangesInterface http;
+	http.testRanges();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

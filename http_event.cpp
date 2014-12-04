@@ -488,7 +488,7 @@ bool HttpEventInterface::_parseIfModifiedSince(const char *name, const size_t na
 }
 
 bool HttpEventInterface::_parseRange(const char *name, const size_t nameLength, const char *value, const size_t valueLen,
-	uint32_t &rangeStart, uint32_t &rangeEnd)
+	int32_t &rangeStart, uint32_t &rangeEnd)
 {
 	static const std::string RANGE_HEADER("Range");
 	if (nameLength != RANGE_HEADER.size())
@@ -496,17 +496,18 @@ bool HttpEventInterface::_parseRange(const char *name, const size_t nameLength, 
 	if (strncasecmp(name, RANGE_HEADER.c_str(), RANGE_HEADER.size()))
 		return false;
 	else {
+		rangeStart = 0;
+		rangeEnd = 0;
+		
 		static const std::string BYTES("bytes=");
 		const char *pBytes = fl::utils::strncasestr(value, BYTES.c_str(), valueLen);
 		if (pBytes) {
 			pBytes += BYTES.size();
 			char *pEnd;
-			rangeStart = strtoul(pBytes, &pEnd, 10);
+			rangeStart = strtol(pBytes, &pEnd, 10);
 			if (*pEnd == '-') {
 				rangeEnd = strtoul(pEnd + 1, NULL, 10);
-				if (pEnd == pBytes) { // only end range
-					rangeStart = rangeEnd + 1;
-				} else if (rangeStart > rangeEnd) {
+				if (rangeEnd && (rangeStart > reinterpret_cast<decltype(rangeStart)>(rangeEnd))) {
 					log::Warning::L("Received bad range: %u-%u\n", rangeStart, rangeEnd);
 					rangeStart = 0;
 					rangeEnd = 0;

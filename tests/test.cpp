@@ -4,10 +4,13 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "log.hpp"
+
 struct InitTests {
     InitTests()
 		{ 
 			srand(time(NULL));
+			fl::log::LogSystem::defaultLog().clearTargets();
 		}
     ~InitTests()  
 		{ 
