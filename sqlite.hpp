@@ -148,7 +148,8 @@ namespace fl {
 					}
 			};
 			
-			void bind(const int iValue, const unsigned int val);
+			void bind(const int iValue, const uint32_t val);
+			void bind(const int iValue, const uint64_t val);
 			void bind(const int iValue, const int val);
 			void bind(const int iValue, const long int val);
 			void bind(const int iValue, const double val);
