@@ -10,8 +10,7 @@
 
 
 #include "sqlite.hpp"
-#include "log.hpp"
-#include "mysql.hpp"
+#include "db_log.hpp"
 
 using namespace fl::db;
 
@@ -62,12 +61,73 @@ sqlite3_int64 SQLite::insertId()
 	return sqlite3_last_insert_rowid(_conn.get());
 }
 
+int SQLite::affectedRows()
+{
+	return sqlite3_changes(_conn.get());
+}
+
+SQLiteAutoRollbackTransaction SQLite::startAutoRollbackTransaction()
+{
+	return SQLiteAutoRollbackTransaction(_conn);
+}
+
+SQLiteAutoRollbackTransaction::SQLiteAutoRollbackTransaction(SQLiteAutoRollbackTransaction &&transaction)
+	: _conn(transaction._conn), _rollback(transaction._rollback)
+{
+	transaction._rollback = false;
+	transaction._conn.reset();
+}
+
+SQLiteAutoRollbackTransaction &SQLiteAutoRollbackTransaction::operator= (SQLiteAutoRollbackTransaction &&src)
+{
+	std::swap(src._conn, _conn);
+	_rollback = src._rollback;
+	src._rollback = false;
+	src._conn.reset();
+	return *this;
+}
+
+SQLiteAutoRollbackTransaction::SQLiteAutoRollbackTransaction(TSQLiteDescriptorSharedPtr &conn)
+	: _conn(conn)
+{
+	static const std::string BEGIN_TRANSACTION { "BEGIN TRANSACTION" };
+	SQLiteStatement sql(_conn, BEGIN_TRANSACTION.c_str(), BEGIN_TRANSACTION.size());
+	if (!sql.execute()) {
+		throw TransactionError();
+	}
+}
+
+SQLiteAutoRollbackTransaction::~SQLiteAutoRollbackTransaction()
+{
+	if (_rollback) {
+		static const std::string ROLLBACK_TRANSACTION { "ROLLBACK TRANSACTION" };
+		SQLiteStatement sql(_conn, ROLLBACK_TRANSACTION.c_str(), ROLLBACK_TRANSACTION.size());
+		if (!sql.execute()) {
+			throw TransactionError();
+		}
+	}
+}
+
+void SQLiteAutoRollbackTransaction::commit()
+{
+	if (_rollback) {
+		static const std::string COMMIT_TRANSACTION { "COMMIT TRANSACTION" };
+		SQLiteStatement sql(_conn, COMMIT_TRANSACTION.c_str(), COMMIT_TRANSACTION.size());
+		if (!sql.execute()) {
+			throw TransactionError();
+		}
+		_rollback = false;
+	} else {
+		throw TransactionError();
+	}
+}
+
 SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size)
-	: _conn(conn), _ppStmt(NULL)
+	: _conn(conn), _ppStmt(NULL), _sqlString(sql)
 {
 	int res = sqlite3_prepare_v2(_conn.get(), sql, size,  &_ppStmt, NULL);
 	if (res != SQLITE_OK) {
-		log::Error::L("SQLiteStatement error [%s] %d (%s)\n", sql, res, sqlite3_errmsg(_conn.get()));
+		log::Error::L("EStmt [%s] %d (%s)\n", sql, res, sqlite3_errmsg(_conn.get()));
 		sqlite3_finalize(_ppStmt);
 		_ppStmt = NULL;
 		throw Error(res);
@@ -80,25 +140,34 @@ SQLiteStatement::~SQLiteStatement()
 }
 
 SQLiteStatement::SQLiteStatement(SQLiteStatement &&stmt)
-	: _conn(stmt._conn), _ppStmt(stmt._ppStmt)
+	: _conn(stmt._conn), _ppStmt(stmt._ppStmt), _sqlString(stmt._sqlString)
 {
 	stmt._ppStmt = NULL;
+	stmt._sqlString = "";
 }
 
 SQLiteStatement &SQLiteStatement::operator= (SQLiteStatement &&src)
 {
 	std::swap(_conn, src._conn);
 	std::swap(_ppStmt, src._ppStmt);
+	std::swap(_sqlString, src._sqlString);
 	return *this;
+}
+
+
+int SQLiteStatement::affectedRows()
+{
+	return sqlite3_changes(_conn.get());
 }
 
 bool SQLiteStatement::execute()
 {
 	int res = sqlite3_step(_ppStmt);
 	if (res == SQLITE_DONE) {
+		log::Info::L("ex:[%s]:%d\n", _sqlString, affectedRows());
 		return true;
 	} else {
-		log::Error::L("SQLiteStatement error %d (%s)\n", res, sqlite3_errmsg(_conn.get()));
+		log::Error::L("EStmt [%s] %d (%s)\n", _sqlString, res, sqlite3_errmsg(_conn.get()));
 		throw Error(res);
 	}
 }
@@ -107,11 +176,12 @@ bool SQLiteStatement::next()
 {
 	int res = sqlite3_step(_ppStmt);
 	if (res == SQLITE_ROW) {
+		log::Info::L("N: [%s]\n", _sqlString);
 		return true;
 	} else if (res == SQLITE_DONE) {
 		return false;
 	} else {
-		log::Error::L("SQLiteStatement error %d (%s)\n", res, sqlite3_errmsg(_conn.get()));
+		log::Error::L("EStmt [%s] %d (%s)\n", _sqlString, res, sqlite3_errmsg(_conn.get()));
 		throw Error(res);
 	}
 }
@@ -131,7 +201,7 @@ void SQLiteStatement::bind(const int iValue, const int val)
 {
 	int res = sqlite3_bind_int(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("Can't bind int to %d\n", iValue);
+		log::Error::L("EStmt [%s] Can't bind int to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}
 }
@@ -140,7 +210,7 @@ void SQLiteStatement::bind(const int iValue, const uint32_t val)
 {
 	int res = sqlite3_bind_int(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("Can't bind int to %d\n", iValue);
+		log::Error::L("EStmt [%s] Can't bind int to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}
 }
@@ -149,7 +219,7 @@ void SQLiteStatement::bind(const int iValue, const uint64_t val)
 {
 	int res = sqlite3_bind_int64(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("Can't bind uint64_t to %d\n", iValue);
+		log::Error::L("EStmt [%s] Can't bind uint64_t to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}	
 }
@@ -158,7 +228,7 @@ void SQLiteStatement::bind(const int iValue, const long int val)
 {
 	int res = sqlite3_bind_int64(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("Can't bind long int to %d\n", iValue);
+		log::Error::L("EStmt [%s] Can't bind long int to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}
 }
@@ -167,7 +237,7 @@ void SQLiteStatement::bind(const int iValue, const double val)
 {
 	int res = sqlite3_bind_double(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("Can't bind double to %d\n", iValue);
+		log::Error::L("EStmt [%s] Can't bind double to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}	
 }
@@ -176,7 +246,7 @@ void SQLiteStatement::bind(const int iValue, const char * const text, const size
 {
 	int res = sqlite3_bind_text(_ppStmt, iValue, text, length, SQLITE_STATIC);
 	if (res != SQLITE_OK) {
-		log::Error::L("Can't bind text to %d\n", iValue);
+		log::Error::L("EStmt [%s] Can't bind text to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}		
 }

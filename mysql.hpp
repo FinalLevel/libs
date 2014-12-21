@@ -16,9 +16,9 @@
 #include <errmsg.h>
 #include <string>
 #include <memory>
+#include <vector>
 #include "exception.hpp"
 #include "bstring.hpp"
-#include "log.hpp"
 
 namespace fl {
 	namespace db {
@@ -293,30 +293,6 @@ namespace fl {
 
 			TMysqlDescriptorSharedPtr _mysql;
 			bool _needEscape;
-		};
-		
-		namespace log {
-			using fl::log::Target;
-			using fl::log::TTargetList;
-			using fl::log::LogSystem;
-			
-			class MysqlLogSystem : public LogSystem
-			{
-			public:
-				static bool log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, 
-					va_list args)
-				{
-					return LogSystem::defaultLog().log(target, level, "fLib::MySQL", curTime, ct, fmt, args);
-				}
-			};
-			using fl::log::Log;
-			using fl::log::NeedLog;
-			using namespace fl::log::ELogLevel;
-			
-			typedef Log<NeedLog<ELogLevel::INFO, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::INFO, MysqlLogSystem> Info;
-			typedef Log<NeedLog<ELogLevel::WARNING, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::WARNING, MysqlLogSystem> Warning;
-			typedef Log<NeedLog<ELogLevel::ERROR, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::ERROR, MysqlLogSystem> Error;
-			typedef Log<NeedLog<ELogLevel::FATAL, FL_LOG_LEVEL>::IS_NEEDED, ELogLevel::FATAL, MysqlLogSystem> Fatal;
 		};
 	};
 };

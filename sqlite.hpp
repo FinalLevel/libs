@@ -21,6 +21,9 @@ namespace fl {
 	namespace db {
 		using fl::strings::BString;
 		
+		class SQLiteStatement;
+		class SQLiteAutoRollbackTransaction;
+		
 		typedef std::shared_ptr<sqlite3> TSQLiteDescriptorSharedPtr;
 		class SQLite
 		{
@@ -32,14 +35,37 @@ namespace fl {
 				return _filename;
 			}	
 			bool open(const char * const filename, const int flags);
-			class SQLiteStatement createStatement(const BString &sql);
-			class SQLiteStatement createStatement(const char * const sql);
-			class SQLiteStatement createStatement(const std::string &sql);
+			SQLiteStatement createStatement(const BString &sql);
+			SQLiteStatement createStatement(const char * const sql);
+			SQLiteStatement createStatement(const std::string &sql);
 			bool execute(const BString &sql);
 			sqlite3_int64 insertId();
+			int affectedRows();
+			
+			SQLiteAutoRollbackTransaction startAutoRollbackTransaction();
 		private:
 			std::string _filename;
 			TSQLiteDescriptorSharedPtr _conn;
+		};
+		
+		class SQLiteAutoRollbackTransaction
+		{
+		public:
+			class TransactionError : public std::exception 
+			{
+			};
+			SQLiteAutoRollbackTransaction(SQLiteAutoRollbackTransaction &&transaction);
+			SQLiteAutoRollbackTransaction &operator= (SQLiteAutoRollbackTransaction &&src);
+			SQLiteAutoRollbackTransaction(const SQLiteAutoRollbackTransaction &) = delete;
+			
+			~SQLiteAutoRollbackTransaction();
+			
+			void commit();
+		private:
+			friend class SQLite;
+			SQLiteAutoRollbackTransaction(TSQLiteDescriptorSharedPtr &conn);
+			TSQLiteDescriptorSharedPtr _conn;
+			bool _rollback { true };
 		};
 		
 		class SQLiteStatement
@@ -62,6 +88,7 @@ namespace fl {
 			~SQLiteStatement();
 			
 			bool execute();
+			int affectedRows();
 			bool next();
 			void reset();
 			const char *get(const int iCol);
@@ -163,9 +190,11 @@ namespace fl {
 
 		private:
 			friend class SQLite;
+			friend class SQLiteAutoRollbackTransaction;
 			SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size);
 			TSQLiteDescriptorSharedPtr _conn;
-			sqlite3_stmt *_ppStmt;		
+			sqlite3_stmt *_ppStmt;	
+			const char *_sqlString;
 		};
 	};
 };

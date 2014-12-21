@@ -10,6 +10,7 @@
 
 #include <memory>
 #include "mysql_pool.hpp"
+#include "db_log.hpp"
 
 using namespace fl::db;
 

@@ -48,6 +48,21 @@ bool EPollWorkerThread::addEvent(class WorkEvent *ev, fl::threads::WeekAutoMutex
 	return true;	
 }
 
+
+bool EPollWorkerThread::tryAddConnection(WorkEvent* ev, class Socket *acceptSocket)
+{
+	AutoMutex autoSync;
+	if (!autoSync.tryLock(&_eventsSync)) {
+		return false;
+	}
+	if (!ctrl(ev))
+		return false;
+	
+	ev->setThread(this);
+	_addEvent(ev);
+	return true;	
+}
+
 bool EPollWorkerThread::addConnection(WorkEvent* ev, class Socket *acceptSocket)
 {
 	AutoMutex autoSync(&_eventsSync);
@@ -169,9 +184,9 @@ bool EPollWorkerGroup::addConnection(class WorkEvent* ev, class Socket *acceptSo
 	if (_threads.empty())
 		return false;
 	
-	static int curRnd = 0;
+	static unsigned int curRnd = 0;
 	curRnd++;
-	if (_threads[curRnd % _threads.size()]->addConnection(ev, acceptSocket))
+	if (_threads[curRnd % _threads.size()]->tryAddConnection(ev, acceptSocket))
 		return true;
 	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
 		if ((*thread)->addConnection(ev, acceptSocket))
