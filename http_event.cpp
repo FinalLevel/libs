@@ -347,7 +347,7 @@ bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result
 	if (!_thread->addEvent(this, autoSync)) {
 		// free buffer to prevent race condition on NetworkBufferPool 
 		delete _networkBuffer;
-		_networkBuffer = nullptr;
+		_networkBuffer = NULL;
 		return false;
 	}
 	sendAnswer(result);

@@ -83,6 +83,7 @@ namespace fl {
 				return _poll.ctrl(ue);
 			}
 			bool addConnection(class WorkEvent* ev, Socket *acceptSocket);
+			bool tryAddConnection(WorkEvent* ev, class Socket *acceptSocket);
 			class ThreadSpecificData *threadSpecificData()
 			{
 				return _threadSpecificData;
