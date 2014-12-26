@@ -39,13 +39,11 @@ MysqlPool::~MysqlPool()
 
 void MysqlPool::_createConnection(size_t idx)
 {
-	std::unique_ptr<Mysql> conn(new Mysql());
-	if (!conn->connect(_dbHost.c_str(), _dbUser.c_str(), _dbPassword.c_str(), _dbName.c_str(), _dbPort))
+	std::unique_ptr<MysqlConnection> conn(new MysqlConnection());
+	if (!conn->sql.connect(_dbHost.c_str(), _dbUser.c_str(), _dbPassword.c_str(), _dbName.c_str(), _dbPort))
 		throw MysqlError("MysqlPool can't establish connection to DB");
 	log::Info::L("MysqlPool: Connection to %s:%u has been established\n", _dbHost.c_str(), _dbPort);
-	while (_queryBuffs.size() <= idx) {
-		_queryBuffs.push_back(conn->createQuery());
-	}
+	conn->query = new MysqlQuery(conn->sql.createQuery());
 	_connections[idx] = conn.release();
 }
 
@@ -57,14 +55,14 @@ MysqlPool::Connection MysqlPool::get()
 			if (!_connections[idx]) {
 				_createConnection(idx);
 			}
-			return Connection(std::move(autoMutex), _connections[idx], &_queryBuffs[idx]);
+			return Connection(std::move(autoMutex), &_connections[idx]->sql, _connections[idx]->query);
 		}
 	}
 	autoMutex.lock(_syncs[0]);
 	if (!_connections[0]) {
 		_createConnection(0);
 	}
-	return Connection(std::move(autoMutex), _connections[0], &_queryBuffs[0]);
+	return Connection(std::move(autoMutex), &_connections[0]->sql, _connections[0]->query);
 }
 
 MysqlPool::Connection MysqlPool::getByKey(const uint32_t key)
@@ -74,6 +72,6 @@ MysqlPool::Connection MysqlPool::getByKey(const uint32_t key)
 	if (!_connections[idx]) {
 		_createConnection(idx);
 	}
-	return Connection(std::move(autoMutex), _connections[idx], &_queryBuffs[idx]);
+	return Connection(std::move(autoMutex), &_connections[idx]->sql, _connections[idx]->query);
 }
 

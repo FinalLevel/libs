@@ -102,11 +102,21 @@ namespace fl {
 			std::string _dbPassword;
 			std::string _dbName;
 			uint16_t _dbPort;
-			
-			typedef std::vector<Mysql*> TMysqlVector;
+			struct MysqlConnection
+			{
+				MysqlConnection()
+					: query(NULL)
+				{
+				}
+				~MysqlConnection()
+				{
+					delete query;
+				}
+				Mysql sql;
+				MysqlQuery *query;
+			};
+			typedef std::vector<MysqlConnection*> TMysqlVector;
 			TMysqlVector _connections;
-			typedef std::vector<MysqlQuery> TMysqlQueryVector;
-			TMysqlQueryVector _queryBuffs;
 			typedef std::vector<Mutex*> TMutexVector;
 			TMutexVector _syncs;
 			
