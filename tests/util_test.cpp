@@ -72,4 +72,44 @@ BOOST_AUTO_TEST_CASE( testHex2Binary )
 	
 }
 
+
+BOOST_AUTO_TEST_CASE( testIsValidEmail )
+{
+	BOOST_CHECK( isValidEmail("draal@i.ua"));
+	// check absent @
+	BOOST_CHECK( isValidEmail("draali.ua") == false);
+	
+	// check absent point in domain
+	BOOST_CHECK( isValidEmail("draal@ua") == false);
+	
+	// check absent point in domain
+	BOOST_CHECK( isValidEmail("draal.dr@ua") == false);
+	
+	// check zero length 1 level domain
+	BOOST_CHECK( isValidEmail("draal.dr@.ua") == false);
+
+	// check dot in name
+	BOOST_CHECK( isValidEmail("draal.dr@draal.com") == true);
+	
+	// check dash in name
+	BOOST_CHECK( isValidEmail("draal-dr@draal.com") == true);
+	
+	// check dash in domain name
+	BOOST_CHECK( isValidEmail("draal.dr@final-level.com") == true);
+}
+
+
+BOOST_AUTO_TEST_CASE( testFormInternationalPhone )
+{
+	// check standard international number
+	BOOST_CHECK( formInternationalPhone("+380989007373", 380) == 380989007373ULL);
+	
+	// check national number
+	BOOST_CHECK( formInternationalPhone("0989007373", 380) == 380989007373ULL);
+	
+	// check Aussie numbers
+	BOOST_CHECK( formInternationalPhone("+61458852392", 61) == 61458852392ULL);
+	BOOST_CHECK( formInternationalPhone("0458852392", 61) == 61458852392ULL);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -136,6 +136,10 @@ namespace fl {
 		bool setMaxOpenFiles(const int maxOpenFiles);
 		bool setMaxProcess(const int maxProcess);
 		
+		
+		bool isValidEmail(const char *email);
+		uint64_t formInternationalPhone(const std::string &phone, const uint32_t countryPrefix);
+		
 		inline char *strncasestr(const char *s, const char *find, size_t slen)
 		{
 			size_t paternLen = strlen(find);

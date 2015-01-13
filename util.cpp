@@ -15,6 +15,8 @@
 
 #include <sys/resource.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <math.h>
 
 #include "util.hpp"
 
@@ -101,6 +103,103 @@ namespace fl {
 				return true;
 			} else {
 				return false;
+			}
+		}
+		
+		bool isValidEmail(const char* email)
+		{
+			bool findAt = false;
+			bool findDomainPoint = false;
+			int domainLength = 0;
+			int emailLength = 0;
+			
+			const char *pStr = email;
+			while (*pStr) {
+				unsigned char ch = *pStr;
+				if (!isascii(ch)) {
+					return false;
+				}
+				if (ch == '@') {
+					if (findAt) {
+						return false;
+					}
+					if (!emailLength) {
+						return false;
+					}
+					findAt = true;
+					domainLength = 0;
+				} else if (ch == '.') {
+					if (findAt) {
+						if (!domainLength) {
+							return false;
+						}
+						findDomainPoint = true;
+						domainLength = 0;
+					}
+				} else {
+					if (findAt) {
+						if (!isalpha(ch) && !isdigit(ch) && ch != '-') {
+							return false;
+						}
+						domainLength++;
+					} else {
+						if (!isalpha(ch) && !isdigit(ch) && ch != '-' && ch != '_') {
+							return false;
+						}
+						emailLength++;
+					}
+				}
+				pStr++;
+			}
+			return findAt && findDomainPoint && domainLength;
+		}
+		inline uint64_t countryPrefixToUnit64(const uint32_t countryPrefix, const uint32_t nationalLength)
+		{
+			static const uint64_t pow10[15] = {
+        1, 10, 100, 1000, 10000, 
+        100000, 1000000, 10000000, 100000000, 1000000000, 10000000000ULL, 100000000000ULL, 100000000000ULL,
+				1000000000000ULL, 10000000000000ULL
+			};
+			return countryPrefix * pow10[nationalLength];
+		}
+		
+		uint64_t formInternationalPhone(const std::string &phone, const uint32_t countryPrefix)
+		{
+			static const size_t MIN_INT_PHONE_LENGTH = 1 /* + */ + 1 /* min country code length */ + 7 /* phone number */; 
+			static const size_t MAX_INT_PHONE_LENGTH = 1 /* + */ + 3 /* max country code length */ + 3 /* code */ 
+				+ 7 /* phone number */;
+			std::string normallizedPhone;
+			normallizedPhone.reserve(MAX_INT_PHONE_LENGTH + 1);
+			const char *pPhone = phone.c_str();
+			while (*pPhone) {
+				unsigned char ch = *pPhone;
+				if (isdigit(ch) || (ch == '+')) {
+					normallizedPhone.push_back(ch);
+				}
+				pPhone++;
+			}
+			if (normallizedPhone.size() > MAX_INT_PHONE_LENGTH) {
+				return 0;
+			}
+			pPhone = normallizedPhone.c_str();
+			
+			if (*pPhone == '+') { // international number
+				if (normallizedPhone.size() < MIN_INT_PHONE_LENGTH) {
+					return 0;
+				}
+				return strtoull(pPhone + 1, NULL, 10);
+			} else if (*pPhone == '0') {
+				static const size_t MIN_NATINAL_PHONE_LENGTH = 7;
+				if (normallizedPhone.size() < MIN_NATINAL_PHONE_LENGTH) {
+					return 0;
+				}
+				uint64_t nationalPhone = strtoull(pPhone + 1, NULL, 10);
+				if (!nationalPhone) {
+					return 0;
+				}
+				return (countryPrefixToUnit64(countryPrefix, normallizedPhone.size() - 1)) + nationalPhone;
+			} else {
+				return 0;
 			}
 		}
 	};
