@@ -83,6 +83,12 @@ namespace fl {
 			{
 				return _size;
 			}
+			
+			bool empty() const
+			{
+				return _size == 0;
+			}
+			
 			const TSize reserved() const
 			{
 				return _reserved;
