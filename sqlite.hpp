@@ -93,6 +93,8 @@ namespace fl {
 			void reset();
 			const char *get(const int iCol);
 			
+			int length(const int iCol);
+			
 			template <typename R>
 			R get(const int iCol) { return get_impl<R>::get(this, iCol); }
 
@@ -185,6 +187,7 @@ namespace fl {
 			void bind(const int iValue, const char * const text);
 			void bind(const int iValue, const char * const text, const size_t length);
 			void bind(const int iValue, const uint8_t * const data, const size_t length);
+			void bindBlob(const int iValue, const void* data, const size_t length);
 			
 			void bindNull(const int iValue);
 

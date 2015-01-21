@@ -99,18 +99,20 @@ BOOST_FIXTURE_TEST_CASE( SQLiteBinaryFields, EmptyBaseFixture )
 	
 	query << CLR << "INSERT INTO test (bin) VALUES(?)";
 	auto st = db.createStatement(query);
-	st.bind(1, binData);
+	st.bindBlob(1, binData.c_str(), binData.size());
 	BOOST_REQUIRE(st.execute());
 	
-	query << CLR << "SELECT 1 FROM test WHERE bin=?";
+	query << CLR << "SELECT LENGTH(bin), bin FROM test WHERE bin=?";
 	auto selectRes = db.createStatement(query);
-	selectRes.bind(1, binData);
+	selectRes.bindBlob(1, binData.c_str(), binData.size());
 	BOOST_REQUIRE(selectRes.next());
+	BOOST_REQUIRE(selectRes.get<size_t>(0) == binData.size());
+	BOOST_REQUIRE(selectRes.length(1) == binData.size());
 	selectRes.reset();
 	
 	binData.at(2) = '"';
 	binData.at(3) = '\'';
-	selectRes.bind(1, binData);
+	selectRes.bindBlob(1, binData.c_str(), binData.size());
 	BOOST_REQUIRE(selectRes.next() == false);
 }
 

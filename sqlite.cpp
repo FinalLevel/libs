@@ -204,6 +204,11 @@ const char *SQLiteStatement::get(const int iCol)
 	return (const char*)(sqlite3_column_text(_ppStmt, iCol));
 }
 
+int SQLiteStatement::length(const int iCol)
+{
+	return sqlite3_column_bytes(_ppStmt, iCol);
+}
+
 void SQLiteStatement::bind(const int iValue, const int val)
 {
 	int res = sqlite3_bind_int(_ppStmt, iValue, val);
@@ -256,6 +261,15 @@ void SQLiteStatement::bind(const int iValue, const char * const text, const size
 		log::Error::L("EStmt [%s] Can't bind text to %d\n", _sqlString, iValue);
 		throw Error(res);
 	}		
+}
+
+void SQLiteStatement::bindBlob(const int iValue, const void* data, const size_t length)
+{
+	int res = sqlite3_bind_blob(_ppStmt, iValue, data, length, SQLITE_STATIC);
+	if (res != SQLITE_OK) {
+		log::Error::L("EStmt [%s] Can't bind text to %d\n", _sqlString, iValue);
+		throw Error(res);
+	}	
 }
 
 void SQLiteStatement::bind(const int iValue, const uint8_t * const data, const size_t length)
