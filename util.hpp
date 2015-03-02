@@ -164,6 +164,8 @@ namespace fl {
 			}
 			return sum;
 		}
+		
+		const std::string getFileExt(const std::string &name);
 
 	};
 };

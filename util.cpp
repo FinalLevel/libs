@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <math.h>
+#include <algorithm>
 
 #include "util.hpp"
 
@@ -201,6 +202,24 @@ namespace fl {
 			} else {
 				return 0;
 			}
+		}
+		const std::string getFileExt(const std::string &fileName)
+		{
+			const char *endFile = fileName.c_str() + fileName.size();
+			const char *ext = endFile;
+			while (ext > fileName.c_str()) {
+				if (*ext == '.') {
+					ext++;
+					size_t len = endFile - ext;
+					if (len < 1)
+						return std::string();
+					std::string extStr(ext, len);
+					std::transform(extStr.begin(), extStr.end(), extStr.begin(), ::tolower);
+					return extStr;
+				}
+				ext--;
+			}
+			return std::string();
 		}
 	};
 };

@@ -112,4 +112,11 @@ BOOST_AUTO_TEST_CASE( testFormInternationalPhone )
 	BOOST_CHECK( formInternationalPhone("0458852392", 61) == 61458852392ULL);
 }
 
+BOOST_AUTO_TEST_CASE( testGetFileExt )
+{
+	BOOST_CHECK( getFileExt("draal.mp3") == "mp3");
+	BOOST_CHECK( getFileExt("draal") == "");
+	BOOST_CHECK( getFileExt("draal.oGG") == "ogg");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
