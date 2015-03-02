@@ -32,6 +32,9 @@ namespace fl {
 				E_FLAC,
 				E_VORBIS,
 				E_M4A,
+				E_WMA,
+				E_OPUS,
+				E_ALAC,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)

@@ -22,7 +22,10 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"audio/mpeg",
 	"audio/x-flac",
 	"audio/ogg",
-	"audio/mp4"
+	"audio/mp4",
+	"audio/x-ms-wma",
+	"audio/opus",
+	"audio/x-alac",
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
@@ -36,6 +39,9 @@ MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
 	{"ogg", E_VORBIS},
 	{"oga", E_VORBIS},
 	{"m4a", E_M4A},
+	{"wma", E_WMA},
+	{"opus", E_OPUS},
+	{"alac", E_ALAC},
 };
 
 MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileName)
