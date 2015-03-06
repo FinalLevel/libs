@@ -21,7 +21,7 @@ URandom::URandom()
 
 bool URandom::getBlock(void *data, const size_t size)
 {
-	if (_fd.read(data, size) == size) {
+	if (_fd.read(data, size) == (ssize_t)size) {
 		return true;	
 	} else {
 		return false;
