@@ -107,7 +107,7 @@ BOOST_FIXTURE_TEST_CASE( SQLiteBinaryFields, EmptyBaseFixture )
 	selectRes.bindBlob(1, binData.c_str(), binData.size());
 	BOOST_REQUIRE(selectRes.next());
 	BOOST_REQUIRE(selectRes.get<size_t>(0) == binData.size());
-	BOOST_REQUIRE(selectRes.length(1) == binData.size());
+	BOOST_REQUIRE(selectRes.length(1) == static_cast<int>(binData.size()));
 	selectRes.reset();
 	
 	binData.at(2) = '"';
