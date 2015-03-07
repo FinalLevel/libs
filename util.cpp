@@ -198,7 +198,7 @@ namespace fl {
 				}
 				return (countryPrefixToUnit64(countryPrefix, normallizedPhone.size() - 1)) + nationalPhone;
 			} else {
-				return 0;
+				return strtoull(pPhone, NULL, 10);
 			}
 		}
 		const std::string getFileExt(const std::string &fileName)

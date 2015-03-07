@@ -104,6 +104,9 @@ BOOST_AUTO_TEST_CASE( testFormInternationalPhone )
 	// check standard international number
 	BOOST_CHECK( formInternationalPhone("+380989007373", 380) == 380989007373ULL);
 	
+	// check international number without "+"
+	BOOST_CHECK( formInternationalPhone("380989007373", 380) == 380989007373ULL);
+	
 	// check national number
 	BOOST_CHECK( formInternationalPhone("0989007373", 380) == 380989007373ULL);
 	
