@@ -27,6 +27,9 @@ namespace fl {
 		{
 		public:
 			virtual void doTask() = 0;
+			virtual ~WorkerTaskInterface()
+			{
+			}
 		};
 
 		class WorkerThread : public Thread
