@@ -45,8 +45,8 @@ namespace fl {
 			BString(const BString &) = delete;
 			BString& operator=(const BString &) = delete;
 			
-			BString(BString &&moveFrom);
-			BString& operator=(BString &&moveFrom);
+			BString(BString &&moveFrom) noexcept;
+			BString& operator=(BString &&moveFrom) noexcept;
 			
 			TSize sprintfAdd(const char *fmt, ...);
 			TSize sprintfSet(const char *fmt, ...);

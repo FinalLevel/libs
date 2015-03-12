@@ -64,7 +64,7 @@ BString::~BString()
 	free(_data);
 }
 
-BString::BString(BString &&moveFrom)
+BString::BString(BString &&moveFrom) noexcept
 	: _size(moveFrom._size), _reserved(moveFrom._reserved), _data(moveFrom._data)
 {
 	moveFrom._data = NULL;
@@ -72,7 +72,7 @@ BString::BString(BString &&moveFrom)
 	moveFrom._size = 0;
 }
 
-BString& BString::operator=(BString &&moveFrom)
+BString& BString::operator=(BString &&moveFrom) noexcept
 {
 	std::swap(moveFrom._size, _size);
 	std::swap(moveFrom._reserved, _reserved);
