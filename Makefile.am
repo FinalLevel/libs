@@ -2,7 +2,7 @@ noinst_LIBRARIES = libfl.a
 libfl_a_SOURCES = thread.cpp cond_mutex.cpp time_thread.cpp buffer.cpp buffer.hpp util.cpp read_write_lock.cpp dir.cpp \
   network_buffer.cpp bstring.cpp file.cpp socket.cpp accept_thread.cpp log.cpp http_answer.cpp \
   event_queue.cpp thread.cpp mutex.cpp event_thread.cpp time.cpp http_event.cpp timer_event.cpp webdav_interface.cpp \
-  nomos.cpp file_lock.cpp program_option.cpp worker_thread.cpp mime_type.cpp urandom.cpp
+  nomos.cpp file_lock.cpp program_option.cpp worker_thread.cpp mime_type.cpp urandom.cpp text_util.cpp
 
 libfl_a_LIBADD = $(LDADD)
 libfl_a_CPPFLAGS = $(AM_CPPFLAGS)
@@ -23,6 +23,10 @@ if NEED_SQLITE
   libfl_a_CPPFLAGS += $(SQLITE3_CFLAGS)
 endif
 
+if NEED_ICONV
+  libfl_a_SOURCES += iconv.cpp
+endif
+
 check_PROGRAMS = libfl_test
 libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp tests/dir_test.cpp \
   tests/bstring_test.cpp tests/file_test.cpp tests/socket_test.cpp tests/event_thread_test.cpp tests/thread_test.cpp \
@@ -31,7 +35,7 @@ libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp te
   tests/urandom_test.cpp
 libfl_test_LDFLAGS = $(BOOST_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)  $(MYSQL_LDFLAGS) $(OPENSSL_LDFLAGS) \
   $(SQLITE3_LDFLAGS)
-libfl_test_LDADD = $(LDADD) libfl.a $(OPENSSL_LIBS)
+libfl_test_LDADD = $(LDADD) libfl.a $(OPENSSL_LIBS) @LIBICONV@
 libfl_test_CPPFLAGS = $(AM_CPPFLAGS)
 
 if NEED_MYSQL
@@ -47,6 +51,10 @@ endif
 if NEED_SQLITE
   libfl_test_SOURCES += tests/sqlite_test.cpp
   libfl_test_CPPFLAGS += $(SQLITE3_CFLAGS)
+endif
+
+if NEED_ICONV
+  libfl_test_SOURCES += tests/iconv_test.cpp
 endif
 
 TESTS = libfl_test
