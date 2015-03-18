@@ -9,6 +9,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <ctype.h>
+#include <algorithm>
+#include "util.hpp"
 #include "text_util.hpp"
 
 namespace fl {
@@ -76,6 +78,124 @@ namespace fl {
 				}
 			}
 			result.trim(res - startRes);
+		}
+		
+		static const std::unordered_set<std::string> SKIPED_CONTAINERS = {
+			"head", "script", "style", "object", "applet", "iframe"
+		};
+		
+		inline char *addSpaceCompression(const unsigned char ch, char *outBuf, const char *startOutBuf)
+		{
+			if (isspace(ch) && ((startOutBuf == outBuf) || isspace(*(outBuf-1)))) {
+				return outBuf;
+			}
+			*outBuf = ch;
+			return (outBuf + 1);
+		}
+		
+		inline char *addSpaceCompressing(const char *src, const char *end, char *outBuf, const char *startOutBuf)
+		{
+			while (src < end) {
+				outBuf = addSpaceCompression(*src, outBuf, startOutBuf);
+				src++;
+			}
+			return outBuf;
+		}
+		
+		size_t stripHtmlTags(const char *src, const size_t size, char *outBuf, const TStringSet &allowedTags)
+		{
+			char *pOutBuf = outBuf;
+			const char *pSrc = src;
+			const char *end = src + size;
+			std::string tagName;
+			while (pSrc < end) {
+				if (*pSrc == '<') {
+					if (pOutBuf != pSrc) { // check for the same buffer stripping
+						pOutBuf = addSpaceCompression(' ', pOutBuf, outBuf);
+					}
+					pSrc++;
+					if (!*pSrc) {
+						break;
+					}
+					static const std::string HTML_COMMENT_START { "!--" };
+					if (!strncmp(pSrc, HTML_COMMENT_START.c_str(), HTML_COMMENT_START.size())) {
+						pSrc += HTML_COMMENT_START.size();
+						static const std::string HTML_COMMENT_END { "-->" };
+						pSrc = fl::utils::strnstr(pSrc, end - pSrc, HTML_COMMENT_END.c_str(), HTML_COMMENT_END.size());
+						if (pSrc) {
+							pSrc += HTML_COMMENT_END.size();
+							continue;
+						} else {
+							break;
+						}
+					}
+					const char *endTagName = pSrc;
+					while ((endTagName < end) && (*endTagName) != '>' && !isspace(*endTagName)) {
+						endTagName++;
+					}
+					if (endTagName >= end) {
+						break;
+					}
+					size_t tagNameSize = endTagName - pSrc;
+					if (tagNameSize) {
+						const char *pTagEnd = static_cast<const char*>(memchr(pSrc + tagNameSize, '>', end - pSrc - tagNameSize));
+						if (!pTagEnd) {
+							break;
+						}
+						if (*pSrc == '/') {
+							tagName.assign(pSrc + 1, tagNameSize - 1);
+						} else {
+							tagName.assign(pSrc, tagNameSize);
+						}
+						std::transform(tagName.begin(), tagName.end(), tagName.begin(), ::tolower);
+						if (allowedTags.find(tagName) != allowedTags.end()) {
+							pTagEnd++;
+							pOutBuf = addSpaceCompressing(pSrc - 1, pTagEnd, pOutBuf, outBuf);
+							pSrc = pTagEnd;
+						} else if ((*pSrc != '/') && (SKIPED_CONTAINERS.find(tagName) != SKIPED_CONTAINERS.end())) {
+
+							const char *pFinishTag = endTagName;
+							while ((pFinishTag = static_cast<const char *>(memchr(pFinishTag, '<', end - pFinishTag))) != nullptr) {
+								pFinishTag++;
+								if (*pFinishTag != '/') {
+									continue;
+								}
+								pFinishTag++;
+								if (!strncasecmp(pFinishTag, tagName.c_str(), tagName.size())) {
+									pFinishTag = static_cast<const char *>(memchr(pFinishTag, '>', end - pFinishTag));
+									break;
+								}
+							}
+							if (pFinishTag) {
+								pSrc = pFinishTag + 1;
+							} else {
+								break;
+							}
+						} else {
+							pSrc = pTagEnd + 1;
+						}
+					}
+				} else {
+					pOutBuf = addSpaceCompression(*pSrc, pOutBuf, outBuf);
+					pSrc++;
+				}
+			}
+			while (pOutBuf > outBuf && (isspace(*(pOutBuf - 1)))) {
+				pOutBuf--;
+			}
+			return pOutBuf - outBuf;
+		}
+		
+		void stripHtmlTags(fl::strings::BString &buf, const TStringSet &allowedTags)
+		{
+			char *outBuf = buf.data();
+			auto res = stripHtmlTags(buf.c_str(), buf.size(), outBuf, allowedTags);
+			buf.trim(res);
+		}
+		void stripHtmlTags(const char *src, const size_t size, fl::strings::BString &buf, const TStringSet &allowedTags)
+		{
+			auto res = stripHtmlTags(src, size, buf.reserveBuffer(size + 1), allowedTags);
+			buf.trim(res);
 		}
 	};
 };

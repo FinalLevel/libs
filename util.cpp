@@ -219,5 +219,19 @@ namespace fl {
 			}
 			return std::string();
 		}
+		
+		const char *strnstr(const char *s, const size_t slen, const char *pattern, const size_t patternLen)
+		{
+			if (slen < patternLen)
+				return 0;
+
+			const char *end = s + slen - patternLen;
+			const char *p = s;
+			int res = -1;
+			while (*p && p <= end && (res = memcmp(p, pattern, patternLen)))
+				p++;
+
+			return (char *) (res ? 0 : p);		
+		}
 	};
 };

@@ -170,6 +170,7 @@ namespace fl {
 		}
 		
 		const std::string getFileExt(const std::string &name);
+		const char *strnstr(const char *s, const size_t slen, const char *pattern, const size_t findLen);
 
 	};
 };
