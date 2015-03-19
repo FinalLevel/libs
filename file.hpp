@@ -16,6 +16,9 @@
 #include <fcntl.h>
 
 namespace fl {
+	namespace strings {
+		class BString;
+	};
 	namespace fs {
 		
 		class File
@@ -62,6 +65,7 @@ namespace fl {
 			
 			bool truncate(const off_t size);
 			static bool touch(const char *fileName, const time_t modTime);
+			static bool readAll(fl::strings::BString &msg, const char *name);
 		private:
 			TDescriptor _descr;
 		};

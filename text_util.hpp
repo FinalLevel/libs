@@ -20,10 +20,13 @@ namespace fl {
 	namespace utils {
 		void quotedPrintableDecode(fl::strings::BString &result, const char *input, const size_t size, 
 			const char delim = '=');
+		bool base64Decode(fl::strings::BString &result, const char *input, const size_t size);
 		
 		using TStringSet = std::unordered_set<std::string>;
 		void stripHtmlTags(fl::strings::BString &buf, const TStringSet &allowedTags = {});
 		void stripHtmlTags(const char *src, const size_t size, fl::strings::BString &buf, const TStringSet &allowedTags = {});
+		// decodeHtmlEntities converts HTML entities to UTF8 chars
+		void decodeHtmlEntities(fl::strings::BString &result);
 	};
 };
 

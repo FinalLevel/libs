@@ -14,8 +14,25 @@
 
 using namespace fl::utils;
 using fl::strings::BString;
+using fl::strings::CLR;
 
 BOOST_AUTO_TEST_SUITE( TextUtils )
+
+BOOST_AUTO_TEST_CASE( base64DecodeTest )
+{
+	BString result;
+	std::string input { "VGVzdCBjb2RlINC20LjQt9C90Yw=" };
+	BOOST_REQUIRE(base64Decode(result, input.c_str(), input.size()));
+	BOOST_REQUIRE(result == "Test code жизнь");
+}
+
+BOOST_AUTO_TEST_CASE( quotedPrintableDecodeTest )
+{
+	BString result;
+	std::string input { "Test code =D0=B6=D0=B8=D0=B7=D0=BD=D1=8C" };
+	quotedPrintableDecode(result, input.c_str(), input.size());
+	BOOST_REQUIRE(result == "Test code жизнь");
+}
 
 BOOST_AUTO_TEST_CASE( stripHtmlTagsTest )
 {
@@ -69,6 +86,38 @@ BOOST_AUTO_TEST_CASE( stripHtmlTagsWithSourceBufferTest )
 	stripHtmlTags(input.c_str(), input.size(), result);
 	BOOST_REQUIRE(result == "Test");	
 	BOOST_REQUIRE(input == originInput);
+}
+
+BOOST_AUTO_TEST_CASE(decodeHtmlEntitiesWithNumbersTest)
+{
+	BString data;
+	data << "x=&#" << static_cast<int>('A') << "; OK";
+	decodeHtmlEntities(data);
+	BOOST_REQUIRE(data == "x=A OK");	
+	
+	// hex entity test
+	data.sprintfSet("x=&#x%x; OK", static_cast<int>('A'));
+	decodeHtmlEntities(data);
+	BOOST_REQUIRE(data == "x=A OK");
+	
+	// check non entity
+	data.sprintfSet("#37895 NY NY");
+	decodeHtmlEntities(data);
+	BOOST_REQUIRE(data == "#37895 NY NY");
+}
+
+BOOST_AUTO_TEST_CASE(decodeHtmlEntitiesWithStringsTest)
+{
+	BString data;
+	data << "Is&nbsp;it&nbsp;space?";
+	decodeHtmlEntities(data);
+	BOOST_REQUIRE(data == "Is\u00A0it\u00A0space?");	
+	
+	// check non entity
+	data << CLR << "Is&nbsp it&unk;space?";
+	decodeHtmlEntities(data);
+	BOOST_REQUIRE(data == "Is&nbsp it&unk;space?");	
+	
 }
 
 BOOST_AUTO_TEST_SUITE_END()				

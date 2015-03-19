@@ -109,3 +109,17 @@ bool File::touch(const char *fileName, const time_t modTime)
 		return (utime(fileName, &tb) == 0);
 	}
 }
+
+bool File::readAll(fl::strings::BString &msg, const char *name)
+{
+	File fd;
+	if (!fd.open(name, O_RDONLY)) {
+		return false;
+	}
+	ssize_t size = fd.fileSize();
+	if (fd.read(msg.reserveBuffer(size), size) != size) {
+		msg.clear();
+		return false;
+	}
+	return true;
+}
