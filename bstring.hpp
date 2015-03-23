@@ -73,6 +73,8 @@ namespace fl {
 			const bool operator!=(const std::string &str) const;
 			const bool operator==(const BString &str) const;
 			
+			BString& operator=(const std::string &data);
+			
 			void clear()
 			{
 				_size = 0;

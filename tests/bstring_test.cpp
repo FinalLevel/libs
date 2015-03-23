@@ -265,4 +265,13 @@ BOOST_AUTO_TEST_CASE( addJSONEscapedUTF8Test )
 	}
 }
 
+BOOST_AUTO_TEST_CASE( copyFromStdStringTest )
+{
+	BString str;
+	str << "blabla";
+	std::string stdString("test ok");
+	str = stdString;
+	BOOST_REQUIRE(str == stdString);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

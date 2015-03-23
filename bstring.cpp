@@ -80,6 +80,13 @@ BString& BString::operator=(BString &&moveFrom) noexcept
 	return *this;
 }
 
+BString& BString::operator=(const std::string &data)
+{
+	clear();
+	add(data.c_str(), data.size());
+	return *this;
+}
+
 inline bool BString::_reserveForSprintf(const int sprintfRes, const TSize leftSpace)
 {
 	if ((sprintfRes >= 0) && (static_cast<TSize>(sprintfRes) < leftSpace))
