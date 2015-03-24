@@ -11,6 +11,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "text_util.hpp"
+#include "iconv.hpp"
 
 using namespace fl::utils;
 using fl::strings::BString;
@@ -117,7 +118,48 @@ BOOST_AUTO_TEST_CASE(decodeHtmlEntitiesWithStringsTest)
 	data << CLR << "Is&nbsp it&unk;space?";
 	decodeHtmlEntities(data);
 	BOOST_REQUIRE(data == "Is&nbsp it&unk;space?");	
+}
+
+BOOST_AUTO_TEST_CASE(decodeMimeHeaderWithNotMimeCharsTest)
+{
+	BString src;
+	const std::string srcText("неправильный UTF8 mime");
+	src << srcText;
+	BString result;
+	decodeMimeHeader(src, result, "UTF-8", NULL);
+	BOOST_REQUIRE(result == src);
 	
+	src.clear();
+	fl::iconv::convert(srcText.c_str(), srcText.size(), src, "utf-8", fl::iconv::ECharset::WINDOWS1251);
+	decodeMimeHeader(src, result, "windows-1251", NULL);
+	BOOST_REQUIRE(result == srcText);
+}
+
+BOOST_AUTO_TEST_CASE(decodeMimeHeaderWithQuotedPrintableTest)
+{
+	BString src;
+	src << "=?utf-8?B?0JrQvtC90LrRg9GA0YEg0L7RgiDQn9C+0LrRg9C/0L7QvSE=?=";
+	BString result;
+	decodeMimeHeader(src, result, "", NULL);
+	BOOST_REQUIRE(result == "Конкурс от Покупон!");
+}
+
+BOOST_AUTO_TEST_CASE(decodeMimeHeaderWithBase64Test)
+{
+	BString src;
+	src << "=?utf-8?B?0L/RgNC+0YHRjNCx0LA=?=";
+	BString result;
+	decodeMimeHeader(src, result, "", NULL);
+	BOOST_REQUIRE(result == "просьба");
+}
+
+BOOST_AUTO_TEST_CASE(decodeMimeHeaderEscapeTest)
+{
+	BString src;
+	src << "\"=?UTF-8?B?4peEU3VwZXJEZWFsINCi0L7QstCw0YDRi+KWug==?=\" <support@superdeal.com.ua>";
+	BString result;
+	decodeMimeHeader(src, result, "", " \",;<\\");
+	BOOST_REQUIRE(result == "\"◄SuperDeal\\ Товары►\" <support@superdeal.com.ua>");
 }
 
 BOOST_AUTO_TEST_SUITE_END()				

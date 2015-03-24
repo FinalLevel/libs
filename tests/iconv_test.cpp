@@ -30,5 +30,13 @@ BOOST_AUTO_TEST_CASE( IconvWindows1251ToUtf8Test )
 	BOOST_REQUIRE(resultUtf8 == resultUtf8);
 }
 
+
+BOOST_AUTO_TEST_CASE( getCharsetIdTest )
+{
+	BOOST_REQUIRE(getCharsetId("unkCode") == ECharset::UNKNOWN);
+	BOOST_REQUIRE(getCharsetId("Utf-8") == ECharset::UTF8);
+	BOOST_REQUIRE(getCharsetId("windows1251") == ECharset::WINDOWS1251);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 

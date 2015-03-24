@@ -18,7 +18,8 @@ namespace fl {
 	namespace iconv {
 		enum class ECharset : uint32_t
 		{
-			UTF8 = 0,
+			UNKNOWN,
+			UTF8,
 			WINDOWS1251,
 			MAX_CHARSET
 		};
@@ -29,10 +30,11 @@ namespace fl {
 		};
 		static const Charset CHARSETS[static_cast<uint32_t>(ECharset::MAX_CHARSET)] = 
 		{
+			{ "UNKNOWN", 0 },
 			{ "UTF-8", 2 },
 			{ "WINDOWS-1251", 1 }
 		};
-		
+		ECharset getCharsetId(const std::string &charset);
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const char *from, const ECharset to);
 	};
 };

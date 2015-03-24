@@ -11,9 +11,32 @@
 #include "iconv.hpp"
 #include "log.hpp"
 #include <iconv.h>
+#include <map>
 
 namespace fl {
 	namespace iconv {
+		struct ciLessLibC : public std::binary_function<std::string, std::string, bool> {
+			bool operator()(const std::string &lhs, const std::string &rhs) const {
+				return strcasecmp(lhs.c_str(), rhs.c_str()) < 0 ;
+			}
+		};
+		using TCharsetMap = std::map<std::string, ECharset,ciLessLibC>;
+		static const TCharsetMap CHARSET_MAP = {
+			{ "utf-8", ECharset::UTF8 },
+			{ "utf8", ECharset::UTF8 },
+			{ "windows-1251", ECharset::WINDOWS1251 },
+			{ "windows1251", ECharset::WINDOWS1251 },
+			{ "cp1251", ECharset::WINDOWS1251 },
+		};
+		ECharset getCharsetId(const std::string &charset)
+		{
+			auto f = CHARSET_MAP.find(charset);
+			if (f == CHARSET_MAP.end()) {
+				return ECharset::UNKNOWN; 
+			} else {
+				return f->second;
+			}
+		}
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const char *from, const ECharset to)
 		{
 			iconv_t iconvDescriptor;

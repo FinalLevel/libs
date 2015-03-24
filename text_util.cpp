@@ -13,9 +13,12 @@
 #include <unordered_map>
 #include "util.hpp"
 #include "text_util.hpp"
+#include "iconv.hpp"
 
 namespace fl {
 	namespace utils {
+		using fl::strings::BString;
+		
 		inline char hex2int(unsigned char c)
 		{
 			if ( isdigit(c) )
@@ -130,7 +133,7 @@ namespace fl {
 						*pRes = (reverse & 0x0f) << 4;
 						break;
 					case 2:
-						*pRes |= reverse >>2;
+						*pRes |= reverse >> 2;
 						pRes++;
 						*pRes = (reverse & 0x03) << 6;
 						break;
@@ -143,15 +146,15 @@ namespace fl {
 			}
 			
 			/* mop things up if we ended on a boundary */
-			if (ch == '=') {
+			if (ch == '=') {	
 				switch(i % 4) {
 				case 1:
 					result.trim(startSize);
 					return false;
 				case 2:
-					pRes++;
-				case 3:
-					*pRes = 0;
+					if (*pRes) {	
+						pRes++;
+					}
 				}
 			}
 			result.trim(startSize + (pRes - startRes));
@@ -463,6 +466,133 @@ namespace fl {
 				}
 			}
 			result.trim(outBuf - result.c_str());
+		}
+		
+		const char allowedMimeChars[256] = {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+		
+		bool checkXlatChars(const char *str, size_t len)
+		{
+			for (size_t i = 0; i < 256 && i < len; i++, str++) {
+				if (!allowedMimeChars[(unsigned char) (*str)]) {
+					//printf("%20s\nwrong char '%c'(%d)\n", str, *str, (unsigned char) *str);
+					return false;
+				}
+			}
+
+			return true;
+		}
+		
+		void decodeMimeHeader(const fl::strings::BString &src, fl::strings::BString &result, const std::string &globalCharset, 
+			const char *escapeChars)
+		{
+			result.clear();
+			if (!globalCharset.empty() && !checkXlatChars(src.c_str(), src.size())) {
+				fl::iconv::convert(src.c_str(), src.size(), result, globalCharset.c_str(), fl::iconv::ECharset::UTF8);
+				return;
+			}
+			BString buffer;
+			const char *pCur = src.c_str();
+			const char *end = src.c_str() + src.size();
+			while (pCur < end) {
+				auto len = end - pCur;
+				static const std::string START_MARKER{ "=?"};
+				const char *p = strnstr(pCur, len, START_MARKER.c_str(), START_MARKER.size());
+				if (!p) {
+					result.add(pCur, len);
+					break;
+				}
+				len = p - pCur;
+				if (len) {
+					for (const char *text = pCur; text < p; text++) {
+						const char ch = *text;
+						if (ch != ' ' && ch != '\t' && ch != '\r' && ch != '\n' && ch != '\0' && ch != '\x0B') {
+							result.add(pCur, len);
+							break;
+						}
+					}
+					pCur += len;
+				}
+				
+				const char *character = pCur + START_MARKER.size(); // "=?"
+				p = (const char *) memchr(character, '?', end - character);
+				if (!p) {
+					len = end - pCur;
+					result.add(pCur, len);
+					break;
+				}
+				const char *pEncoding = p + 1;
+				const char encoding = toupper(*pEncoding); // "?"
+				const char *text = p + 2; // "b?" || "q?"
+				if ((encoding != 'B' && encoding != 'Q') || *text != '?') {
+					result.add(pCur, 2);
+					pCur += 2;
+					continue;
+				}
+				text++;
+				static const std::string END_MARKER{ "?="};
+				p = strnstr(text, end - text, END_MARKER.c_str(), END_MARKER.size());
+				if (!p) {
+					len = end - pCur;
+					result.add(pCur, len);
+					break;
+				}
+				len = p - text;
+				if (len <= 0) { // skip convert if size = 0
+					pCur = p + 2; // "?="
+					continue;
+				}
+				std::string charset(character, pEncoding - 1 - character);
+				auto charsetId = fl::iconv::getCharsetId(charset);
+				
+				auto currentResult = result.size();
+				BString *res = &result;
+				if (charsetId != fl::iconv::ECharset::UTF8) {
+					buffer.clear();
+					res = &buffer;
+				}
+				if (encoding == 'B') {
+					base64Decode(*res, text, len);
+				} else {
+					quotedPrintableDecode(*res, text, len);
+				}
+				if (charsetId != fl::iconv::ECharset::UTF8) {
+					fl::iconv::convert(buffer.c_str(), buffer.size(), result, charset.c_str(), fl::iconv::ECharset::UTF8);
+				}
+				if (escapeChars) {
+					buffer.clear();
+					const char *esc = result.c_str() + currentResult;
+					const char *cur = esc;
+					while ((cur = strpbrk(esc, escapeChars)) != nullptr) {
+						buffer.add(esc, cur - esc);
+						buffer << '\\';
+						buffer << *cur;
+						esc = cur + 1;
+					}
+					buffer.add(esc, result.c_str() + result.size() - esc);
+					if (!buffer.empty()) {
+						result.trim(currentResult);
+						result << buffer;
+					}
+				}
+				pCur = p + 2;
+			}
 		}
 	};
 };

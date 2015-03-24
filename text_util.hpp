@@ -27,6 +27,8 @@ namespace fl {
 		void stripHtmlTags(const char *src, const size_t size, fl::strings::BString &buf, const TStringSet &allowedTags = {});
 		// decodeHtmlEntities converts HTML entities to UTF8 chars
 		void decodeHtmlEntities(fl::strings::BString &result);
+		void decodeMimeHeader(const fl::strings::BString &src, fl::strings::BString &result, const std::string &charset, 
+			const char *escapeChars);
 	};
 };
 
