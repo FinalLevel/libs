@@ -137,7 +137,7 @@ namespace fl {
 		bool setMaxProcess(const int maxProcess);
 		
 		
-		bool isValidEmail(const char *email);
+		bool isValidEmail(const char *email, size_t len = 0);
 		
 		static const size_t MIN_INT_PHONE_LENGTH = 1 /* + */ + 1 /* min country code length */ + 7 /* phone number */; 
 		static const size_t MAX_INT_PHONE_LENGTH = 1 /* + */ + 3 /* max country code length */ + 3 /* code */ 

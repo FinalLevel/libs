@@ -107,15 +107,18 @@ namespace fl {
 			}
 		}
 		
-		bool isValidEmail(const char* email)
+		bool isValidEmail(const char* email, size_t len)
 		{
 			bool findAt = false;
 			bool findDomainPoint = false;
 			int domainLength = 0;
 			int emailLength = 0;
-			
+			if (!len) {
+				len = strlen(email);
+			}
 			const char *pStr = email;
-			while (*pStr) {
+			const char *end = email + len;
+			while (pStr < end) {
 				unsigned char ch = *pStr;
 				if (!isascii(ch)) {
 					return false;
