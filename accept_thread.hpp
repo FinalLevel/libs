@@ -22,7 +22,10 @@ namespace fl {
 		class AcceptThread : public fl::threads::Thread
 		{
 		public:
-			AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  WorkEventFactory *eventFactory);
+			static const bool DEFFER_ACCEPT = true;
+			static const bool NO_DEFFER_ACCEPT = false;
+			AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  WorkEventFactory *eventFactory, 
+				bool deferredAccept = DEFFER_ACCEPT);
 		private:
 			virtual void run();
 			EPollWorkerGroup *_workerGroup;
