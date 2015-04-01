@@ -49,6 +49,13 @@ SHA1Holder::SHA1Holder(const TBinaryPtr bytes, const size_t size)
 	memcpy(_bytes, bytes, size);
 }
 
+void SHA1Holder::setBinary(const TBinaryPtr bytes, const size_t size)
+{
+	if (size != SHA1_BINARY_SIZE)
+		throw SHA1Exeption("Bad binarySHA1 size");
+	memcpy(_bytes, bytes, size);	
+}
+
 bool SHA1Holder::operator==(const SHA1Holder &a) const
 {
 	return !memcmp(_bytes, a._bytes, SHA1_BINARY_SIZE);

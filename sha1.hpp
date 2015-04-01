@@ -54,6 +54,7 @@ namespace fl {
 			bool operator<(const SHA1Holder &a) const;
 			
 			void setHex(const char *textSHA1, const size_t size);
+			void setBinary(const TBinaryPtr bytes, const size_t size);
 			void toBString(BString &dst) const;
 			BString getBString() const;
 			size_t crc64() const;
