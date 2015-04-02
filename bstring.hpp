@@ -17,6 +17,9 @@
 #include "exception.hpp"
 
 namespace fl {
+	namespace utils {
+		class Buffer;
+	};
 	namespace strings {
 		
 		struct BStringClear {};
@@ -47,6 +50,7 @@ namespace fl {
 			
 			BString(BString &&moveFrom) noexcept;
 			BString& operator=(BString &&moveFrom) noexcept;
+			BString& operator=(fl::utils::Buffer &&moveFrom) noexcept;
 			
 			TSize sprintfAdd(const char *fmt, ...);
 			TSize sprintfSet(const char *fmt, ...);

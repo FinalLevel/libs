@@ -25,6 +25,16 @@ Buffer::~Buffer()
 	free(_begin);
 }
 
+Buffer::TDataPtr Buffer::release() noexcept
+{
+	TDataPtr begin = _begin;
+	_begin = NULL;
+	_end = NULL;
+	_readPos = NULL;
+	_writePos = NULL;
+	return begin;
+}
+
 Buffer::Buffer(BString &&str)
 {
 	TSize reserved = str.reserved();
@@ -150,13 +160,45 @@ void Buffer::add(const std::string &value)
 	_writePos += size;
 }
 
-void Buffer::get(std::string &value)
+void Buffer::add(const BString &value)
 {
 	TSize size = value.size();
-	if ((_readPos + sizeof(size) + size) > _writePos)
+	_fit(sizeof(size) + size);
+	memcpy(_writePos, &size, sizeof(size));
+	_writePos += sizeof(size);
+	memcpy(_writePos, value.c_str(), size);
+	_writePos += size;	
+}
+
+void Buffer::get(BString &value)
+{
+	TSize size {0};
+	if ((_readPos + sizeof(size)) > _writePos) {
 		throw Error("Read out of range");
+	}
+	
 	memcpy(&size, _readPos, sizeof(size));
 	_readPos += sizeof(size);
+	if ((_readPos + size) > _writePos) {
+		throw Error("Read out of range");
+	}
+	
+	value.clear();
+	value.add((char*)_readPos, size);
+	_readPos += size;
+}
+
+void Buffer::get(std::string &value)
+{
+	TSize size {0};
+	if ((_readPos + sizeof(size)) > _writePos)
+		throw Error("Read out of range");
+	
+	memcpy(&size, _readPos, sizeof(size));
+	_readPos += sizeof(size);
+	if ((_readPos + size) > _writePos) {
+		throw Error("Read out of range");
+	}
 	value.assign((char*)_readPos, size);
 	_readPos += size;
 }
@@ -166,6 +208,15 @@ void Buffer::add(const void *data, const TSize size)
 	_fit(size);
 	memcpy(_writePos, data, size);
 	_writePos += size;
+}
+
+void Buffer::set(const TSize seek, const void *data, const TSize size)
+{
+	TDataPtr setPos = _begin + seek;
+	if (setPos + size > _writePos) {
+		throw Error("Read out of range");
+	}
+	memcpy(setPos, data, size);
 }
 
 void Buffer::get(void *data, const TSize size)

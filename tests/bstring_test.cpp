@@ -11,6 +11,7 @@
 #include <boost/test/output_test_stream.hpp> 
 
 #include "bstring.hpp"
+#include "buffer.hpp"
 
 using namespace fl::strings;
 
@@ -272,6 +273,15 @@ BOOST_AUTO_TEST_CASE( copyFromStdStringTest )
 	std::string stdString("test ok");
 	str = stdString;
 	BOOST_REQUIRE(str == stdString);
+}
+
+BOOST_AUTO_TEST_CASE( moveFromBufferTest )
+{
+	BString str;
+	str << "movedStr";
+	fl::utils::Buffer buffer(std::move(str));
+	str = std::move(buffer);
+	BOOST_REQUIRE(str == "movedStr");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
