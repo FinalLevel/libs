@@ -186,4 +186,32 @@ BOOST_AUTO_TEST_CASE( ReserveSpoilReadBegin )
 }
 
 
+BOOST_AUTO_TEST_CASE( SetBufferTest )
+{
+	Buffer buffer(10);
+	uint32_t val = 1;
+	buffer.add(val);
+	Buffer::TSize pos = buffer.writtenSize();
+	buffer.add(val);
+	val = 2;
+	buffer.set(pos, &val, sizeof(val));
+	
+	buffer.get(val);
+	BOOST_REQUIRE(val == 1);
+	buffer.get(val);
+	BOOST_REQUIRE(val == 2);	
+	
+	BOOST_REQUIRE_THROW(buffer.set(pos + sizeof(val), &val, sizeof(val)), Buffer::Error);
+}
+
+BOOST_AUTO_TEST_CASE( GetBStringOutOfRange )
+{
+	Buffer buffer(10);
+	uint32_t val = 1222222;
+	buffer.add(val);
+	buffer.add(val);
+	BString buf;
+	BOOST_REQUIRE_THROW(buffer.get(buf), Buffer::Error);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

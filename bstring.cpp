@@ -13,7 +13,7 @@
 #include <cstdio>
 
 #include "bstring.hpp"
-
+#include "buffer.hpp"
 using namespace fl::strings;
 
 void BString::reserve(const TSize newSize)
@@ -77,6 +77,14 @@ BString& BString::operator=(BString &&moveFrom) noexcept
 	std::swap(moveFrom._size, _size);
 	std::swap(moveFrom._reserved, _reserved);
 	std::swap(moveFrom._data, _data);
+	return *this;
+}
+
+BString& BString::operator=(fl::utils::Buffer &&moveFrom) noexcept
+{
+	_size = moveFrom.writtenSize();
+	_reserved = moveFrom.reserved();
+	_data = (TDataPtr)moveFrom.release();
 	return *this;
 }
 

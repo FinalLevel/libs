@@ -54,7 +54,9 @@ namespace fl {
 				_writePos += sizeof(D);
 			};
 			void add(const std::string &value);
+			void add(const BString &value);
 			void add(const void *data, const TSize size);
+			void set(const TSize seek, const void *data, const TSize size);
 			
 			template<class D> void get(D &value)
 			{
@@ -64,6 +66,7 @@ namespace fl {
 				_readPos += sizeof(D);
 			};
 			void get(std::string &value);
+			void get(BString &value);
 			void get(void *data, const TSize size);
 
 			void reserve(const TSize newReservedSize);
@@ -109,6 +112,9 @@ namespace fl {
 			{
 				return _readPos;
 			}
+			
+			TDataPtr release() noexcept;
+			
 			TDataPtr reserveBuffer(const TSize size);
 			TDataPtr mapBuffer(const TSize size);
 			void skip(const TSize size);
