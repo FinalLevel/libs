@@ -16,8 +16,8 @@ using namespace fl::events;
 using namespace fl::network;
 
 AcceptThread::AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  WorkEventFactory *eventFactory,
-	bool deferredAccept)
-	: _workerGroup(workerGroup), _listenTo(listenTo), _eventFactory(eventFactory)
+	bool deferredAccept, uint32_t defaultTimeout)
+	: _workerGroup(workerGroup), _listenTo(listenTo), _eventFactory(eventFactory), _defaultTimeout(defaultTimeout)
 {
 	if (deferredAccept) {
 		static const int MAX_ACCEPT_TIMEOUT = 10;
@@ -43,7 +43,7 @@ void AcceptThread::run()
 			close(clientDescr);
 			continue;
 		}
-		WorkEvent *event = _eventFactory->create(clientDescr, ip, 0, _listenTo);
+		WorkEvent *event = _eventFactory->create(clientDescr, ip, EPollWorkerGroup::curTime.unix() + _defaultTimeout, _listenTo);
 		if (!_workerGroup->addConnection(event, _listenTo))	{
 			log::Error::L("AcceptThread: Cannot add an event to the threads work group\n");
 			delete event;
