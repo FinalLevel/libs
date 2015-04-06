@@ -22,11 +22,11 @@ namespace fl {
 		class AcceptThread : public fl::threads::Thread
 		{
 		public:
-			static const bool DEFFER_ACCEPT = true;
-			static const bool NO_DEFFER_ACCEPT = false;
+			static const uint32_t NO_DEFFER_ACCEPT = 0;
+			static const uint32_t DEFAULT_DEFFER_ACCEPT = 15;
 			static const uint32_t DEFAULT_ACCEPT_TIMEOUT = 15;
 			AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  WorkEventFactory *eventFactory, 
-				bool deferredAccept = DEFFER_ACCEPT, uint32_t defaultTimeout = DEFAULT_ACCEPT_TIMEOUT);
+				uint32_t deferredAcceptTimeout = DEFAULT_DEFFER_ACCEPT, uint32_t defaultTimeout = DEFAULT_ACCEPT_TIMEOUT);
 		private:
 			virtual void run();
 			EPollWorkerGroup *_workerGroup;

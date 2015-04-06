@@ -16,12 +16,11 @@ using namespace fl::events;
 using namespace fl::network;
 
 AcceptThread::AcceptThread(EPollWorkerGroup *workerGroup, Socket *listenTo,  WorkEventFactory *eventFactory,
-	bool deferredAccept, uint32_t defaultTimeout)
+	uint32_t deferredAcceptTimeout, uint32_t defaultTimeout)
 	: _workerGroup(workerGroup), _listenTo(listenTo), _eventFactory(eventFactory), _defaultTimeout(defaultTimeout)
 {
-	if (deferredAccept) {
-		static const int MAX_ACCEPT_TIMEOUT = 10;
-		_listenTo->setDeferAccept(MAX_ACCEPT_TIMEOUT);
+	if (deferredAcceptTimeout) {
+		_listenTo->setDeferAccept(deferredAcceptTimeout);
 	}
 	const size_t ACCEPT_THREAD_STACK_SIZE = 100 * 1024;
 	setStackSize(ACCEPT_THREAD_STACK_SIZE);

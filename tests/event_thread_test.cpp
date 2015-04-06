@@ -139,13 +139,11 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		BOOST_CHECK( worker.addConnection(new WorkTestEvent(SOCKET_EVENT, fd), NULL) != false);
 		BOOST_CHECK( worker.addConnection(new WorkTestEvent(STDIN_EVENT, fileno(stdin)), NULL) != false);
 		
-		for (int c = 0; c < 4; c++)
-		{
-			struct timespec tim;
-			tim.tv_sec = 0;
-			tim.tv_nsec = MockTimeEvent::TIC_TIME;
-			nanosleep(&tim , NULL);
-		}
+
+		struct timespec tim;
+		tim.tv_sec = 0;
+		tim.tv_nsec = MockTimeEvent::TIC_TIME * 4;
+		nanosleep(&tim , NULL);
 		
 		// check allocation - deallocation
 		BOOST_CHECK(WorkTestEvent::unfinisedEvents == 0);

@@ -43,33 +43,26 @@ Connection: Keep-Alive\r\nContent-Length: 0000000010\r\n\r\n1234567890");
 
 BOOST_AUTO_TEST_CASE( GetCheck )
 {
-	try
-	{
-		HttpMockEventFactory<MockGetWebDavInterface> factory;
-		TestHttpEventFramework testEventFramework(&factory);
-		BString request;
-		request << "GET /test HTTP/1.1\r\n";
-		request << "Content-length: " << 0 << "\r\n";
-		request << "\r\n"; 
-		
-		Socket conn;
-		BOOST_REQUIRE(testEventFramework.connect(conn));
-		BString answer(MockGetWebDavInterface::ANSWER.size() + 1);
-		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
-		BOOST_REQUIRE(answer == MockGetWebDavInterface::ANSWER.c_str());
-		
-		request.clear();
-		request << "GET /test HTTP/1.1\r\n";
-		request << "Content-length: " << 0 << "\r\n";
-		request << "\r\n"; 
-		answer.clear();
-		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
-		BOOST_REQUIRE(answer == MockGetWebDavInterface::ANSWER.c_str());
-	}
-	catch (...)
-	{
-		BOOST_CHECK_NO_THROW(throw);
-	}
+	HttpMockEventFactory<MockGetWebDavInterface> factory;
+	TestHttpEventFramework testEventFramework(&factory);
+	BString request;
+	request << "GET /test HTTP/1.1\r\n";
+	request << "Content-length: " << 0 << "\r\n";
+	request << "\r\n"; 
+
+	Socket conn;
+	BOOST_REQUIRE(testEventFramework.connect(conn));
+	BString answer(MockGetWebDavInterface::ANSWER.size() + 1);
+	BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+	BOOST_REQUIRE(answer == MockGetWebDavInterface::ANSWER.c_str());
+
+	request.clear();
+	request << "GET /test HTTP/1.1\r\n";
+	request << "Content-length: " << 0 << "\r\n";
+	request << "\r\n"; 
+	answer.clear();
+	BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+	BOOST_REQUIRE(answer == MockGetWebDavInterface::ANSWER.c_str());
 }
 
 
@@ -132,41 +125,34 @@ MockPutWebDavInterface::TStatus MockPutWebDavInterface::_status = 0;
 
 BOOST_AUTO_TEST_CASE( PutCheck )
 {
-	try
-	{
-		HttpMockEventFactory<MockPutWebDavInterface> factory;
-		TestHttpEventFramework testEventFramework(&factory);
-		BString request;
-		request << "PUT /test HTTP/1.1\r\n";
-		request << "Content-length: " << MockPutWebDavInterface::SMALL_FILE.size() << "\r\n";
-		request << "\r\n" << MockPutWebDavInterface::SMALL_FILE; 
-		
-		Socket conn;
-		BOOST_REQUIRE(testEventFramework.connect(conn));
-		BString answer(MockPutWebDavInterface::ANSWER.size() + 1);
-		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
-		BOOST_REQUIRE(answer == MockPutWebDavInterface::ANSWER.c_str());
-		
-		request.clear();
-		BString testData;
-		testData.clear();
-		auto dataSize = WebDavInterface::maxPostInMemmorySize() + 1;
-		auto pData = testData.reserveBuffer(dataSize);
-		for (size_t i = 0; i < dataSize; i++) {
-			pData[i] = '0' + (i % 32);
-		}
-		request << "PUT /test HTTP/1.1\r\n";
-		request << "Content-length: " << testData.size() << "\r\n";
-		request << "\r\n" << testData; 
-		answer.clear();
-		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
-		BOOST_REQUIRE(answer == MockPutWebDavInterface::ANSWER.c_str());
-		BOOST_REQUIRE(MockPutWebDavInterface::checkStatus());
+	HttpMockEventFactory<MockPutWebDavInterface> factory;
+	TestHttpEventFramework testEventFramework(&factory);
+	BString request;
+	request << "PUT /test HTTP/1.1\r\n";
+	request << "Content-length: " << MockPutWebDavInterface::SMALL_FILE.size() << "\r\n";
+	request << "\r\n" << MockPutWebDavInterface::SMALL_FILE; 
+
+	Socket conn;
+	BOOST_REQUIRE(testEventFramework.connect(conn));
+	BString answer(MockPutWebDavInterface::ANSWER.size() + 1);
+	BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+	BOOST_REQUIRE(answer == MockPutWebDavInterface::ANSWER.c_str());
+
+	request.clear();
+	BString testData;
+	testData.clear();
+	auto dataSize = WebDavInterface::maxPostInMemmorySize() + 1;
+	auto pData = testData.reserveBuffer(dataSize);
+	for (size_t i = 0; i < dataSize; i++) {
+		pData[i] = '0' + (i % 32);
 	}
-	catch (...)
-	{
-		BOOST_CHECK_NO_THROW(throw);
-	}
+	request << "PUT /test HTTP/1.1\r\n";
+	request << "Content-length: " << testData.size() << "\r\n";
+	request << "\r\n" << testData; 
+	answer.clear();
+	BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+	BOOST_REQUIRE(answer == MockPutWebDavInterface::ANSWER.c_str());
+	BOOST_REQUIRE(MockPutWebDavInterface::checkStatus());
 }
 
 class MockMinimalWebDavInterface : public WebDavInterface
@@ -198,41 +184,35 @@ DAV: 1\r\n\r\n");
 
 BOOST_AUTO_TEST_CASE( MinimalCheck )
 {
-	try
-	{
-		HttpMockEventFactory<MockMinimalWebDavInterface> factory;
-		TestHttpEventFramework testEventFramework(&factory);
-		BString request;
-		request << "OPTIONS /test/ HTTP/1.1\r\n";
-		request << "Content-length: " << 0 << "\r\n";
-		request << "\r\n\r\n";
-		
-		Socket conn;
-		BOOST_REQUIRE(testEventFramework.connect(conn));
-		BString answer(MockMinimalWebDavInterface::OPTIONS_ANSWER.size() + 1);
-		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
-		BOOST_REQUIRE(answer == MockMinimalWebDavInterface::OPTIONS_ANSWER.c_str());
-		
-		BString xmlData;
-		xmlData << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n\
-    <propfind xmlns=\"DAV:\">\
-      <prop>\
-        <supported-method-set/>\
-      </prop>\
-    </propfind>";
-		request.clear();
-		request << "PROPFIND /test/ HTTP/1.1\r\n";
-		request << "Depth: 0\r\nContent-Type: text/xml; charset=\"utf-8\"\r\nContent-length: " << xmlData.size() << "\r\n";
-		request << "\r\n\r\n" << xmlData;
-		
-		answer.clear();
-		BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
-		BOOST_REQUIRE(strstr(answer.c_str(), "HTTP/1.1 207 Multi-Status\r\n") != NULL);	
-	}
-	catch (...)
-	{
-		BOOST_CHECK_NO_THROW(throw);
-	}
+
+	HttpMockEventFactory<MockMinimalWebDavInterface> factory;
+	TestHttpEventFramework testEventFramework(&factory);
+	BString request;
+	request << "OPTIONS /test/ HTTP/1.1\r\n";
+	request << "Content-length: " << 0 << "\r\n";
+	request << "\r\n\r\n";
+
+	Socket conn;
+	BOOST_REQUIRE(testEventFramework.connect(conn));
+	BString answer(MockMinimalWebDavInterface::OPTIONS_ANSWER.size() + 1);
+	BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+	BOOST_REQUIRE(answer == MockMinimalWebDavInterface::OPTIONS_ANSWER.c_str());
+
+	BString xmlData;
+	xmlData << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n\
+	<propfind xmlns=\"DAV:\">\
+		<prop>\
+			<supported-method-set/>\
+		</prop>\
+	</propfind>";
+	request.clear();
+	request << "PROPFIND /test/ HTTP/1.1\r\n";
+	request << "Depth: 0\r\nContent-Type: text/xml; charset=\"utf-8\"\r\nContent-length: " << xmlData.size() << "\r\n";
+	request << "\r\n\r\n" << xmlData;
+
+	answer.clear();
+	BOOST_REQUIRE(testEventFramework.doRequest(conn, request, answer));
+	BOOST_REQUIRE(strstr(answer.c_str(), "HTTP/1.1 207 Multi-Status\r\n") != NULL);	
 }
 
 class FormErrorCheckWebDavInterface : public WebDavInterface
