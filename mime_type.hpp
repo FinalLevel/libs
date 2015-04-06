@@ -37,6 +37,8 @@ namespace fl {
 				E_ALAC,
 				E_HTML,
 				E_CALENDAR,
+				E_MULTIPART_MIXED,
+				E_MULTIPART_ALTERNATIVE,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)
@@ -49,6 +51,7 @@ namespace fl {
 			}
 			static EMimeType getMimeTypeFromFileName(const std::string &fileName);
 			static EMimeType getMimeTypeFromExt(const char *ext, const size_t extLen);
+			static EMimeType getMimeTypeFromName(const std::string &mimeName);
 		private:
 			static const size_t MAX_EXT_LENGTH = 4;
 			static const char *_MIME_TYPES[E_MAX];

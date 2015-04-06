@@ -63,6 +63,11 @@ BOOST_AUTO_TEST_CASE( MimeTypeFromFileNameM4A )
 	BOOST_CHECK(MimeType::getMimeTypeFromFileName("t.m4a") == MimeType::E_M4A);
 }
 
+BOOST_AUTO_TEST_CASE( MimeTypeFromNameTextHtml )
+{
+	BOOST_CHECK(MimeType::getMimeTypeFromName(" text/html") == MimeType::E_HTML);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 

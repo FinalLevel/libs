@@ -9,6 +9,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <algorithm>
+#include <string.h>
+#include "util.hpp"
 #include "mime_type.hpp"
 
 using namespace fl::http;
@@ -28,6 +30,8 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"audio/x-alac",
 	"text/html",
 	"text/calendar",
+	"multipart/mixed",
+	"multipart/alternative",
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
@@ -81,5 +85,15 @@ MimeType::EMimeType MimeType::getMimeTypeFromExt(const char *ext, const size_t e
 		return E_UNKNOWN;
 	else 
 		return f->second;	
+}
+
+MimeType::EMimeType MimeType::getMimeTypeFromName(const std::string &mimeName)
+{
+	for (int i = E_UNKNOWN + 1; i < E_MAX; i++) {
+		if (fl::utils::strncasestr(mimeName.c_str(), _MIME_TYPES[i], mimeName.size())) {
+			return (EMimeType)i;
+		}
+	}
+	return E_UNKNOWN;
 }
 
