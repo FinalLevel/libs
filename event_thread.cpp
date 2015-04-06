@@ -36,6 +36,7 @@ void EPollWorkerThread::clearEvents()
 	for (auto event = _events.begin(); event != _events.end(); event++) {
 		delete (*event);
 	}
+	_events.clear();
 }
 
 EPollWorkerThread::~EPollWorkerThread()
