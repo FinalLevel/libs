@@ -35,6 +35,8 @@ namespace fl {
 				E_WMA,
 				E_OPUS,
 				E_ALAC,
+				E_HTML,
+				E_CALENDAR,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)

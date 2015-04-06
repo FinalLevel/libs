@@ -26,6 +26,8 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"audio/x-ms-wma",
 	"audio/opus",
 	"audio/x-alac",
+	"text/html",
+	"text/calendar",
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
@@ -42,6 +44,9 @@ MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
 	{"wma", E_WMA},
 	{"opus", E_OPUS},
 	{"alac", E_ALAC},
+	{"html", E_HTML},
+	{"htm", E_HTML},
+	{"ics", E_CALENDAR},
 };
 
 MimeType::EMimeType MimeType::getMimeTypeFromFileName(const std::string &fileName)

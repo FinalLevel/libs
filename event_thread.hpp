@@ -78,6 +78,7 @@ namespace fl {
 				const uint32_t stackSize
 			);
 			virtual ~EPollWorkerThread();
+			void clearEvents();
 			bool ctrl(class Event *ue)
 			{
 				return _poll.ctrl(ue);

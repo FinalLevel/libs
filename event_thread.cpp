@@ -30,10 +30,16 @@ EPollWorkerThread::EPollWorkerThread(
 		throw exceptions::Error("Cannot create EPollWorkerThread thread");	
 }
 
+void EPollWorkerThread::clearEvents()
+{
+	AutoMutex autoLock(&_eventsSync);
+	for (auto event = _events.begin(); event != _events.end(); event++) {
+		delete (*event);
+	}
+}
+
 EPollWorkerThread::~EPollWorkerThread()
 {
-	for (auto event = _events.begin(); event != _events.end(); event++)
-		delete (*event);
 	delete _threadSpecificData;
 }
 
@@ -172,6 +178,9 @@ EPollWorkerGroup::EPollWorkerGroup(
 
 EPollWorkerGroup::~EPollWorkerGroup()
 {
+	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
+		(*thread)->clearEvents();
+	}
 	cancelThreads();
 	waitThreads();
 	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
