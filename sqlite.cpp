@@ -167,7 +167,7 @@ bool SQLiteStatement::execute()
 	Timer timer;
 	int res = sqlite3_step(_ppStmt);
 	if (res == SQLITE_DONE) {
-		log::Info::L("ex:[%s]:%d (%llums)\n", _sqlString, affectedRows(), timer.elapsed().count());
+		log::Info::L("e:[%s]:%d (%llums)\n", _sqlString, affectedRows(), timer.elapsed().count());
 		return true;
 	} else {
 		log::Error::L("EStmt [%s] %d (%s)\n", _sqlString, res, sqlite3_errmsg(_conn.get()));
@@ -181,7 +181,7 @@ bool SQLiteStatement::next()
 	int res = sqlite3_step(_ppStmt);
 	if (res == SQLITE_ROW) {
 		if (_sqlString[0]) {
-			log::Info::L("N: [%s] (%llums)\n", _sqlString, timer.elapsed().count());
+			log::Info::L("q:[%s] (%llums)\n", _sqlString, timer.elapsed().count());
 			_sqlString = "";
 		}
 		return true;
