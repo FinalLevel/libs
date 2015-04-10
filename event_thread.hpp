@@ -78,7 +78,7 @@ namespace fl {
 				const uint32_t stackSize
 			);
 			virtual ~EPollWorkerThread();
-			void clearEvents();
+			void finish();
 			bool ctrl(class Event *ue)
 			{
 				return _poll.ctrl(ue);
@@ -102,6 +102,7 @@ namespace fl {
 			fl::threads::Mutex _eventsSync;
 			typedef std::vector<class Event *> TEventList;
 			TEventList _deletedEvents;
+			bool _finished;
 		};
 		
 		

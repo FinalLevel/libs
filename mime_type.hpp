@@ -52,6 +52,14 @@ namespace fl {
 			static EMimeType getMimeTypeFromFileName(const std::string &fileName);
 			static EMimeType getMimeTypeFromExt(const char *ext, const size_t extLen);
 			static EMimeType getMimeTypeFromName(const std::string &mimeName);
+			static bool isText(const EMimeType type)
+			{
+				if (type == E_HTML || type == E_TXT || type == E_CALENDAR) {
+					return true;
+				} else {
+					return false;
+				}
+			}
 		private:
 			static const size_t MAX_EXT_LENGTH = 4;
 			static const char *_MIME_TYPES[E_MAX];

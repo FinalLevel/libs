@@ -23,20 +23,21 @@ EPollWorkerThread::EPollWorkerThread(
 	class ThreadSpecificData* threadSpecificData, 
 	const uint32_t stackSize
 )
-	: _poll(queueLength), _threadSpecificData(threadSpecificData)
+	: _poll(queueLength), _threadSpecificData(threadSpecificData), _finished(false)
 {
 	setStackSize(stackSize);
 	if (!create())
 		throw exceptions::Error("Cannot create EPollWorkerThread thread");	
 }
 
-void EPollWorkerThread::clearEvents()
+void EPollWorkerThread::finish()
 {
 	AutoMutex autoLock(&_eventsSync);
 	for (auto event = _events.begin(); event != _events.end(); event++) {
 		delete (*event);
 	}
 	_events.clear();
+	_finished = true;
 }
 
 EPollWorkerThread::~EPollWorkerThread()
@@ -119,6 +120,10 @@ void EPollWorkerThread::run()
 		static const int EVENT_WAIT_TIME = 1 * 1000; // wait 1 second in milliseconds
 		_poll.dispatch(EVENT_WAIT_TIME);
 		_eventsSync.lock();
+		if (_finished) {
+			_eventsSync.unLock();
+			break;
+		}
 		if (_poll.callActive(changedEvents, endedEvents)) {
 			
 			for (auto eventIter = changedEvents.begin(); eventIter != changedEvents.end(); eventIter++) {
@@ -180,7 +185,7 @@ EPollWorkerGroup::EPollWorkerGroup(
 EPollWorkerGroup::~EPollWorkerGroup()
 {
 	for (auto thread = _threads.begin(); thread != _threads.end(); thread++) {
-		(*thread)->clearEvents();
+		(*thread)->finish();
 	}
 	cancelThreads();
 	waitThreads();
