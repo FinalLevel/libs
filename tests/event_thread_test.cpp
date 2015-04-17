@@ -23,19 +23,16 @@ using namespace fl::events;
 
 typedef std::vector<int> TIDList;
 
-const int STDIN_EVENT = 1;
-const int STDOUT_EVENT = 2;
-const int SOCKET_EVENT = 3;
+const int SOCKET_EVENT = 1;
 
-TIDList finishedTrueCalls;
-TIDList finishedFalseCalls;
+TIDList finishedCalls;
 
 class WorkTestEvent : public WorkEvent
 {
 public:
 	static int unfinisedEvents;
 	WorkTestEvent(const int id, const int descr)
-		: WorkEvent(descr, id), _id(id), _called(false), _finished(false)
+		: WorkEvent(descr, id), _id(id), _called(false)
 	{
 		_events = E_OUTPUT;
 		unfinisedEvents++;
@@ -57,43 +54,23 @@ public:
 			else {
 				return  FINISHED;
 			}
-		}
-		else  if (_id == STDOUT_EVENT) {
-			if (!_called) {
-				_called = true;
-				_timeOutTime = time(NULL) + 100;
-				return CHANGE;
-			}
-			else {
-				return  FINISHED;
-			}
-		}	
-		else
+		}	else {
 			return SKIP;
+		}
 	}
 	virtual bool isFinished()
 	{
-		if (_finished)
-		{
-			finishedTrueCalls.push_back(_id);
-			return true;
-		}
-		else
-		{
-			finishedFalseCalls.push_back(_id);
-			_finished = true;
-			return false;
-		}
+		finishedCalls.push_back(_id);
+		return false;
 	}
 	int _id;
 	bool _called;
-	bool _finished;
 };
 
 class MockTimeEvent : public EPollWorkerGroup::UpdateTimeEvent
 {
 public:
-	static const int TIC_TIME = 10000000;
+	static const int TIC_TIME = 1000000;
 	MockTimeEvent()
 	{
 		itimerspec tm;
@@ -137,13 +114,13 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		int fd = socket(PF_INET, SOCK_STREAM, 0);
 		BOOST_CHECK(fd > 0 );
 		BOOST_CHECK( worker.addConnection(new WorkTestEvent(SOCKET_EVENT, fd), NULL) != false);
-		BOOST_CHECK( worker.addConnection(new WorkTestEvent(STDIN_EVENT, fileno(stdin)), NULL) != false);
 		
 
 		struct timespec tim;
 		tim.tv_sec = 0;
-		tim.tv_nsec = MockTimeEvent::TIC_TIME * 4;
+		tim.tv_nsec = MockTimeEvent::TIC_TIME * 10;
 		nanosleep(&tim , NULL);
+		worker.finish();
 	
 			// check allocation - deallocation
 		BOOST_CHECK(WorkTestEvent::unfinisedEvents == 0);
@@ -152,11 +129,8 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		BOOST_CHECK(MockTimeEvent::callTimes >= 2);
 		
 		// check isFinish order
-		BOOST_CHECK(finishedFalseCalls.size() == 2);
-		//BOOST_CHECK((finishedFalseCalls[0] == STDIN_EVENT) && (finishedFalseCalls[1] == SOCKET_EVENT));
-		BOOST_CHECK(finishedTrueCalls.size() == 1);
-		BOOST_CHECK(finishedTrueCalls[0] == STDIN_EVENT);
-		worker.finish();
+		BOOST_CHECK(finishedCalls.size() == 1);
+		
 		worker.cancel();
 		worker.waitMe();	
 		close(fd);
