@@ -27,7 +27,7 @@ sed -e "s/%{ver}/$VER/" -e "s/%{rel}/$REL/" packaging/${NAME}.spec > $RPMTOPDIR/
 sh autogen.sh
 
 cd ..
-mv ${NAME}-${VER} ${NAME}-${VER}
+#mv ${NAME}-${VER} ${NAME}-${VER}
 tar -czf ${NAME}-${VER}.tar.gz ${NAME}-${VER}
 cd $PROJECT_PATH
 
