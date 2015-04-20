@@ -38,7 +38,7 @@ mkdir -p RPMS
 rpmbuild		--define "_topdir $RPMTOPDIR" \
             --define "_rpmdir $PROJECT_PATH/RPMS"       \
             --define "_srcrpmdir $PROJECT_PATH/RPMS"    \
-            --define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{DIST}.%%{ARCH}.rpm' \
+            --define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
             -ba $RPMTOPDIR/SPECS/${NAME}.spec &&
 
 rm -rf $RPMTOPDIR &&
