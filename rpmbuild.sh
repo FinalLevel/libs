@@ -27,8 +27,8 @@ sed -e "s/%{ver}/$VER/" -e "s/%{rel}/$REL/" packaging/${NAME}.spec > $RPMTOPDIR/
 sh autogen.sh
 
 cd ..
-mv ${NAME}-${VER} ${NAME}-${VER}-${REL}
-tar -czf ${NAME}-${VER}-${REL}.tar.gz ${NAME}-${VER}-${REL}
+mv ${NAME}-${VER} ${NAME}-${VER}
+tar -czf ${NAME}-${VER}.tar.gz ${NAME}-${VER}
 cd $PROJECT_PATH
 
 # make RPMs directory
