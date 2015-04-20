@@ -144,10 +144,7 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		tim.tv_sec = 0;
 		tim.tv_nsec = MockTimeEvent::TIC_TIME * 4;
 		nanosleep(&tim , NULL);
-		
-		worker.finish();
-		worker.cancel();
-		worker.waitMe();
+	
 			// check allocation - deallocation
 		BOOST_CHECK(WorkTestEvent::unfinisedEvents == 0);
 		
@@ -159,8 +156,11 @@ BOOST_AUTO_TEST_CASE( WorkerThread )
 		//BOOST_CHECK((finishedFalseCalls[0] == STDIN_EVENT) && (finishedFalseCalls[1] == SOCKET_EVENT));
 		BOOST_CHECK(finishedTrueCalls.size() == 1);
 		BOOST_CHECK(finishedTrueCalls[0] == STDIN_EVENT);
-	
+		worker.finish();
+		worker.cancel();
+		worker.waitMe();	
 		close(fd);
+
 	} catch (...) {
 		BOOST_CHECK_NO_THROW(throw);
 	}
