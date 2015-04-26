@@ -110,6 +110,7 @@ namespace fl {
 			TDataPtr reserveBuffer(const TSize size);
 			void trim(TSize size);
 			void trimLast();
+			void trimLastSpaces();
 			void reserve(const TSize newReservedSize);
 			TDataPtr release();
 		protected:
