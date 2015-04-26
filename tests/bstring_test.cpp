@@ -284,4 +284,19 @@ BOOST_AUTO_TEST_CASE( moveFromBufferTest )
 	BOOST_REQUIRE(str == "movedStr");
 }
 
+BOOST_AUTO_TEST_CASE( trimLastSpacesTest )
+{
+	BString str;
+	// test empty string
+	str.trimLastSpaces();
+	str << "some text ";
+	str.trimLastSpaces();
+	BOOST_REQUIRE(str == "some text");
+	str.clear();
+	// test only one space
+	str << " ";
+	str.trimLastSpaces();
+	BOOST_REQUIRE(str == "");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

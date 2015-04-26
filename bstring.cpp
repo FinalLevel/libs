@@ -322,6 +322,14 @@ void BString::trimLast()
 	}
 }
 
+void BString::trimLastSpaces()
+{
+	while (_size > 0 && isspace(_data[_size - 1])) {
+		_size--;
+		_data[_size] = 0;
+	}
+}
+
 BString::TDataPtr BString::release()
 {
 	TDataPtr data = _data;
