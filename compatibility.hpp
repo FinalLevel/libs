@@ -16,6 +16,7 @@
 
 #ifndef HAVE_CXX11
 	#define override
+	#define noexcept
 #endif
 
 
