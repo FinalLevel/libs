@@ -15,7 +15,6 @@
 #include <string>
 #include <cstring>
 #include "exception.hpp"
-#include "compatibility.hpp"
 
 namespace fl {
 	namespace utils {
