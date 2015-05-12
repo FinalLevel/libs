@@ -21,6 +21,10 @@
 
 #include "util.hpp"
 
+#include "phonenumbers/phonenumberutil.h"
+#include "phonenumbers/phonenumber.pb.h"
+using namespace i18n::phonenumbers;
+
 namespace fl {
 	namespace utils {
 
@@ -142,12 +146,12 @@ namespace fl {
 					}
 				} else {
 					if (findAt) {
-						if (!isalpha(ch) && !isdigit(ch) && ch != '-') {
+						if (!isalpha(ch) && !isdigit(ch) && ch != '-' && ch != '+' ) {
 							return false;
 						}
 						domainLength++;
 					} else {
-						if (!isalpha(ch) && !isdigit(ch) && ch != '-' && ch != '_') {
+						if (!isalpha(ch) && !isdigit(ch) && ch != '-' && ch != '+' && ch != '_') {
 							return false;
 						}
 						emailLength++;
@@ -166,44 +170,35 @@ namespace fl {
 			};
 			return countryPrefix * pow10[nationalLength];
 		}
-		
+
+		uint64_t parsePhone(PhoneNumberUtil *util, const std::string &phone, const std::string &region_code)
+		{
+			PhoneNumber pn;
+			if (util->Parse(phone, region_code, &pn) == PhoneNumberUtil::NO_PARSING_ERROR)
+				if (util->IsValidNumber(pn) && util->GetNumberType(pn) == PhoneNumberUtil::MOBILE)
+				{
+					std::string fn;
+					util->Format(pn, PhoneNumberUtil::E164, &fn);
+					return strtoull(fn.c_str(), NULL, 10);
+				}
+			return 0;
+		}
+
 		uint64_t formInternationalPhone(const std::string &phone, const uint32_t countryPrefix)
 		{
+			std::string region_code;
+			PhoneNumberUtil *util = PhoneNumberUtil::GetInstance();
 
-			std::string normallizedPhone;
-			normallizedPhone.reserve(MAX_INT_PHONE_LENGTH + 1);
-			const char *pPhone = phone.c_str();
-			while (*pPhone) {
-				unsigned char ch = *pPhone;
-				if (isdigit(ch) || (ch == '+')) {
-					normallizedPhone.push_back(ch);
-				}
-				pPhone++;
+			if (!countryPrefix && *phone.c_str() != '+')
+			{
+				std::string pPhone = "+" + phone;
+				return parsePhone(util, pPhone, region_code);
 			}
-			if (normallizedPhone.size() > MAX_INT_PHONE_LENGTH) {
-				return 0;
-			}
-			pPhone = normallizedPhone.c_str();
-			
-			if (*pPhone == '+') { // international number
-				if (normallizedPhone.size() < MIN_INT_PHONE_LENGTH) {
-					return 0;
-				}
-				return strtoull(pPhone + 1, NULL, 10);
-			} else if (*pPhone == '0') {
-				static const size_t MIN_NATINAL_PHONE_LENGTH = 7;
-				if (normallizedPhone.size() < MIN_NATINAL_PHONE_LENGTH) {
-					return 0;
-				}
-				uint64_t nationalPhone = strtoull(pPhone + 1, NULL, 10);
-				if (!nationalPhone) {
-					return 0;
-				}
-				return (countryPrefixToUnit64(countryPrefix, normallizedPhone.size() - 1)) + nationalPhone;
-			} else {
-				return strtoull(pPhone, NULL, 10);
-			}
+			if (countryPrefix)
+				util->GetRegionCodeForCountryCode(countryPrefix, &region_code);
+			return parsePhone(util, phone, region_code);
 		}
+
 		const std::string getFileExt(const std::string &fileName)
 		{
 			const char *endFile = fileName.c_str() + fileName.size();

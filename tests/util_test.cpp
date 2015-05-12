@@ -106,13 +106,23 @@ BOOST_AUTO_TEST_CASE( testFormInternationalPhone )
 	
 	// check international number without "+"
 	BOOST_CHECK( formInternationalPhone("380989007373", 380) == 380989007373ULL);
+
+	// ckeck without prefix
+	BOOST_CHECK( formInternationalPhone("380989007373", 0) == 380989007373ULL);
+	BOOST_CHECK( formInternationalPhone("+380989007373", 0) == 380989007373ULL);
 	
 	// check national number
 	BOOST_CHECK( formInternationalPhone("0989007373", 380) == 380989007373ULL);
 	
+	// ckeck without prefix
+	BOOST_CHECK( formInternationalPhone("0989007373", 0) == 0);
+	
 	// check Aussie numbers
 	BOOST_CHECK( formInternationalPhone("+61458852392", 61) == 61458852392ULL);
 	BOOST_CHECK( formInternationalPhone("0458852392", 61) == 61458852392ULL);
+	
+	// ckeck without prefix
+	BOOST_CHECK( formInternationalPhone("0458852392", 0) == 0);
 }
 
 BOOST_AUTO_TEST_CASE( testGetFileExt )
