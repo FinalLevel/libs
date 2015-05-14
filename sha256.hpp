@@ -18,11 +18,13 @@
 namespace fl {
 	namespace crypto {
 		
+		const size_t SHA256_HEX_SIZE = SHA256_DIGEST_LENGTH * 2;
 		class SHA256Holder
 		{
 		public:
 			SHA256Holder();
 			SHA256Holder(const std::string &data);
+			void setHex(const char *hex, size_t len = SHA256_HEX_SIZE);
 			uint8_t const * bytes() const
 			{
 				return _bytes;
