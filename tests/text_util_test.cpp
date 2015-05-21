@@ -35,13 +35,23 @@ BOOST_AUTO_TEST_CASE( quotedPrintableDecodeTest )
 	BOOST_REQUIRE(result == "Test code жизнь");
 }
 
+BOOST_AUTO_TEST_CASE( stripHtmlTagsTest1 )
+{
+	BString simpleHtml { "<html><head><title>Bla bla</title></head><body><blockquote "
+			"<div><br>Test1</div> <span> Test2 <br></span> <div>  Test1 <br>+<br>"
+			" Test2 </div></blockquote><div><p>Test<br ttt>test<br><br>end</div></body>" };
+	stripHtmlTags(simpleHtml, {"br", "blockquote"});
+	stripBlockquote(simpleHtml.c_str(), simpleHtml.size());
+	replaceTags(simpleHtml, {{"br", {'\n'}}});
+	BOOST_REQUIRE(simpleHtml == "\n>\n Test \ntest \n \nend");
+}
+
 BOOST_AUTO_TEST_CASE( stripHtmlTagsTest )
 {
 	BString simpleHtml { "<html><head><title>Bla bla</title></head><body>Test</body>" };
 	stripHtmlTags(simpleHtml);
 	BOOST_REQUIRE(simpleHtml == "Test");
 }
-
 
 BOOST_AUTO_TEST_CASE( stripHtmlTagsWihoutHTMLTest )
 {
@@ -160,6 +170,76 @@ BOOST_AUTO_TEST_CASE(decodeMimeHeaderEscapeTest)
 	BString result;
 	decodeMimeHeader(src, result, "", " \",;<\\");
 	BOOST_REQUIRE(result == "\"◄SuperDeal\\ Товары►\" <support@superdeal.com.ua>");
+}
+
+BOOST_AUTO_TEST_CASE(StripReplyTest)
+{
+	BString buf;
+	buf 	<< "post:"
+			<< "\n"
+			<< "SomeBody 11:04 wrote:"
+			<< "\n"
+			<< ">reply1"
+			<< ">\r\n"
+			<< "  inner post"
+			<< "\r\n"
+			<< ">>reply2"
+			<< ">>\n";
+
+	stripPreviewText(buf);
+	BOOST_REQUIRE(buf == "post:\n  inner post");
+}
+
+BOOST_AUTO_TEST_CASE(StripReplyTest1)
+{
+	BString buf;
+	buf 	<< "post"
+			<< "\n"
+			<< ">reply1"
+			<< ">\r\n"
+			<< " inner post"
+			<< "\r\n"
+			<< ">>reply2"
+			<< ">>\n";
+
+	stripPreviewText(buf);
+	BOOST_REQUIRE(buf == "post\n inner post");
+}
+
+BOOST_AUTO_TEST_CASE(StripReplyTest2)
+{
+	BString buf;
+	buf 	<< "On 05.15 15:44, SomeBody wrote:"
+			<< "\n"
+			<< ">reply1"
+			<< ">\r\n"
+			<< " inner post"
+			<< "\r\n"
+			<< ">>reply2"
+			<< ">>\n"
+			<< "post"
+			<< "\n";
+
+	stripPreviewText(buf);
+	BOOST_REQUIRE(buf == "inner post\r\npost");
+}
+
+BOOST_AUTO_TEST_CASE(StripReplyTest3)
+{
+	BString buf;
+	buf 	<< "\n"
+			<< " "
+			<< "post"
+			<< "\n"
+			<< "--"
+			<< "\n"
+			<< "signature"
+			<< "\r\n"
+			<< "SomeBody 11:04 wrote:"
+			<< "\n";
+
+	stripPreviewText(buf);
+	BOOST_REQUIRE(buf == "post");
 }
 
 BOOST_AUTO_TEST_SUITE_END()				

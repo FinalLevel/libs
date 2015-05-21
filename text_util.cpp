@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <algorithm>
 #include <unordered_map>
+#include <map>
 #include "util.hpp"
 #include "text_util.hpp"
 #include "iconv.hpp"
@@ -592,6 +593,152 @@ namespace fl {
 					}
 				}
 				pCur = p + 2;
+			}
+		}
+
+		void stripBlockquote(const char *src, const size_t size)
+		{
+			const char* bqStart;
+			const char* bqEnd;
+			static const char* bqStartTag {"<blockquote"};
+			static const char* bqEndTag {"</blockquote>"};
+			static size_t bqOpenSize = strlen(bqStartTag);
+			static size_t bqCloseSize = strlen(bqEndTag);
+
+			bqStart = fl::utils::strnstr(src, size, bqStartTag, bqOpenSize);
+			if (bqStart)
+			{
+				bqEnd = fl::utils::rstrnstr(bqStart + bqOpenSize, size - (bqStart + bqOpenSize - src), bqEndTag, bqCloseSize);
+				if (bqEnd)
+				{
+					char *dst = const_cast<char *>(bqStart);
+					*(dst) = '\n';
+					*(dst+1) = '>';
+					*(dst+2) = '\n';
+					memcpy((dst+3), bqEnd + bqCloseSize, size - (bqEnd + bqCloseSize - src) + 1);
+				}
+			}
+		}
+
+		void replaceTags(fl::strings::BString &buf, const std::vector<std::pair<std::string, std::string>> &v)
+		{
+			char *start = buf.c_str();
+			char *end = buf.c_str() + buf.size();
+			char *cur = start;
+			char *pos = start;
+			char* bEnd = {nullptr};
+			size_t size = buf.size();
+
+			BString res;
+			res.reserve(size);
+
+			while (pos)
+			{
+				for (auto &entry : v)
+				{
+					if((pos = const_cast<char *>(strnstr(pos, size, entry.first.c_str(), entry.first.size()))))
+					{
+						if ( ((pos - start >=1) && *(pos-1) == '<') /*|| ((pos - start >=2) && *(pos-2) == '<' && *(pos-1) == '/')*/)
+						{
+							bEnd = pos + entry.first.size();
+							while(bEnd < end && *bEnd != '>')
+								bEnd++;
+							if (bEnd == end)
+								return;
+
+							*(pos-1) = 0;
+							res << cur << entry.second.c_str();
+							pos = bEnd + 1;
+							size = end - pos;
+							cur = pos;
+						}
+						else
+							pos += entry.first.size();
+					}
+				}
+			}
+			if(cur != buf.c_str())
+			{
+				res << cur;
+				buf = std::move(res);
+			}
+		}
+
+		uint getline(const char* buf, const char* end)
+		{
+			const char *start = buf;
+			while ( buf < end) {
+				if (*buf == '\n') {
+					return buf - start + 1;
+				}
+				buf++;
+			}
+			return buf - start;
+		}
+
+		void trimLRText(BString &buf)
+		{
+			buf.trimLastSpaces();
+
+			const char *pBuf = buf.c_str();
+			const char *pEnd = buf.c_str() + buf.size();
+
+			while(pEnd > pBuf)
+			{
+				if(!isspace(*pBuf))
+					break;
+				pBuf++;
+			}
+			if (pBuf > buf.c_str())
+			{
+				size_t size = strlen(pBuf);
+				memcpy(buf.c_str(), pBuf, size);
+				buf.trim(size);
+			}
+		}
+
+		void stripPreviewText(BString &buf)
+		{
+			const char *pBuf = buf.c_str();
+			const char *pEnd = buf.c_str() + buf.size();
+			const char *eLine;
+			int wrote {-1};
+			int reply {0};
+			uint size;
+			BString result;
+
+			while((size = getline(pBuf, pEnd)))
+			{
+				eLine = pBuf + size - 1;
+				if(size >= 3 && *pBuf == '-' && *(pBuf + 1) == '-')
+					break;
+				if (!reply && (((size >= 2) && isspace(*eLine) && *(eLine - 1) == ':')
+						|| ((size >= 3) && isspace(*eLine) && isspace(*(eLine - 1)) && *(eLine - 2) == ':')))
+					wrote = result.size();
+				if(*pBuf != '>')
+					result.add(pBuf, size);
+				else
+				{
+					if (!reply)
+						reply = result.size();
+				}
+//				if (!reply && wrote >=0 && !isspace(*pBuf))
+//					wrote = -1;
+				pBuf += size;
+			}
+
+			if (wrote >= 0)
+			{
+				buf.clear();
+				if (wrote > 0)
+					buf.add(result.c_str(), wrote);
+				buf.add(result.c_str() + reply, result.size() - reply);
+				trimLRText(buf);
+			}
+			else if(result.size())
+			{
+				trimLRText(result);
+				buf = std::move(result);
 			}
 		}
 	};

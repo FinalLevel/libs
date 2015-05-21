@@ -13,6 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <unordered_set>
+#include <unordered_map>
 #include <string>
 #include "bstring.hpp"
 
@@ -29,6 +30,11 @@ namespace fl {
 		void decodeHtmlEntities(fl::strings::BString &result);
 		void decodeMimeHeader(const fl::strings::BString &src, fl::strings::BString &result, const std::string &charset, 
 			const char *escapeChars);
+		void stripPreviewText(fl::strings::BString &buf);
+		void trimLRText(fl::strings::BString &buf);
+		uint getline(const char* start, const char* end);
+		void stripBlockquote(const char *src, const size_t size);
+		void replaceTags(fl::strings::BString &src, const std::vector<std::pair<std::string, std::string>> &v);
 	};
 };
 

@@ -231,5 +231,19 @@ namespace fl {
 
 			return (char *) (res ? 0 : p);		
 		}
+
+		const char *rstrnstr(const char *s, const size_t slen, const char *pattern, const size_t patternLen)
+		{
+			if (slen < patternLen)
+				return 0;
+
+			const char *start = s + patternLen;
+			const char *p = s + slen - patternLen;
+			int res = -1;
+			while (*p && p >= start && (res = memcmp(p, pattern, patternLen)))
+				p--;
+
+			return (char *) (res ? 0 : p);
+		}
 	};
 };
