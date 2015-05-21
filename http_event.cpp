@@ -630,6 +630,7 @@ const std::string HttpEventInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 409 Conflict\r\n",
 	"HTTP/1.1 410 Gone\r\n",
 	"HTTP/1.1 411 Length Required\r\n",
+	"HTTP/1.1 498 Token expired/invalid\r\n",
 	"HTTP/1.1 500 Internal Server Error\r\n",
 	"HTTP/1.1 503 Service Unavailable\r\n",
 	"HTTP/1.1 505 HTTP Version Not Supported\r\n",
