@@ -621,6 +621,7 @@ void HttpEventInterface::_addConnectionHeader(BString &networkBuffer, const bool
 
 const std::string HttpEventInterface::_ERROR_STRINGS[ERROR_MAX] = {
 	"HTTP/1.1 200 OK\r\n",
+	"HTTP/1.1 202 Accepted\r\n",
 	"HTTP/1.1 204 No Content\r\n",
 	"HTTP/1.1 206 Partial Content\r\n",
 	"HTTP/1.1 400 Bad Request\r\n",
