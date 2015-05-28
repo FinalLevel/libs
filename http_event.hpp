@@ -100,6 +100,7 @@ namespace fl {
 			enum EError : uint8_t
 			{
 				ERROR_200_OK = 0,
+				ERROR_202_ACCEPTED,
 				ERROR_204_NO_CONTENT,
 				ERROR_206_PARTIAL_CONTENT,
 				ERROR_400_BAD_REQUEST,
