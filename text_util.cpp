@@ -104,6 +104,52 @@ namespace fl {
 			-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
 			-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2
 		};
+
+		static const char BASE64_TABLE[] =
+		    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+		void base64Encode(fl::strings::BString &result, const char *input, const size_t size, bool isFormated)
+		{
+			size_t i;
+			char *pos;
+			size_t formated {0};
+			size_t lineLength {0};
+
+			if (isFormated)
+				lineLength = 72;
+
+		    result.reserveBuffer(size*2);
+		    pos = result.data();
+
+		    for (i = 0; i < size - 2; i += 3)
+		    {
+		    	*pos++ = BASE64_TABLE[(input[i] >> 2) & 0x3F];
+		    	*pos++ = BASE64_TABLE[((input[i] & 0x3) << 4) | ((input[i + 1] & 0xF0) >> 4)];
+		    	*pos++ = BASE64_TABLE[((input[i + 1] & 0xF) << 2) | ((input[i + 2] & 0xC0) >> 6)];
+		    	*pos++ = BASE64_TABLE[input[i + 2] & 0x3F];
+		    	formated += 4;
+		    	if (lineLength > 0 && formated >= lineLength)
+		    	{
+		    		*pos++ = '\r';
+		    		*pos++ = '\n';
+		    		formated = 0;
+		    	}
+		    }
+		    if (i < size) {
+		    	*pos++ = BASE64_TABLE[(input[i] >> 2) & 0x3F];
+		    	if (i == (size - 1)) {
+		    		*pos++ = BASE64_TABLE[((input[i] & 0x3) << 4)];
+		    		*pos++ = '=';
+		    	}
+		    	else {
+		    		*pos++ = BASE64_TABLE[((input[i] & 0x3) << 4) | ((input[i + 1] & 0xF0) >> 4)];
+		    		*pos++ = BASE64_TABLE[((input[i + 1] & 0xF) << 2)];
+		    	}
+		    	*pos++ = '=';
+		    }
+
+		    result.trim(pos - result.data());
+		}
 		
 		bool base64Decode(fl::strings::BString &result, const char *input, const size_t size)
 		{

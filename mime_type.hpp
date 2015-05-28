@@ -39,6 +39,7 @@ namespace fl {
 				E_CALENDAR,
 				E_MULTIPART_MIXED,
 				E_MULTIPART_ALTERNATIVE,
+				E_MULTIPART_RELATED,
 				E_MAX,
 			};
 			static const char *getMimeTypeStrFromFileName(const std::string &fileName)

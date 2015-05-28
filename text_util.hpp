@@ -22,6 +22,7 @@ namespace fl {
 		void quotedPrintableDecode(fl::strings::BString &result, const char *input, const size_t size, 
 			const char delim = '=');
 		bool base64Decode(fl::strings::BString &result, const char *input, const size_t size);
+		void base64Encode(fl::strings::BString &result, const char *input, const size_t size, bool isFormated = true);
 		
 		using TStringSet = std::unordered_set<std::string>;
 		void stripHtmlTags(fl::strings::BString &buf, const TStringSet &allowedTags = {});

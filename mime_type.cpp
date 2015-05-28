@@ -32,6 +32,7 @@ const char *MimeType::_MIME_TYPES[E_MAX] = {
 	"text/calendar",
 	"multipart/mixed",
 	"multipart/alternative",
+	"multipart/related",
 };
 
 MimeType::TExtMimeTypeMap MimeType::_mimeTypes = {
