@@ -35,6 +35,9 @@ namespace fl {
 		void trimLRText(fl::strings::BString &buf);
 		uint getline(const char* start, const char* end);
 		void stripBlockquote(const char *src, const size_t size);
+		void getTagParamPos(const char *s, const char* e, size_t& start, size_t& end);
+		void getTagParamValuePos(const char *s, const char* e, size_t& start, size_t& end);
+		bool findTagParamValue(fl::strings::BString& data, const std::string& param, const std::string& val, std::vector<std::tuple<const char*, size_t, std::string>>& vPos);
 		void replaceTags(fl::strings::BString &src, const std::vector<std::pair<std::string, std::string>> &v);
 	};
 };

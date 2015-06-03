@@ -787,5 +787,133 @@ namespace fl {
 				buf = std::move(result);
 			}
 		}
+
+		void getTagParamPos(const char *s, const char* e, size_t& start, size_t& end)
+		{
+			const char* pos = s;
+			bool assign = false;
+			char quote = 0;
+			end = 0;
+			start = 0;
+
+			while(pos < e)
+			{
+				if (!start)
+				{
+					if(*pos == '=')
+					{
+						assign = true;
+						pos++;
+					}
+					if (assign && !isspace(*pos))
+					{
+						start = pos - s;
+						if (*pos == '\"' || *pos == '\'' || *pos == '`' )
+						{
+							quote = *pos;
+							start += 1;
+						}
+					}
+				}
+				else
+				{
+					if (quote)
+					{
+						if (*pos == quote)
+						{
+							end = pos - s;
+							break;
+						}
+						if (*pos == '/' || *pos == '>')
+							break;
+					}
+					else
+					{
+						if (isspace(*pos) || *pos == '/' || *pos == '>')
+						{
+							end = pos - s;
+							break;
+						}
+					}
+				}
+				pos++;
+			}
+		}
+
+		void getTagParamValuePos(const char *s, const char* e, size_t& start, size_t& end)
+		{
+			const char* pos = s;
+			bool colon = false;
+			end = 0;
+			start = 0;
+
+			while(pos < e)
+			{
+				if (!start)
+				{
+					if(*pos == ':')
+					{
+						colon = true;
+						pos++;
+					}
+					if (colon && !isspace(*pos))
+						start = pos - s;
+				}
+				else
+				{
+					if (isspace(*pos))
+						break;
+				}
+				pos++;
+			}
+			end = pos - s;
+		}
+
+		bool findTagParamValue(BString& data, const std::string& param, const std::string& val, std::vector<std::tuple<const char*, size_t, std::string>>& vPos)
+		{
+			const char* START = data.c_str();
+			const char* END = START + data.size();
+			const char* pos = START;
+			const char* old = pos;
+			bool found = false;
+			size_t sTag;
+			size_t eTag;
+			size_t sVal;
+			size_t eVal;
+
+			while (pos && pos < END)
+			{
+				if ((pos = fl::utils::strnstr(pos, END - pos, param.c_str(), param.size())))
+				{
+					pos += param.size();
+					fl::utils::getTagParamPos(pos, END, sTag, eTag);
+					if(sTag && eTag)
+					{
+						old = pos;
+						if ((pos = fl::utils::strnstr(pos + sTag, eTag - sTag, val.c_str(), val.size())))
+						{
+							pos += val.size();
+							fl::utils::getTagParamValuePos(pos, old + eTag, sVal, eVal);
+							if (sVal && eVal)
+							{
+								std::string cid;
+								cid.append("<");
+								cid.append(pos + sVal, eVal - sVal);
+								cid.append(">");
+								vPos.emplace_back(std::make_tuple(old + sTag, eTag - sTag, std::move(cid)));
+								pos = old + eTag;
+								found = true;
+							}
+						}
+						else
+							pos = old;
+					}
+				}
+				else
+					return found;
+			}
+			return found;
+		}
+
 	};
 };

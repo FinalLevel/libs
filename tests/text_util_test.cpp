@@ -242,4 +242,29 @@ BOOST_AUTO_TEST_CASE(StripReplyTest3)
 	BOOST_REQUIRE(buf == "post");
 }
 
+BOOST_AUTO_TEST_CASE(ReplaceContentId)
+{
+	BString res;
+	BString src = " src = ' cid : test1 ' \n src = \"test2\" \n src = \" cid: test3\" \n src=cid:test4 src=test5\n";
+	BString dst = " src = '<test1>' \n src = \"test2\" \n src = \"<test3>\" \n src=<test4> src=test5\n";
+	const static std::string param = "src";
+	const static std::string value = "cid";
+	std::vector<std::tuple<const char*, size_t, std::string>> vPos;
+
+	findTagParamValue(src, param, value, vPos);
+
+	const char* pos = src.c_str();
+	for (auto &v : vPos)
+	{
+		res.add(pos, std::get<0>(v) - pos);
+		pos = std::get<0>(v) + std::get<1>(v);
+
+		res << std::get<2>(v);
+	}
+	if (vPos.size())
+		res.add(pos, src.c_str() + src.size() - pos);
+
+	BOOST_REQUIRE(res == dst);
+}
+
 BOOST_AUTO_TEST_SUITE_END()				
