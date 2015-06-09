@@ -743,7 +743,7 @@ namespace fl {
 			}
 		}
 
-		void stripPreviewText(BString &buf)
+		bool stripPreviewText(BString &buf)
 		{
 			const char *pBuf = buf.c_str();
 			const char *pEnd = buf.c_str() + buf.size();
@@ -780,11 +780,17 @@ namespace fl {
 					buf.add(result.c_str(), wrote);
 				buf.add(result.c_str() + reply, result.size() - reply);
 				trimLRText(buf);
+				return true;
 			}
 			else if(result.size())
 			{
-				trimLRText(result);
-				buf = std::move(result);
+				if (result.size() == buf.size()) {
+					return false;
+				} else {
+					trimLRText(result);
+					buf = std::move(result);
+					return true;
+				}
 			}
 		}
 
