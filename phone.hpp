@@ -14,7 +14,7 @@
 
 namespace fl {
 	namespace utils {
-		static const size_t MIN_INT_PHONE_LENGTH = 1 /* + */ + 1 /* min country code length */ + 7 /* phone number */; 
+		static const size_t MIN_INT_PHONE_LENGTH = 1 /* + */ + 1 /* min country code length */ + 5 /* phone number */; 
 		static const size_t MAX_INT_PHONE_LENGTH = 1 /* + */ + 3 /* max country code length */ + 3 /* code */ 
 			+ 7 /* phone number */;
 		uint64_t formInternationalPhone(const std::string &phone, const uint32_t countryPrefix);
