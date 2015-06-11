@@ -780,7 +780,6 @@ namespace fl {
 					buf.add(result.c_str(), wrote);
 				buf.add(result.c_str() + reply, result.size() - reply);
 				trimLRText(buf);
-				return true;
 			}
 			else if(result.size())
 			{
@@ -789,9 +788,9 @@ namespace fl {
 				} else {
 					trimLRText(result);
 					buf = std::move(result);
-					return true;
 				}
 			}
+			return true;
 		}
 
 		void getTagParamPos(const char *s, const char* e, size_t& start, size_t& end)
