@@ -27,6 +27,10 @@ if NEED_ICONV
   libfl_a_SOURCES += iconv.cpp text_util.cpp
 endif
 
+if NEED_PHONENUMBER
+  libfl_a_SOURCES += phone.cpp
+endif
+
 check_PROGRAMS = libfl_test
 libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp tests/dir_test.cpp \
   tests/bstring_test.cpp tests/file_test.cpp tests/socket_test.cpp tests/event_thread_test.cpp tests/thread_test.cpp \
@@ -57,6 +61,12 @@ if NEED_ICONV
   libfl_test_SOURCES += tests/iconv_test.cpp tests/text_util_test.cpp
   libfl_test_LDADD += @LIBICONV@
 endif
+
+if NEED_PHONENUMBER
+  libfl_test_SOURCES += tests/phone_test.cpp
+  libfl_test_LDADD += $(PHONENUMBER_LIBS)
+endif
+
 
 TESTS = libfl_test
 

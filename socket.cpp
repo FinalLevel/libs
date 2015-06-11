@@ -411,9 +411,11 @@ TIPv4 Socket::resolve(const char *host, BString &buf)
 	buf.clear();
 	
 	static const size_t MIN_RESOLV_BUF = 1024;
-	size_t bufSize = buf.size() - 1;
+	size_t bufSize = buf.size();
 	if (bufSize < MIN_RESOLV_BUF) {
 		bufSize = MIN_RESOLV_BUF;
+	} else {
+		bufSize--;
 	}
 	while ((rc = gethostbyname_r(host, &hbuf, buf.reserveBuffer(bufSize), bufSize, &result, &err)) == ERANGE) {
 			bufSize *= 2;

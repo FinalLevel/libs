@@ -12,6 +12,8 @@
 // Description: Phone numbers manipulation functions
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <string>
+
 namespace fl {
 	namespace utils {
 		static const size_t MIN_INT_PHONE_LENGTH = 1 /* + */ + 1 /* min country code length */ + 5 /* phone number */; 
