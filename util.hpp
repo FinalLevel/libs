@@ -139,6 +139,7 @@ namespace fl {
 		
 		bool isValidEmail(const char *email, size_t len = 0);
 		
+		
 		inline char *strncasestr(const char *s, const char *find, size_t slen)
 		{
 			size_t paternLen = strlen(find);

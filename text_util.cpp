@@ -743,7 +743,7 @@ namespace fl {
 			}
 		}
 
-		void stripPreviewText(BString &buf)
+		bool stripPreviewText(BString &buf)
 		{
 			const char *pBuf = buf.c_str();
 			const char *pEnd = buf.c_str() + buf.size();
@@ -783,9 +783,14 @@ namespace fl {
 			}
 			else if(result.size())
 			{
-				trimLRText(result);
-				buf = std::move(result);
+				if (result.size() == buf.size()) {
+					return false;
+				} else {
+					trimLRText(result);
+					buf = std::move(result);
+				}
 			}
+			return true;
 		}
 
 		void getTagParamPos(const char *s, const char* e, size_t& start, size_t& end)
