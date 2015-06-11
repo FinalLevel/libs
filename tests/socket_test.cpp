@@ -41,6 +41,12 @@ BOOST_AUTO_TEST_CASE( SocketIp2String )
 	BOOST_CHECK(Socket::ip2String(ntohl(inet_addr("123.234.223.101"))) == "123.234.223.101");
 }
 
+BOOST_AUTO_TEST_CASE( SocketResolve )
+{
+	BString buf;
+	BOOST_CHECK(Socket::resolve("localhost", buf) == ntohl(inet_addr("127.0.0.1")));
+}
+
 const std::string TEST_DATA("12345678910");
 
 

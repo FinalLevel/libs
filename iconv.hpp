@@ -35,6 +35,8 @@ namespace fl {
 			{ "WINDOWS-1251", 1 }
 		};
 		ECharset getCharsetId(const std::string &charset);
+		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from, 
+			const ECharset to);
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const char *from, const ECharset to);
 	};
 };

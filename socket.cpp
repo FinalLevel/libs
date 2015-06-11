@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <poll.h>
+#include <netdb.h>
 
 #include <cstring>
 #include <fcntl.h>
@@ -317,6 +318,23 @@ bool Socket::pollAndRecvAll(void *buf, const size_t size, const size_t timeout)
 	return true;
 }
 
+ssize_t Socket::pollAndrecv(void *buf, const size_t size, const size_t timeout)
+{
+	struct pollfd socketList[1];
+	socketList[0].fd = _descr;
+	socketList[0].events = POLLIN | POLLERR | POLLHUP;
+	socketList[0].revents = 0;
+	auto retval = poll(socketList, 1, timeout);
+	if (retval <= 0)
+		return -1;
+	if(((socketList[0].revents & POLLHUP) == POLLHUP) ||
+		((socketList[0].revents & POLLERR) == POLLERR) ||
+		((socketList[0].revents & POLLNVAL) == POLLNVAL)) {
+		return -1;
+	}
+	return recv(_descr, buf, size, MSG_NOSIGNAL | MSG_DONTWAIT);	
+}
+
 bool Socket::pollAndSendAll(const void *buf, const size_t size, const size_t timeout)
 {
 	struct pollfd socketList[1];
@@ -382,4 +400,31 @@ BString Socket::ip2String(const TIPv4 ip)
 	}
 	ipStr.trim(curBuf - start - 1);
 	return std::move(ipStr);
+}
+
+
+TIPv4 Socket::resolve(const char *host, BString &buf)
+{
+	int rc, err;
+	struct hostent hbuf;
+	struct hostent *result;
+	buf.clear();
+	
+	static const size_t MIN_RESOLV_BUF = 1024;
+	size_t bufSize = buf.size() - 1;
+	if (bufSize < MIN_RESOLV_BUF) {
+		bufSize = MIN_RESOLV_BUF;
+	}
+	while ((rc = gethostbyname_r(host, &hbuf, buf.reserveBuffer(bufSize), bufSize, &result, &err)) == ERANGE) {
+			bufSize *= 2;
+			buf.clear();
+	}
+	if (0 != rc || NULL == result) {
+		return 0;
+	}
+	sockaddr_in addr;
+	memset(&addr, 0, sizeof(sockaddr_in));
+	addr.sin_family = AF_INET;	
+	memcpy(&addr.sin_addr, result->h_addr, result->h_length);
+	return ntohl(addr.sin_addr.s_addr);
 }

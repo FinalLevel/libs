@@ -37,6 +37,11 @@ namespace fl {
 				return f->second;
 			}
 		}
+		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from, 
+			const ECharset to)
+		{
+			return convert(input, size, result, CHARSETS[static_cast<uint32_t>(from)].name, to);
+		}
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const char *from, const ECharset to)
 		{
 			iconv_t iconvDescriptor;
