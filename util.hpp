@@ -168,6 +168,16 @@ namespace fl {
 		const std::string getFileExt(const std::string &name);
 		const char *strnstr(const char *s, const size_t slen, const char *pattern, const size_t findLen);
 		const char *rstrnstr(const char *s, const size_t slen, const char *pattern, const size_t findLen);
+		
+		struct Url
+		{
+			std::string schema;
+			std::string host;
+			std::string path;
+			std::string query;
+			uint32_t port;
+		};
+		bool parseUrl(const std::string &rawUrl, Url &url);
 
 	};
 };

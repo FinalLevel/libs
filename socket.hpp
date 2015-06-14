@@ -71,7 +71,7 @@ namespace fl {
 			}
 			static const size_t DEFAULT_READ_TIMEOUT = 60 * 1000; // 60 seconds
 			bool pollAndRecvAll(void *buf, const size_t size, const size_t timeout = DEFAULT_READ_TIMEOUT);
-			ssize_t pollAndrecv(void *buf, const size_t size, const size_t timeout = DEFAULT_READ_TIMEOUT);
+			ssize_t pollAndRecv(void *buf, const size_t size, const size_t timeout = DEFAULT_READ_TIMEOUT);
 			static const size_t DEFAULT_SEND_TIMEOUT = 30 * 1000; // 30 seconds
 			bool pollAndSendAll(const void *buf, const size_t size, const size_t timeout = DEFAULT_SEND_TIMEOUT);
 			bool pollReadHttpAnswer(BString &answer, const size_t timeout = DEFAULT_READ_TIMEOUT);

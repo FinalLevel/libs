@@ -213,5 +213,71 @@ namespace fl {
 
 			return (char *) (res ? 0 : p);
 		}
+		
+		bool parseUrl(const std::string &rawUrl, Url &url)
+		{
+			static const std::string SCHEMA_DELIMITER {"://"};
+			const char *pSchema = strstr(rawUrl.c_str(), SCHEMA_DELIMITER.c_str());
+			if (!pSchema) {
+				return false;
+			}
+			int len = pSchema - rawUrl.c_str();
+			if (len <= 0) {
+				return false;
+			}
+			url.schema.assign(rawUrl.c_str(), len);
+			url.port = 0;
+			
+			const char *pHostStart = pSchema + SCHEMA_DELIMITER.size();
+			const char *pHostEnd = nullptr;
+			const char *pStr = pHostStart;
+			while (*pStr && *pStr != '/') {
+				if (*pStr == ':') { // port
+					pHostEnd = pStr;
+					char *end;
+					url.port = strtoul(pHostEnd + 1, &end, 10);
+					pStr = end;
+					break;
+				}
+				pStr++;
+			}
+			if (!pHostEnd) {
+				pHostEnd = pStr;
+			}
+			len = pHostEnd - pHostStart;
+			if (len <= 0) {
+				return false;
+			}
+			url.host.assign(pHostStart, len);
+			url.path.assign("/", 1);
+			url.query.clear();
+			if (*pStr) { // url has path
+				const char *pathStart = pStr;
+				const char *pathEnd = nullptr;
+				pStr = strchr(pStr, '?');
+				if (pStr) {
+					pathEnd = pStr;
+					pStr++;
+					len = (rawUrl.c_str() + rawUrl.size()) - pStr;
+					if (len > 0) {
+						url.query.assign(pStr, len);
+					}
+				} else {
+					pathEnd = rawUrl.c_str() + rawUrl.size();
+				}
+				len = pathEnd - pathStart;
+				if (len > 0) {
+					url.path.assign(pathStart, len);
+				}
+			}
+			if (url.port == 0) {
+				if (url.schema == "http") {
+					url.port = 80;
+				} else if (url.schema == "https") {
+					url.port = 443;
+				}
+			}
+			return true;
+		}
 	};
 };

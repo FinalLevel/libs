@@ -52,6 +52,7 @@ namespace fl {
 			static void setDefaultCharacterSet(const char *characterSet);
 			bool setServerOption(const enum enum_mysql_set_option option);
 
+			TMysqlResultPtr query(const std::string &queryStr);
 			TMysqlResultPtr query(const char *queryStr);
 			TMysqlResultPtr query(const class MysqlQuery &mysqlQuery);
 			TMysqlResultPtr query(const char *queryStr, const unsigned long length);

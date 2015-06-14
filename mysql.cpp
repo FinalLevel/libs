@@ -83,6 +83,11 @@ TMysqlResultPtr Mysql::query(const char *queryStr)
 	return query(queryStr, strlen(queryStr));
 }
 
+TMysqlResultPtr Mysql::query(const std::string &queryStr)
+{
+	return query(queryStr.c_str(), queryStr.size());
+}
+
 TMysqlResultPtr Mysql::query(const MysqlQuery &mysqlQuery)
 {
 	return query(mysqlQuery.c_str(), mysqlQuery.size());

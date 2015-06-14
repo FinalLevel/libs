@@ -318,7 +318,7 @@ bool Socket::pollAndRecvAll(void *buf, const size_t size, const size_t timeout)
 	return true;
 }
 
-ssize_t Socket::pollAndrecv(void *buf, const size_t size, const size_t timeout)
+ssize_t Socket::pollAndRecv(void *buf, const size_t size, const size_t timeout)
 {
 	struct pollfd socketList[1];
 	socketList[0].fd = _descr;

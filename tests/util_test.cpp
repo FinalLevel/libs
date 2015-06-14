@@ -105,4 +105,37 @@ BOOST_AUTO_TEST_CASE( testGetFileExt )
 	BOOST_CHECK( getFileExt("draal.oGG") == "ogg");
 }
 
+BOOST_AUTO_TEST_CASE( testParseUrl )
+{
+	Url url;
+	BOOST_CHECK( parseUrl("http://online-radiorelax.tavrmedia.ua/RadioRelax", url));
+	BOOST_CHECK( url.schema == "http");
+	BOOST_CHECK( url.host == "online-radiorelax.tavrmedia.ua");
+	BOOST_CHECK( url.path == "/RadioRelax" );
+	BOOST_CHECK( url.port == 80);
+	
+	BOOST_CHECK( parseUrl("http://212.26.129.2:8000/era96", url));
+	BOOST_CHECK( url.schema == "http");
+	BOOST_CHECK( url.host == "212.26.129.2");
+	BOOST_CHECK( url.path == "/era96" );
+	BOOST_CHECK( url.port == 8000);
+	
+	BOOST_CHECK( parseUrl("http://212.26.129.2", url));
+	BOOST_CHECK( url.schema == "http");
+	BOOST_CHECK( url.host == "212.26.129.2");
+	BOOST_CHECK( url.path == "/" );
+	BOOST_CHECK( url.port == 80);
+	
+	BOOST_CHECK( parseUrl("http://212.26.129.2/?query", url));
+	BOOST_CHECK( url.schema == "http");
+	BOOST_CHECK( url.host == "212.26.129.2");
+	BOOST_CHECK( url.path == "/" );
+	BOOST_CHECK( url.query == "query" );
+	
+	BOOST_CHECK( parseUrl("http://online-hitfm.tavrmedia.ua/HitFM/", url));
+	BOOST_CHECK( url.schema == "http");
+	BOOST_CHECK( url.host == "online-hitfm.tavrmedia.ua");
+	BOOST_CHECK( url.path == "/HitFM/" );
+}
+
 BOOST_AUTO_TEST_SUITE_END()
