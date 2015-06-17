@@ -66,6 +66,14 @@ void HttpEvent::_endWork()
 	}
 }
 
+void HttpEvent::freeBuf() {
+	if (_networkBuffer) {
+		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
+		threadSpecData->bufferPool.free(_networkBuffer);
+		_networkBuffer = NULL;
+	}	
+}
+
 bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 {
 	auto cmdEnd = beginURI;
@@ -354,6 +362,12 @@ bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result
 	return true;
 }
 
+void HttpEvent::setBuffer(NetworkBuffer *networkBuffer)
+{
+	delete _networkBuffer;
+	_networkBuffer = networkBuffer;
+}
+
 bool HttpEvent::unAttach()
 {
 	if (_thread->unAttachNL(this)) {
@@ -617,6 +631,11 @@ void HttpEventInterface::_addConnectionHeader(BString &networkBuffer, const bool
 		networkBuffer << "Connection: Keep-Alive\r\n";
 	else
 		networkBuffer << "Connection: Close\r\n";
+}
+
+const std::string& HttpEventInterface::getErorrByCode(const EError err)
+{
+	return _ERROR_STRINGS[err];
 }
 
 const std::string HttpEventInterface::_ERROR_STRINGS[ERROR_MAX] = {

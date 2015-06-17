@@ -75,6 +75,27 @@ namespace fl {
 			{
 				return RESULT_FINISH;
 			}
+			enum EError : uint8_t
+			{
+				ERROR_200_OK = 0,
+				ERROR_202_ACCEPTED,
+				ERROR_204_NO_CONTENT,
+				ERROR_206_PARTIAL_CONTENT,
+				ERROR_400_BAD_REQUEST,
+				ERROR_401_UNAUTHORIZED,
+				ERROR_404_NOT_FOUND,
+				ERROR_405_METHOD_NOT_ALLOWED,
+				ERROR_409_CONFLICT,
+				ERROR_410_GONE,
+				ERROR_411_LENGTH_REQUIRED,
+				ERROR_498_TOKEN_EXPIRED,
+				ERROR_500_INTERNAL_SERVER_ERROR,
+				ERROR_503_SERVICE_UNAVAILABLE,
+				ERROR_505_HTTP_VERSION_NOT_SUPPORTED,
+				ERROR_507_INSUFFICIENT_STORAGE,
+				ERROR_MAX,
+			};	
+			static const std::string& getErorrByCode(const EError err);
 		protected:
 			static bool _parseKeepAlive(const char *name, const size_t nameLength, const char *value, bool &isKeepAlive);
 			static bool _parseIfModifiedSince(const char *name, const size_t nameLength, 
@@ -97,26 +118,6 @@ namespace fl {
 			static EHttpRequestType _parseHTTPCmd(const char cmdStart); 
 			static void _addConnectionHeader(BString &networkBuffer, const bool isKeepAlive);
 			
-			enum EError : uint8_t
-			{
-				ERROR_200_OK = 0,
-				ERROR_202_ACCEPTED,
-				ERROR_204_NO_CONTENT,
-				ERROR_206_PARTIAL_CONTENT,
-				ERROR_400_BAD_REQUEST,
-				ERROR_401_UNAUTHORIZED,
-				ERROR_404_NOT_FOUND,
-				ERROR_405_METHOD_NOT_ALLOWED,
-				ERROR_409_CONFLICT,
-				ERROR_410_GONE,
-				ERROR_411_LENGTH_REQUIRED,
-				ERROR_498_TOKEN_EXPIRED,
-				ERROR_500_INTERNAL_SERVER_ERROR,
-				ERROR_503_SERVICE_UNAVAILABLE,
-				ERROR_505_HTTP_VERSION_NOT_SUPPORTED,
-				ERROR_507_INSUFFICIENT_STORAGE,
-				ERROR_MAX,
-			};
 			static const std::string _ERROR_STRINGS[ERROR_MAX];
 
 		};
@@ -130,6 +131,10 @@ namespace fl {
 			NetworkBuffer *networkBuffer()
 			{
 				return _networkBuffer;
+			}
+			HttpEventInterface *interface()
+			{
+				return _interface;
 			}
 			HttpEvent::ECallResult sendAnswer(const HttpEventInterface::EFormResult result);
 			typedef uint8_t TStatus;
@@ -147,6 +152,8 @@ namespace fl {
 			}
 			bool unAttach();
 			bool attachAndSendAnswer(const HttpEventInterface::EFormResult result);
+			void setBuffer(NetworkBuffer *networkBuffer);
+			void freeBuf();
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);
