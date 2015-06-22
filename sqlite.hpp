@@ -171,7 +171,7 @@ namespace fl {
 			{
 					static std::string get(SQLiteStatement *stmt, const int iCol)
 					{ 
-						const unsigned char *data = sqlite3_column_text(stmt->_ppStmt, iCol);
+						const char *data = reinterpret_cast<const char*>(sqlite3_column_text(stmt->_ppStmt, iCol));
 						int size = sqlite3_column_bytes(stmt->_ppStmt, iCol);
 						return std::string(data, size);
 					}
