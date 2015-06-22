@@ -23,4 +23,11 @@ BOOST_AUTO_TEST_CASE( testParseHttpDate )
 	BOOST_CHECK(res == 1400850813);
 }
 
+BOOST_AUTO_TEST_CASE( testTDayCreation )
+{
+	ETime eTime(1400850813);
+	BOOST_REQUIRE(eTime.tDay() == 140523);
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

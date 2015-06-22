@@ -13,6 +13,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <stdint.h>
 
 namespace fl {
 	namespace chrono {
@@ -20,6 +21,10 @@ namespace fl {
 		{
 		public:
 			Time();
+			Time(const time_t setTime)
+			{
+				_unix = setTime;
+			}
 			const time_t unix() const
 			{
 				return _unix;
@@ -38,6 +43,7 @@ namespace fl {
 		{
 		public:
 			ETime();
+			ETime(const time_t setTime);
 			void update();
 			const tm &timeStruct() const
 			{ 
@@ -75,6 +81,7 @@ namespace fl {
 			{ 
 				return _timeStruct.tm_sec; 
 			};
+			uint32_t tDay() const;
 		private:
 			struct tm _timeStruct;
 		};

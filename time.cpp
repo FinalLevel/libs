@@ -138,8 +138,19 @@ ETime::ETime()
 	update();
 }
 
+ETime::ETime(const time_t setTime)
+	: Time(setTime)
+{
+	localtime_r(&_unix, &_timeStruct);
+}
+
 void ETime::update()
 {
 	Time::update();
 	localtime_r(&_unix, &_timeStruct);	
+}
+
+uint32_t ETime::tDay() const
+{
+	return ((_timeStruct.tm_year - 100) * 10000) + ((_timeStruct.tm_mon + 1) * 100) + _timeStruct.tm_mday;
 }
