@@ -5,3 +5,8 @@ libfl_test
 .dirstamp
 Makefile
 Makefile.in
+/.ptp-sync/
+.ptp-sync-folder
+.cproject
+.project
+.settings/
