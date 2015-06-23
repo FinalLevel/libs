@@ -20,7 +20,7 @@ using namespace fl::threads;
 TimeThread::TimeThread(const uint32_t tickSecTime, const uint32_t tickNonoTime)
 	: _tickSecTime(tickSecTime), _tickNonoTime(tickNonoTime), _nextDailyCall(0), _nextHourlyCall(0)
 {
-	static const uint32_t MAX_TICK_TIME = 60 * 60; // 1 hour
+	static const uint32_t MAX_TICK_TIME = 24 * 60 * 60; // 1 day 
 	if (_tickSecTime > MAX_TICK_TIME)
 		throw exceptions::Error("Too big tick time");	
 	
