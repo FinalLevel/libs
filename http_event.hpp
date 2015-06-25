@@ -107,6 +107,7 @@ namespace fl {
 			static bool _parseRange(const char *name, const size_t nameLength, const char *value, const size_t valueLen,
 				int32_t &rangeStart, uint32_t &rangeEnd);
 			static bool _isCookieHeader(const char *name, const size_t nameLength);
+			static bool _parseXRealIP(const char *name, const size_t nameLength, const char *value, TIPv4 &ip);
 			static const char _nextParam(const char *&paramStart, const char *end, const char *&value, size_t &valueLength);
 			enum class EHttpRequestType : uint8_t
 			{

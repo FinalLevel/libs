@@ -9,6 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <unistd.h>
+#include <arpa/inet.h>
 #include "http_event.hpp"
 #include "log.hpp"
 #include "time.hpp"
@@ -591,6 +592,20 @@ bool HttpEventInterface::_isCookieHeader(const char *name, const size_t nameLeng
 		return false;
 	else
 		return true;
+}
+
+bool HttpEventInterface::_parseXRealIP(const char *name, const size_t nameLength, const char *value,
+	TIPv4 &ip)
+{
+	static const std::string X_REAL_IP_HEADER("X-Real-IP");
+	if (nameLength != X_REAL_IP_HEADER.size()) {
+		return false;
+	}
+	if (strncasecmp(name, X_REAL_IP_HEADER.c_str(), X_REAL_IP_HEADER.size())) {
+		return false;
+	}
+	ip = inet_addr(value);
+	return true;
 }
 
 const char HttpEventInterface::_nextParam(const char *&paramStart, const char *end, const char *&value, 
