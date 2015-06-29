@@ -9,7 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <unistd.h>
-#include <arpa/inet.h>
+#include "socket.hpp"
 #include "http_event.hpp"
 #include "log.hpp"
 #include "time.hpp"
@@ -604,7 +604,7 @@ bool HttpEventInterface::_parseXRealIP(const char *name, const size_t nameLength
 	if (strncasecmp(name, X_REAL_IP_HEADER.c_str(), X_REAL_IP_HEADER.size())) {
 		return false;
 	}
-	ip = inet_addr(value);
+	ip = Socket::ip2Long(value);
 	return true;
 }
 
