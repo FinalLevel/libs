@@ -29,6 +29,9 @@ BOOST_AUTO_TEST_CASE( testFormInternationalPhone )
 	BOOST_CHECK( formInternationalPhone("380989007373", 0) == 380989007373ULL);
 	BOOST_CHECK( formInternationalPhone("+380989007373", 0) == 380989007373ULL);
 	
+	BOOST_CHECK( formInternationalPhone("380989007373", 380) == 380989007373ULL);
+	BOOST_CHECK( formInternationalPhone("380989007373", 61) == 0);
+	
 	// check national number
 	BOOST_CHECK( formInternationalPhone("0989007373", 380) == 380989007373ULL);
 	
