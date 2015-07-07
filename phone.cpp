@@ -19,7 +19,8 @@ namespace fl {
 		{
 			PhoneNumber pn;
 			if (util->Parse(phone, region_code, &pn) == PhoneNumberUtil::NO_PARSING_ERROR)
-				if (util->IsValidNumber(pn) && util->GetNumberType(pn) == PhoneNumberUtil::MOBILE)
+				if (util->IsValidNumber(pn) && (util->GetNumberType(pn) == PhoneNumberUtil::MOBILE
+					|| util->GetNumberType(pn) == PhoneNumberUtil::FIXED_LINE_OR_MOBILE))
 				{
 					std::string fn;
 					util->Format(pn, PhoneNumberUtil::E164, &fn);
