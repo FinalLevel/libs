@@ -789,6 +789,8 @@ namespace fl {
 					trimLRText(result);
 					buf = std::move(result);
 				}
+			} else {
+				buf.clear();
 			}
 			return true;
 		}
