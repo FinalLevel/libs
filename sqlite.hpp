@@ -17,6 +17,10 @@
 #include <string>
 #include "bstring.hpp"
 
+#ifdef PRINT_DB_TYPE
+#define DB_SQLITE 1
+#endif
+
 namespace fl {
 	namespace db {
 		using fl::strings::BString;

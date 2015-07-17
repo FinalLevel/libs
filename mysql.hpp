@@ -20,6 +20,10 @@
 #include "exception.hpp"
 #include "bstring.hpp"
 
+#ifdef PRINT_DB_TYPE
+#define DB_MYSQL 1
+#endif
+
 namespace fl {
 	namespace db {
 		using fl::strings::BString;
