@@ -60,6 +60,7 @@ namespace fl {
 			BString &operator<<(const uint64_t num);
 			BString &operator<<(const int64_t num);
 			BString &operator<<(const unsigned int num);
+			BString &operator<<(const double num);
 			BString &operator<<(const char ch);
 			BString &operator<<(const std::string &str);
 			BString &operator<<(const BString &str);

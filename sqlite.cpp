@@ -16,6 +16,9 @@
 using namespace fl::db;
 using fl::chrono::Timer;
 
+static const size_t MAX_PRINTABLE_SIZE = 200;
+static const size_t LR_PRINTABLE_SIZE = MAX_PRINTABLE_SIZE/2;
+
 SQLite::SQLite()
 	: _conn(NULL)
 {
@@ -24,10 +27,12 @@ SQLite::SQLite()
 
 bool SQLite::open(const char * const filename, const int flags)
 {
+	Timer timer;
 	sqlite3 *conn = NULL;
 	if (sqlite3_open_v2(filename, &conn, flags, NULL) == SQLITE_OK) {
 		_filename = filename;
 		_conn.reset(conn, sqlite3_close);
+		log::Info::L("Open SQLite db %s (%llums)\n", _filename.c_str(), timer.elapsed().count());
 		return true;
 	} else {
 		_conn.reset(conn, sqlite3_close);
@@ -37,19 +42,19 @@ bool SQLite::open(const char * const filename, const int flags)
 	}
 }
 
-class SQLiteStatement SQLite::createStatement(const BString &sql)
+class SQLiteStatement SQLite::createStatement(const BString &sql, BString* bind)
 {
-	return SQLiteStatement(_conn, sql.c_str(), sql.size());
+	return SQLiteStatement(_conn, sql.c_str(), sql.size(), bind);
 }
 
-class SQLiteStatement SQLite::createStatement(const char * const sql)
+class SQLiteStatement SQLite::createStatement(const char * const sql, BString* bind)
 {
-	return SQLiteStatement(_conn, sql, strlen(sql));
+	return SQLiteStatement(_conn, sql, strlen(sql), bind);
 }
 
-class SQLiteStatement SQLite::createStatement(const std::string &sql)
+class SQLiteStatement SQLite::createStatement(const std::string &sql, BString* bind)
 {
-	return SQLiteStatement(_conn, sql.c_str(), sql.size());
+	return SQLiteStatement(_conn, sql.c_str(), sql.size(), bind);
 }
 
 bool SQLite::execute(const BString &query)
@@ -124,8 +129,8 @@ void SQLiteAutoRollbackTransaction::commit()
 	}
 }
 
-SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size)
-	: _conn(conn), _ppStmt(NULL), _sqlString(sql)
+SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size, BString* bind)
+	: _conn(conn), _ppStmt(NULL), _firstRow(true), _bindValues(bind)
 {
 	int res = sqlite3_prepare_v2(_conn.get(), sql, size,  &_ppStmt, NULL);
 	if (res != SQLITE_OK) {
@@ -133,6 +138,9 @@ SQLiteStatement::SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * 
 		sqlite3_finalize(_ppStmt);
 		_ppStmt = NULL;
 		throw Error(res);
+	}
+	if (_bindValues) {
+		_bindValues->clear();
 	}
 }
 
@@ -142,20 +150,23 @@ SQLiteStatement::~SQLiteStatement()
 }
 
 SQLiteStatement::SQLiteStatement(SQLiteStatement &&stmt)
-	: _conn(stmt._conn), _ppStmt(stmt._ppStmt), _sqlString(stmt._sqlString)
+	: _conn(stmt._conn), _ppStmt(stmt._ppStmt), _firstRow(stmt._firstRow), _bindValues(stmt._bindValues)
 {
 	stmt._ppStmt = NULL;
-	stmt._sqlString = "";
+	stmt._firstRow = true;
+	if (stmt._bindValues) {
+		stmt._bindValues->clear();
+	}
 }
 
 SQLiteStatement &SQLiteStatement::operator= (SQLiteStatement &&src)
 {
 	std::swap(_conn, src._conn);
 	std::swap(_ppStmt, src._ppStmt);
-	std::swap(_sqlString, src._sqlString);
+	std::swap(_bindValues, src._bindValues);
+	std::swap(_firstRow, src._firstRow);
 	return *this;
 }
-
 
 int SQLiteStatement::affectedRows()
 {
@@ -166,11 +177,43 @@ bool SQLiteStatement::execute()
 {
 	Timer timer;
 	int res = sqlite3_step(_ppStmt);
+	const char* sqlString = sqlite3_sql(_ppStmt);
+	size_t len = strlen(sqlString);
 	if (res == SQLITE_DONE) {
-		log::Info::L("e:[%s]:%d (%llums)\n", _sqlString, affectedRows(), timer.elapsed().count());
+		if (_bindValues && !_bindValues->empty()) {
+			if(len > MAX_PRINTABLE_SIZE) {
+				log::Info::L("e:[%.*s ... %s] v:[%s] r:%d (%llums)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE,
+						_bindValues->c_str(), affectedRows(), timer.elapsed().count());
+			} else {
+				log::Info::L("e:[%s] v:[%s] r:%d (%llums)\n", sqlString, _bindValues->c_str(), affectedRows(), timer.elapsed().count());
+			}
+		} else {
+			if(len > MAX_PRINTABLE_SIZE) {
+				log::Info::L("e:[%.*s ... %s] r:%d (%llums)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE,
+						affectedRows(), timer.elapsed().count());
+			} else {
+				log::Info::L("e:[%s] r:%d (%llums)\n", sqlString, affectedRows(), timer.elapsed().count());
+			}
+		}
 		return true;
 	} else {
-		log::Error::L("EStmt [%s] %d (%s)\n", _sqlString, res, sqlite3_errmsg(_conn.get()));
+		if (_bindValues && !_bindValues->empty()) {
+			if(len > MAX_PRINTABLE_SIZE) {
+				log::Info::L("EStmt [%.*s ... %s] v:[%s] %d (%s)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE,
+						_bindValues->c_str(), res, sqlite3_errmsg(_conn.get()));
+			} else {
+
+				log::Error::L("EStmt [%s] v:[%s] %d (%s)\n", sqlString, _bindValues->c_str(), res, sqlite3_errmsg(_conn.get()));
+			}
+		} else {
+			if(len > MAX_PRINTABLE_SIZE) {
+				log::Info::L("EStmt [%.*s ... %s] %d (%s)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE, res,
+						sqlite3_errmsg(_conn.get()));
+			} else {
+
+				log::Error::L("EStmt [%s] %d (%s)\n", sqlString, res, sqlite3_errmsg(_conn.get()));
+			}
+		}
 		throw Error(res);
 	}
 }
@@ -179,22 +222,58 @@ bool SQLiteStatement::next()
 {
 	Timer timer;
 	int res = sqlite3_step(_ppStmt);
+	const char* sqlString = sqlite3_sql(_ppStmt);
+	size_t len = strlen(sqlString);
 	if (res == SQLITE_ROW) {
-		if (_sqlString[0]) {
-			log::Info::L("q:[%s] (%llums)\n", _sqlString, timer.elapsed().count());
-			_sqlString = "";
+		if (_firstRow) {
+			if (_bindValues && !_bindValues->empty()) {
+				if(len > MAX_PRINTABLE_SIZE) {
+					log::Info::L("q:[%.*s ... %s] v:[%s] (%llums)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE,
+							_bindValues->c_str(), timer.elapsed().count());
+				} else {
+					log::Info::L("q:[%s] v:[%s] (%llums)\n", sqlString, _bindValues->c_str(), timer.elapsed().count());
+				}
+			} else {
+				if(len > MAX_PRINTABLE_SIZE) {
+					log::Info::L("q:[%.*s ... %s] (%llums)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE, timer.elapsed().count());
+				} else {
+					log::Info::L("q:[%s] (%llums)\n", sqlString, timer.elapsed().count());
+				}
+			}
+			_firstRow = false;
 		}
 		return true;
 	} else if (res == SQLITE_DONE) {
 		return false;
 	} else {
-		log::Error::L("EStmt [%s] %d (%s)\n", _sqlString, res, sqlite3_errmsg(_conn.get()));
+		if (_bindValues && !_bindValues->empty()) {
+			if(len > MAX_PRINTABLE_SIZE) {
+				log::Info::L("EStmt [%.*s ... %s] v:[%s] %d (%s)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE,
+						_bindValues->c_str(), res, sqlite3_errmsg(_conn.get()));
+			} else {
+
+				log::Error::L("EStmt [%s] v:[%s] %d (%s)\n", sqlString, _bindValues->c_str(), res, sqlite3_errmsg(_conn.get()));
+			}
+		} else {
+			if(len > MAX_PRINTABLE_SIZE) {
+				log::Info::L("EStmt [%.*s ... %s] %d (%s)\n", LR_PRINTABLE_SIZE, sqlString, sqlString + len - LR_PRINTABLE_SIZE, res,
+						sqlite3_errmsg(_conn.get()));
+			} else {
+
+				log::Error::L("EStmt [%s] %d (%s)\n", sqlString, res, sqlite3_errmsg(_conn.get()));
+			}
+		}
 		throw Error(res);
 	}
 }
 
+
 void SQLiteStatement::reset()
 {
+	if (_bindValues) {
+		_bindValues->clear();
+	}
+	_firstRow = true;
 	sqlite3_reset(_ppStmt);
 }
 
@@ -213,63 +292,70 @@ void SQLiteStatement::bind(const int iValue, const int val)
 {
 	int res = sqlite3_bind_int(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind int to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind int to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
 	}
+	addBoundedValue(val);
 }
 
 void SQLiteStatement::bind(const int iValue, const uint32_t val)
 {
 	int res = sqlite3_bind_int(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind int to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind int to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
 	}
+	addBoundedValue(val);
 }
 
 void SQLiteStatement::bind(const int iValue, const uint64_t val)
 {
 	int res = sqlite3_bind_int64(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind uint64_t to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind uint64_t to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
-	}	
+	}
+	addBoundedValue(val);
 }
 
 void SQLiteStatement::bind(const int iValue, const long int val)
 {
 	int res = sqlite3_bind_int64(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind long int to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind long int to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
 	}
+	addBoundedValue(val);
 }
 
 void SQLiteStatement::bind(const int iValue, const double val)
 {
 	int res = sqlite3_bind_double(_ppStmt, iValue, val);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind double to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind double to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
-	}	
+	}
+	addBoundedValue(val);
 }
 
 void SQLiteStatement::bind(const int iValue, const char * const text, const size_t length)
 {
 	int res = sqlite3_bind_text(_ppStmt, iValue, text, length, SQLITE_STATIC);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind text to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind text to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
-	}		
+	}
+	addBoundedValue(text, length);
 }
 
 void SQLiteStatement::bindBlob(const int iValue, const void* data, const size_t length)
 {
 	int res = sqlite3_bind_blob(_ppStmt, iValue, data, length, SQLITE_STATIC);
 	if (res != SQLITE_OK) {
-		log::Error::L("EStmt [%s] Can't bind text to %d\n", _sqlString, iValue);
+		log::Error::L("EStmt [%s] Can't bind text to %d\n", sqlite3_sql(_ppStmt), iValue);
 		throw Error(res);
-	}	
+	}
+	addBoundedValue("(BLOB)");
 }
 
 void SQLiteStatement::bind(const int iValue, const uint8_t * const data, const size_t length)

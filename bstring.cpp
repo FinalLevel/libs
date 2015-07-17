@@ -213,6 +213,12 @@ BString &BString::operator<<(const int num)
 	return *this;
 }
 
+BString &BString::operator<<(const double num)
+{
+	sprintfAdd("%f", num);
+	return *this;
+}
+
 BString &BString::operator<<(const std::string &str)
 {
 	add(str.c_str(), str.size());
