@@ -27,7 +27,7 @@ namespace fl {
 				static bool log(const size_t target, const int level, const time_t curTime, struct tm *ct, const char *fmt, 
 					va_list args)
 				{
-					return LogSystem::defaultLog().log(target, level, "db", curTime, ct, fmt, args);
+					return LogSystem::defaultLog().log(target, level, "DB", curTime, ct, fmt, args);
 				}
 			};
 			using fl::log::Log;

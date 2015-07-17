@@ -35,9 +35,9 @@ namespace fl {
 				return _filename;
 			}	
 			bool open(const char * const filename, const int flags);
-			SQLiteStatement createStatement(const BString &sql);
-			SQLiteStatement createStatement(const char * const sql);
-			SQLiteStatement createStatement(const std::string &sql);
+			SQLiteStatement createStatement(const BString &sql, BString* bind = nullptr);
+			SQLiteStatement createStatement(const char * const sql, BString* bind = nullptr);
+			SQLiteStatement createStatement(const std::string &sql, BString* bind = nullptr);
 			bool execute(const BString &sql);
 			sqlite3_int64 insertId();
 			int affectedRows();
@@ -194,10 +194,34 @@ namespace fl {
 		private:
 			friend class SQLite;
 			friend class SQLiteAutoRollbackTransaction;
-			SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size);
+			SQLiteStatement(TSQLiteDescriptorSharedPtr &conn, const char * const sql, const size_t size, BString* buf = nullptr);
+
+			template <typename T>
+			void addBoundedValue(const T& val) {
+				if (_bindValues) {
+					if (_bindValues->empty()) {
+						(*_bindValues) << val;
+					} else {
+						(*_bindValues) << ", " << val;
+					}
+				}
+			}
+
+			void addBoundedValue(const char * const text, const size_t length) {
+				if (_bindValues) {
+					if (_bindValues->empty()) {
+						_bindValues->add(text, length);
+					} else {
+						(*_bindValues) << ", ";
+						_bindValues->add(text, length);
+					}
+				}
+			}
+
 			TSQLiteDescriptorSharedPtr _conn;
 			sqlite3_stmt *_ppStmt;	
-			const char *_sqlString;
+			bool _firstRow;
+			BString *_bindValues;
 		};
 	};
 };
