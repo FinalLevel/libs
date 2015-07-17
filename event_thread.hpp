@@ -75,7 +75,8 @@ namespace fl {
 			EPollWorkerThread(
 				const uint32_t queueLength, 
 				class ThreadSpecificData* threadSpecificData, 
-				const uint32_t stackSize
+				const uint32_t stackSize,
+				const uint8_t workerId
 			);
 			virtual ~EPollWorkerThread();
 			void finish();
@@ -92,6 +93,9 @@ namespace fl {
 			void addToDeletedNL(class Event *ev);
 			bool unAttachNL(class WorkEvent* ev);
 			bool addEvent(class WorkEvent *ev, fl::threads::WeekAutoMutex &autoSync);
+			uint8_t workerId() {
+				return _workerId;
+			}
 		private:
 			virtual void run();
 			EPoll _poll;
@@ -103,6 +107,7 @@ namespace fl {
 			typedef std::vector<class Event *> TEventList;
 			TEventList _deletedEvents;
 			bool _finished;
+			uint8_t _workerId;
 		};
 		
 		

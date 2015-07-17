@@ -306,7 +306,10 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 		}
 		if (_status & ST_KEEP_ALIVE) {
 			if (_reset())
+			{
+				tryToDestroyCmd(_result);
 				return CHANGE;
+			}
 		}
 		if (_status & ST_EXPECT_100) {
 			setWaitRead();
@@ -395,6 +398,7 @@ HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResu
 	_status &= ~(ST_KEEP_ALIVE | ST_CHECK_AFTER_SEND);
 	
 	ECallResult sendResult = SKIP;
+	_result = result;
 	switch (result) {
 		case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
 			_state = EHttpState::ST_SEND;

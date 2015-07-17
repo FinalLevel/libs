@@ -20,10 +20,11 @@
 #include <cstdio>
 #include <vector>
 #include <unistd.h>
+#include <stdint.h>
 
 namespace fl {
 	namespace log {
-		
+
 		namespace ELogLevel {
 			enum ELogLevel
 			{
@@ -31,10 +32,16 @@ namespace fl {
 				ERROR,
 				WARNING,
 				INFO,
+				DEBUG,
 				MAX_LOG_LEVEL,
 			};
 		};
-		
+
+		struct CustomLogFields {
+			static thread_local uint32_t firstField;
+			static thread_local int64_t secondField;
+		};
+
 		class Target
 		{
 		public:
@@ -58,11 +65,17 @@ namespace fl {
 				va_list args
 			) = 0;
 			virtual ~Target() {};
+			void setService(const char *_service, const uint32_t _serverId) {
+				_process.service = _service;
+				_process.serverId = _serverId;
+			}
 		protected:
 			struct ProcessInfo
 			{
 				ProcessInfo();
 				pid_t pid;
+				const char* service = nullptr;
+				uint32_t serverId = 0;;
 			};
 			static ProcessInfo _process;
 		};
@@ -72,6 +85,8 @@ namespace fl {
 		class ScreenTarget : public Target
 		{
 		public:
+			ScreenTarget(const char *service = nullptr, const uint32_t serverId = 0);
+			virtual ~ScreenTarget() {};
 			virtual void log(
 				const int level, 
 				const char *tag, 
@@ -118,7 +133,7 @@ namespace fl {
 		class FileTarget : public Target
 		{
 		public:
-			FileTarget(const char *fileName);
+			FileTarget(const char *fileName, const char *service = nullptr, const uint32_t serverId = 0);
 			virtual ~FileTarget();
 			virtual void log(
 				const int level, 
@@ -204,7 +219,7 @@ namespace fl {
 				va_list args
 			)
 			{
-				return LogSystem::defaultLog().log(target, level, "fLib", curTime, ct, fmt, args);
+				return LogSystem::defaultLog().log(target, level, "FL", curTime, ct, fmt, args);
 			}
 		};
 		

@@ -21,9 +21,10 @@ using fl::chrono::Time;
 EPollWorkerThread::EPollWorkerThread(
 	const uint32_t queueLength, 
 	class ThreadSpecificData* threadSpecificData, 
-	const uint32_t stackSize
+	const uint32_t stackSize,
+	const uint8_t workerId
 )
-	: _poll(queueLength), _threadSpecificData(threadSpecificData), _finished(false)
+	: _poll(queueLength), _threadSpecificData(threadSpecificData), _finished(false), _workerId(workerId + 1)
 {
 	setStackSize(stackSize);
 	if (!create())
@@ -173,7 +174,7 @@ EPollWorkerGroup::EPollWorkerGroup(
 {
 	for (uint32_t i = 0; i < maxWorkers; i++)
 	{
-		_threads.push_back(new EPollWorkerThread(queueLength, factory->create(), stackSize));
+		_threads.push_back(new EPollWorkerThread(queueLength, factory->create(), stackSize, i));
 	}
 	if (!_updateTimeEvent) // add time update event to first thread
 	{

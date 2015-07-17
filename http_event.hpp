@@ -67,6 +67,8 @@ namespace fl {
 				 RESULT_SKIP,
 			};
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http) = 0;
+			virtual uint8_t getWorkerId() = 0;
+			virtual void tryToDestroyCmd(const HttpEventInterface::EFormResult) = 0;
 			virtual bool reset()
 			{
 				return false;
@@ -155,6 +157,10 @@ namespace fl {
 			bool attachAndSendAnswer(const HttpEventInterface::EFormResult result);
 			void setBuffer(NetworkBuffer *networkBuffer);
 			void freeBuf();
+
+			void tryToDestroyCmd(const HttpEventInterface::EFormResult result) {
+				_interface->tryToDestroyCmd(result);
+			}
 		private:
 			bool _readRequest();
 			bool _parseURI(const char *beginURI, const char *endURI);
@@ -168,7 +174,7 @@ namespace fl {
 			bool _reset();
 			const ECallResult _setWaitExternalEvent();
 			bool _checkExpect(const char *name, const size_t nameLength, const char *value, const size_t valueLen);
-			
+
 			HttpEventInterface *_interface;
 			NetworkBuffer *_networkBuffer;
 			uint32_t _headerStartPosition;
@@ -185,6 +191,7 @@ namespace fl {
 			EHttpState _state;
 			uint8_t _chunkNumber;
 			TStatus _status;
+			HttpEventInterface::EFormResult _result { HttpEventInterface::RESULT_SKIP };
 		};
 
 		class HttpThreadSpecificData : public ThreadSpecificData
