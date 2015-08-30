@@ -288,6 +288,41 @@ void HttpEvent::_updateTimeout()
 	_timeOutTime = EPollWorkerGroup::curTime.unix() + threadSpecData->operationTimeout;	
 }
 
+
+HttpEvent::ECallResult HttpEvent::_sendPartialAnswer()
+{
+	auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
+	_state = EHttpState::ST_SEND;
+	for (uint32_t i = 0; i < threadSpecData->maxSequenceSends; i++) {
+		auto res = _networkBuffer->send(_descr);
+		if (res == NetworkBuffer::IN_PROGRESS) {
+			setWaitSend();
+			if (_thread->ctrl(this)) {
+				_updateTimeout();
+				return CHANGE;
+			} else {
+				return FINISHED;
+			}
+		} else if (res == NetworkBuffer::OK) {
+			_networkBuffer->clear();
+			auto moreDataResult = _interface->getMoreDataToSend(*_networkBuffer, this);
+			if (moreDataResult != HttpEventInterface::RESULT_OK_PARTIAL_SEND) {
+				return sendAnswer(moreDataResult);
+			}
+		} else {
+			return FINISHED;
+		}
+	}
+	_status |= ST_CHECK_AFTER_SEND;
+	setWaitSend();
+	if (_thread->ctrl(this)) {
+		_updateTimeout();
+		return CHANGE;
+	} else {
+		return FINISHED;
+	}
+}
+
 HttpEvent::ECallResult HttpEvent::_sendAnswer()
 {
 	auto res = _networkBuffer->send(_descr);
@@ -296,17 +331,18 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 		if (_thread->ctrl(this)) {
 			_updateTimeout();
 			return CHANGE;
-		}
-		else
+		} else {
 			return FINISHED;
+		}
 	} else if (res == NetworkBuffer::OK) {
 		if (_status & ST_CHECK_AFTER_SEND) {
 			_networkBuffer->clear();
 			return sendAnswer(_interface->getMoreDataToSend(*_networkBuffer, this));
 		}
 		if (_status & ST_KEEP_ALIVE) {
-			if (_reset())
+			if (_reset()) {
 				return CHANGE;
+			}
 		}
 		if (_status & ST_EXPECT_100) {
 			setWaitRead();
@@ -406,9 +442,7 @@ HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResu
 			sendResult = _sendAnswer();
 		break;
 		case HttpEventInterface::RESULT_OK_PARTIAL_SEND:
-			_state = EHttpState::ST_SEND;
-			_status |= ST_CHECK_AFTER_SEND;
-			sendResult = _sendAnswer();
+			sendResult = _sendPartialAnswer();
 		break;
 		case HttpEventInterface::RESULT_OK_WAIT:
 			sendResult = _setWaitExternalEvent();
@@ -481,9 +515,11 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 
 HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize, const uint8_t maxChunkCount, 
 	const size_t bufferSize, const size_t maxFreeBuffers, 
-	const uint32_t operationTimeout, const uint32_t firstRequstTimeout, const uint32_t keepAlive)
+	const uint32_t operationTimeout, const uint32_t firstRequstTimeout, const uint32_t keepAlive, 
+	const uint32_t maxSequenceSends)
 	: maxRequestSize(maxRequestSize), maxChunkCount(maxChunkCount), bufferPool(bufferSize, maxFreeBuffers),
-	operationTimeout(operationTimeout), firstRequstTimeout(firstRequstTimeout), keepAlive(keepAlive)
+	operationTimeout(operationTimeout), firstRequstTimeout(firstRequstTimeout), keepAlive(keepAlive),
+	maxSequenceSends(maxSequenceSends)
 {
 }
 

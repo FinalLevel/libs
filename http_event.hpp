@@ -163,6 +163,7 @@ namespace fl {
 			bool _readPostData();
 			ECallResult _send100Continue();
 			ECallResult _sendAnswer();
+			ECallResult _sendPartialAnswer();
 			ECallResult _sendError();
 			void _updateTimeout();
 			bool _reset();
@@ -192,7 +193,8 @@ namespace fl {
 		public:
 			HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize = 1024 * 1024, const uint8_t maxChunkCount = 128, 
 				const size_t bufferSize = 32 * 1024, const size_t maxFreeBuffers = 1024, 
-				const uint32_t operationTimeout = 60, const uint32_t firstRequstTimeout = 15, const uint32_t keepAlive = 60);
+				const uint32_t operationTimeout = 60, const uint32_t firstRequstTimeout = 15, const uint32_t keepAlive = 60, 
+				const uint32_t maxSequenceSends = 50);
 			virtual ~HttpThreadSpecificData() {}
 			NetworkBuffer::TSize maxRequestSize;
 			uint8_t maxChunkCount;
@@ -200,6 +202,7 @@ namespace fl {
 			uint32_t operationTimeout;
 			uint32_t firstRequstTimeout;
 			uint32_t keepAlive;
+			uint32_t maxSequenceSends;
 		};
 
 	};
