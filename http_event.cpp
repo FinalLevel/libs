@@ -293,6 +293,7 @@ HttpEvent::ECallResult HttpEvent::_sendPartialAnswer()
 {
 	auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
 	_state = EHttpState::ST_SEND;
+	_status |= ST_CHECK_AFTER_SEND;
 	for (uint32_t i = 0; i < threadSpecData->maxSequenceSends; i++) {
 		auto res = _networkBuffer->send(_descr);
 		if (res == NetworkBuffer::IN_PROGRESS) {
@@ -313,7 +314,6 @@ HttpEvent::ECallResult HttpEvent::_sendPartialAnswer()
 			return FINISHED;
 		}
 	}
-	_status |= ST_CHECK_AFTER_SEND;
 	setWaitSend();
 	if (_thread->ctrl(this)) {
 		_updateTimeout();
