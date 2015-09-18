@@ -27,7 +27,7 @@ HttpEvent::HttpEvent(const TEventDescriptor descr, const time_t timeOutTime, Htt
 
 bool HttpEvent::_reset()
 {
-	if (_interface->reset()) {
+	if (_interface->reset(_result)) {
 		_state = EHttpState::ST_WAIT_REQUEST;
 		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
 		if (_networkBuffer) {
@@ -431,6 +431,7 @@ HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResu
 	_status &= ~(ST_KEEP_ALIVE | ST_CHECK_AFTER_SEND);
 	
 	ECallResult sendResult = SKIP;
+	_result = result;
 	switch (result) {
 		case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
 			_state = EHttpState::ST_SEND;

@@ -37,6 +37,7 @@ namespace fl {
 			
 			virtual EFormResult formResult(BString &networkBuffer, class HttpEvent *http);
 			virtual bool reset();
+			virtual bool reset(const HttpEventInterface::EFormResult);
 			
 			static void setMaxPostInMemmorySize(const size_t maxPostInMemmorySize)
 			{

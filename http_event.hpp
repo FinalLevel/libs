@@ -71,6 +71,10 @@ namespace fl {
 			{
 				return false;
 			}
+			virtual bool reset(const HttpEventInterface::EFormResult)
+			{
+				return false;
+			}
 			virtual EFormResult getMoreDataToSend(BString &networkBuffer, class HttpEvent *http)
 			{
 				return RESULT_FINISH;
@@ -186,6 +190,7 @@ namespace fl {
 			EHttpState _state;
 			uint8_t _chunkNumber;
 			TStatus _status;
+			HttpEventInterface::EFormResult _result { HttpEventInterface::RESULT_SKIP };
 		};
 
 		class HttpThreadSpecificData : public ThreadSpecificData

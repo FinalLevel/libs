@@ -14,9 +14,11 @@
 
 using namespace fl::log;
 
-Target::ProcessInfo Target::_process;
+Target::ServiceInfo Target::_service;
+thread_local uint64_t CustomLogFields::firstField {0};
+thread_local int64_t CustomLogFields::secondField {0};
 
-Target::ProcessInfo::ProcessInfo()
+Target::ServiceInfo::ServiceInfo()
 {
 	pid = getpid();
 }
@@ -27,7 +29,7 @@ const char *ErrorLevelTable[ELogLevel::MAX_LOG_LEVEL] =
 	"F", // FATAL
 	"E", // ERROR
 	"W", // WARNING
-	" ", // INFO
+	"I", // INFO
 };
 
 void StdErrorTarget::log(
@@ -37,7 +39,14 @@ void StdErrorTarget::log(
 	struct tm *ct, 
 	const char *fmt, va_list args
 ) {
-	fprintf(stderr, "[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	if (_service.type) {
+		printf("%s%u:%s %02i.%02i %02i:%02i:%02i %05u %016lx %s U:%li ", _service.name, _service.id,
+			tag, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, _service.pid,
+			CustomLogFields::firstField, ErrorLevelTable[level], CustomLogFields::secondField);
+	} else {
+		fprintf(stderr, "[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _service.pid, ct->tm_mday, ct->tm_mon+1,
+			ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	}
 	vfprintf(stderr, fmt, args);
 }
 
@@ -52,8 +61,14 @@ void StdErrorTarget::log(
 	va_list args
 )
 {
-	fprintf(stderr, "[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _process.pid, 
-		ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	if (_service.type) {
+		printf("%s%u:%s %02i.%02i %02i:%02i:%02i %05u %016lx %s U:%li [%s:%u] ", _service.name, _service.id, tag,
+			ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, _service.pid, CustomLogFields::firstField,
+			ErrorLevelTable[level], CustomLogFields::secondField, fileName, lineNumber);
+	} else {
+		fprintf(stderr, "[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _service.pid,
+			ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	}
 	vfprintf(stderr, fmt, args);
 }
 
@@ -64,7 +79,14 @@ void ScreenTarget::log(
 	struct tm *ct, 
 	const char *fmt, va_list args
 ) {
-	printf("[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	if (_service.type) {
+		printf("%s%u:%s %02i.%02i %02i:%02i:%02i %05u %016lx %s U:%li ", _service.name, _service.id,
+			tag, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, _service.pid,
+			CustomLogFields::firstField, ErrorLevelTable[level], CustomLogFields::secondField);
+	} else {
+		printf("[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _service.pid, ct->tm_mday, ct->tm_mon+1,
+			ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	}
 	vprintf(fmt, args);	
 }
 
@@ -79,12 +101,18 @@ void ScreenTarget::log(
 	va_list args
 )
 {
-	printf("[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _process.pid, 
-		ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	if (_service.type) {
+		printf("%s%u:%s %02i.%02i %02i:%02i:%02i %05u %016lx %s U:%li [%s:%u] ", _service.name, _service.id, tag,
+			ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, _service.pid, CustomLogFields::firstField,
+			ErrorLevelTable[level], CustomLogFields::secondField, fileName, lineNumber);
+	} else {
+		printf("[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _service.pid,
+			ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	}
 	vprintf(fmt, args);		
 }
 
-FileTarget::FileTarget(const char *fileName) 
+FileTarget::FileTarget(const char *fileName)
 {
 	_fd = fopen(fileName, "a+");
 	if (!_fd) {
@@ -106,8 +134,14 @@ void FileTarget::log(
 	const char *fmt, 
 	va_list args
 ) {
-	fprintf(_fd, "[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _process.pid, 
-					ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	if (_service.type) {
+		fprintf(_fd, "%s%u:%s %02i.%02i %02i:%02i:%02i %05u %016lx %s U:%li ", _service.name, _service.id,
+			tag, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, _service.pid,
+			CustomLogFields::firstField, ErrorLevelTable[level], CustomLogFields::secondField);
+	} else {
+		fprintf(_fd, "[%s/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, _service.pid, ct->tm_mday, ct->tm_mon+1,
+			ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	}
 	vfprintf(_fd, fmt, args);
 	fflush(_fd);
 }
@@ -123,8 +157,14 @@ void FileTarget::log(
 	va_list args
 )
 {
-	fprintf(_fd, "[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _process.pid, 
-		ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	if (_service.type) {
+		fprintf(_fd, "%s%u:%s %02i.%02i %02i:%02i:%02i %05u %016lx %s U:%li ", _service.name, _service.id,
+			tag, ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, _service.pid,
+			CustomLogFields::firstField, ErrorLevelTable[level], CustomLogFields::secondField);
+	} else {
+		fprintf(_fd, "[%s:%s:%u/%u/%02i.%02i %02i:%02i:%02i/%s] ", tag, fileName, lineNumber, _service.pid,
+			ct->tm_mday, ct->tm_mon+1, ct->tm_hour, ct->tm_min, ct->tm_sec, ErrorLevelTable[level]);
+	}
 	vfprintf(_fd, fmt, args);
 	fflush(_fd);		
 }

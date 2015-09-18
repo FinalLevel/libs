@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <vector>
 #include <unistd.h>
+#include <stdint.h>
 
 namespace fl {
 	namespace log {
@@ -34,7 +35,12 @@ namespace fl {
 				MAX_LOG_LEVEL,
 			};
 		};
-		
+
+		struct CustomLogFields {
+			static thread_local uint64_t firstField;
+			static thread_local int64_t secondField;
+		};
+
 		class Target
 		{
 		public:
@@ -58,13 +64,19 @@ namespace fl {
 				va_list args
 			) = 0;
 			virtual ~Target() {};
-		protected:
-			struct ProcessInfo
+		public:
+			struct ServiceInfo
 			{
-				ProcessInfo();
-				pid_t pid;
+				ServiceInfo();
+				ServiceInfo(const uint8_t _type, const char* _name,  const uint16_t _id, const pid_t _pid)
+					: type(_type), name(_name), id(_id), pid(_pid) {};
+
+				uint8_t type {0};
+				const char* name = nullptr;
+				uint16_t id {0};
+				pid_t pid {0};
 			};
-			static ProcessInfo _process;
+			static ServiceInfo _service;
 		};
 		
 		typedef std::vector<Target*> TTargetList;
@@ -204,7 +216,7 @@ namespace fl {
 				va_list args
 			)
 			{
-				return LogSystem::defaultLog().log(target, level, "fLib", curTime, ct, fmt, args);
+				return LogSystem::defaultLog().log(target, level, "FL", curTime, ct, fmt, args);
 			}
 		};
 		

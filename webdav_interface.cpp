@@ -41,6 +41,11 @@ bool WebDavInterface::reset()
 		return false;
 }
 
+bool WebDavInterface::reset(const HttpEventInterface::EFormResult result)
+{
+	return reset();
+}
+
 bool WebDavInterface::parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version, const std::string &host, 
 	const std::string &fileName, const std::string &query)
 {

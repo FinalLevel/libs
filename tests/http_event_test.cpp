@@ -212,6 +212,11 @@ public:
 			return false;
 	};
 	
+	virtual bool reset(const HttpEventInterface::EFormResult result)
+	{
+		return reset();
+	}
+
 	virtual bool parseURI(const char *cmdStart, const EHttpVersion::EHttpVersion version,
 			const std::string &host, const std::string &fileName, const std::string &query)
 	{
