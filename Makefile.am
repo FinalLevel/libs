@@ -31,6 +31,10 @@ if NEED_PHONENUMBER
   libfl_a_SOURCES += phone.cpp
 endif
 
+if NEED_RABBITMQ
+  libfl_a_SOURCES += amqp.cpp
+endif
+
 check_PROGRAMS = libfl_test
 libfl_test_SOURCES = tests/test.cpp tests/buffer_test.cpp tests/util_test.cpp tests/dir_test.cpp \
   tests/bstring_test.cpp tests/file_test.cpp tests/socket_test.cpp tests/event_thread_test.cpp tests/thread_test.cpp \
@@ -67,6 +71,4 @@ if NEED_PHONENUMBER
   libfl_test_LDADD += $(PHONENUMBER_LIBS)
 endif
 
-
 TESTS = libfl_test
-
