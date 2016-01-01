@@ -83,6 +83,15 @@ namespace fl {
 					if (_query)
 						_query->clear();
 				}
+				void release()
+				{
+					if (_query) {
+						_query->clear();
+					}
+					_conn = NULL;
+					_query = NULL;
+					_autoSync.unLock();
+				}
 			private:
 				friend class MysqlPool;
 				Connection(AutoMutex &&sync, Mysql *conn, MysqlQuery *query)
