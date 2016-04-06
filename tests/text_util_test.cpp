@@ -35,6 +35,13 @@ BOOST_AUTO_TEST_CASE( quotedPrintableDecodeTest )
 	BOOST_REQUIRE(result == "Test code жизнь");
 }
 
+BOOST_AUTO_TEST_CASE( urlDecodeTest )
+{
+	BString result;
+	std::string input { "Max-A-Million - Sexual+Healing" };
+	decodeUrl(input, result);
+	BOOST_REQUIRE(result == "Max-A-Million - Sexual Healing");
+}
 BOOST_AUTO_TEST_CASE( stripHtmlTagsTest1 )
 {
 	BString simpleHtml { "<html><head><title>Bla bla</title></head><body><blockquote "

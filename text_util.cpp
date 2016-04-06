@@ -39,6 +39,56 @@ namespace fl {
 				return -1;
 			}
 		}
+
+		void decodeUrl(const std::string &url, fl::strings::BString &result) {		
+			char ch;
+			int currentSize = result.size();
+			char *dst = result.reserveBuffer(url.size()  + 1);
+			int dstLen = 0;
+			const char *src = url.c_str();
+			const char *end = url.c_str()  + url.size();
+			while (src < end) {
+				ch = *src;
+				if (ch == '%') {
+					char next = *(src + 1);
+					if (next == 'u' || next  == 'U') {
+						if (src + 3 > end) {
+							char digit1 = *(src + 2);
+							char digit2 = *(src + 3);
+							if (src + 5 > end) {
+								char digit3 = *(src + 4);
+								char digit4 = *(src + 5);
+								if (isxdigit(digit3) && isxdigit(digit4) && isxdigit(digit2) && isxdigit(digit1)) {
+									dst[dstLen++] = (hex2int(digit1) << 4) + hex2int(digit2);
+									dst[dstLen++] = (hex2int(digit3) << 4) + hex2int(digit4);
+									src += 6;
+									continue;
+								}
+							} 
+							if (isxdigit(digit2) && isxdigit(digit1)) {
+								dst[dstLen++] = (hex2int(digit1) << 4) + hex2int(digit2);
+								src += 4;
+								continue;
+							}
+						}	
+					} else {
+						if ( (src + 2 < end) && isxdigit(next) && isxdigit(*(src + 2)) ) {
+							dst[dstLen++] = (hex2int(next) << 4) + hex2int(*(src + 2));
+							src += 3;
+							continue;
+						}
+					}
+				} else if (ch == '+') {
+					dst[dstLen++] = ' ';
+					src++;
+					continue;
+				}
+				dst[dstLen++] = ch;
+				src++;
+			}
+			result.trim(currentSize + dstLen);
+		}
+
 		
 		void quotedPrintableDecode(fl::strings::BString &result, const char *input, const size_t size, 
 			const char delim)
