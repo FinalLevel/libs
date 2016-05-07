@@ -399,6 +399,20 @@ bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result
 	return true;
 }
 
+bool HttpEvent::attachAndWaitSend()
+{
+	fl::threads::WeekAutoMutex autoSync;
+	_updateTimeout();
+	setWaitSend();
+	if (!_thread->addEvent(this, autoSync)) {
+		// free buffer to prevent race condition on NetworkBufferPool 
+		delete _networkBuffer;
+		_networkBuffer = NULL;
+		return false;
+	}
+	return true;
+}
+
 void HttpEvent::setBuffer(NetworkBuffer *networkBuffer)
 {
 	delete _networkBuffer;

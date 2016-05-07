@@ -153,6 +153,7 @@ namespace fl {
 			}
 			bool unAttach();
 			bool attachAndSendAnswer(const HttpEventInterface::EFormResult result);
+			bool attachAndWaitSend();
 			void setBuffer(NetworkBuffer *networkBuffer);
 			void freeBuf();
 		private:
