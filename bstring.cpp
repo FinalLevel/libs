@@ -250,55 +250,46 @@ void BString::add(const char *str, TSize len)
 
 void BString::addJSONEscapedUTF8(const char *str, TSize len)
 {
+	static const char hexDigits[] = "0123456789ABCDEF";
+	static const char escape[256] = {
+#define Z16 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		//0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+		'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'b', 't', 'n', 'u', 'f', 'r', 'u', 'u', // 00
+		'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', // 10
+		  0,   0, '"',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 20
+		Z16, Z16,																		// 30~4F
+		  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,'\\',   0,   0,   0, // 50
+		Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16								// 60~FF
+#undef Z16
+	};
 	TSize startSize = _size;
-	char *pBufStart = reserveBuffer(len * 2 + 1);
+	char *pBufStart = reserveBuffer(len * 4 + 1);
 	char *pBuf = pBufStart;
 	const char *pstr = str;
 	const char *strEnd = str + len;
 	while (pstr < strEnd) {
 		unsigned char ch = *pstr;
-		pstr++;
-		if (ch == '\\') {
+		unsigned char esc = escape[ch];
+		if (esc)  {
 			*pBuf = '\\';
 			pBuf++;
-			*pBuf = '\\';
+			*pBuf = esc;
 			pBuf++;
-		} else if (ch > '"') {
+			if (esc == 'u') {
+				*pBuf = '0';
+				pBuf++;
+				*pBuf = '0';
+				pBuf++;
+				*pBuf = hexDigits[ch >> 4];
+				pBuf++;
+				*pBuf = hexDigits[ch & 0xF];
+				pBuf++;
+			}
+		} else {
 			*pBuf = ch;
 			pBuf++;
-		} else {
-			switch (ch)
-			{
-				case '\n':
-					*pBuf = '\\';
-					pBuf++;
-					*pBuf = 'n';
-					pBuf++;
-					break;
-				case '\t':
-					*pBuf = '\\';
-					pBuf++;
-					*pBuf = 't';
-					pBuf++;
-					break;
-				case '\r':
-					*pBuf = '\\';
-					pBuf++;
-					*pBuf = 'r';
-					pBuf++;
-					break;
-				case '\"':
-					*pBuf = '\\';
-					pBuf++;
-					*pBuf = '"';
-					pBuf++;
-					break;
-				default:
-					*pBuf = ch;
-					pBuf++;
-					break;
-			}
 		}
+		pstr++;
 	}
 	trim(startSize + (pBuf - pBufStart));
 }
