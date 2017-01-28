@@ -48,6 +48,7 @@ namespace fl {
 			
 			static const int MAX_LISTEN_BACKLOG = 512;
 			bool listen(const char *listenIP, int port, const int maxListenBacklog = MAX_LISTEN_BACKLOG);
+			bool listenUnixSocket(const char *path, const int maxListenBacklog = MAX_LISTEN_BACKLOG);
 			
 			TDescriptor acceptDescriptor(TIPv4 &ip);
 			bool setDeferAccept(const int timeOut);

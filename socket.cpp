@@ -10,6 +10,7 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/un.h>
 #include <poll.h>
 #include <netdb.h>
 
@@ -113,6 +114,28 @@ TDescriptor Socket::acceptDescriptor(TIPv4 &ip)
 		ip  = ntohl(sock_addr.sin_addr.s_addr);
 		return clientDescr;
 	}
+}
+
+bool Socket::listenUnixSocket(const char *path, const int maxListenBacklog)
+{
+	sockaddr_un addr;
+	bzero(&addr, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, path, sizeof(addr.sun_path)-1);
+
+	unlink(path);
+	close(_descr);
+	_descr = socket(AF_UNIX, SOCK_STREAM, 0);
+
+	if (bind(_descr, (struct sockaddr *)&addr, sizeof(addr))) {
+		perror("bind error");
+		return false;
+	}
+
+	if (::listen(_descr, maxListenBacklog))
+		return false;
+	
+	return true;
 }
 
 bool Socket::listen(const char *listenIP, int port, const int maxListenBacklog)
