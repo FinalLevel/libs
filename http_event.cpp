@@ -43,7 +43,7 @@ bool HttpEvent::_reset()
 		_timeOutTime = EPollWorkerGroup::curTime.unix() + threadSpecData->keepAlive;
 		return true;
 	} else
-		return false;	
+		return false;
 }
 
 HttpEvent::~HttpEvent()
@@ -72,8 +72,10 @@ void HttpEvent::freeBuf() {
 		auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
 		threadSpecData->bufferPool.free(_networkBuffer);
 		_networkBuffer = NULL;
-	}	
+	}
 }
+
+static const std::string HTTP_VERSION("HTTP/");
 
 bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 {
@@ -89,10 +91,9 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	}
 	auto cmdStart = beginURI;
 	beginURI = cmdEnd + 1;
-	
-	static const std::string HTTP_VERSION("HTTP/");
+
 	const char *endURL =  endURI - HTTP_VERSION.size() - 3; // - major.minor (1.1)
-	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0; 
+	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0;
 	if (!strncasecmp(endURL, HTTP_VERSION.c_str(), HTTP_VERSION.size())) {
 		if (*(endURI - 1) == '1')
 			version = EHttpVersion::HTTP_1_1;
@@ -114,7 +115,7 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 		log::Error::L("Size of URL cannot be zero\n");
 		return false;
 	}
-	
+
 	static const std::string PROTOCOL_HTTP("http://");
 	static const std::string PROTOCOL_HTTPS("https://");
 	uint32_t skipedCharacters = 0;
@@ -122,7 +123,7 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 		skipedCharacters = PROTOCOL_HTTP.size();
 	else if (!strncasecmp(beginURI, PROTOCOL_HTTPS.c_str(), PROTOCOL_HTTPS.size()))
 		skipedCharacters = PROTOCOL_HTTPS.size();
-	
+
 	std::string hostName;
 	if (skipedCharacters > 0)	{
 		beginURI += skipedCharacters;
@@ -160,7 +161,7 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	int fileNameLen = pQuery - beginURI;
 	if (fileNameLen > 0)
 		fileName.assign(beginURI, fileNameLen);
-	return _interface->parseURI(cmdStart, version, hostName, fileName, query);	
+	return _interface->parseURI(cmdStart, version, hostName, fileName, query);
 }
 
 bool HttpEvent::_checkExpect(const char *name, const size_t nameLength, const char *value, const size_t valueLen)
@@ -173,7 +174,7 @@ bool HttpEvent::_checkExpect(const char *name, const size_t nameLength, const ch
 	else {
 		static const std::string VALUE_100_CONTINUE("100-Continue");
 		if (!strncasecmp(value, VALUE_100_CONTINUE.c_str(), VALUE_100_CONTINUE.size())) {
-			_status |= ST_EXPECT_100; 
+			_status |= ST_EXPECT_100;
 			return true;
 		} else {
 			return false;
@@ -200,7 +201,7 @@ bool HttpEvent::_parseHeader(const char *pStartHeader, const char *pEndHeader)
 			if (_checkExpect(pBeginName, nameLength, pStartHeader, valueLen)) {
 				return _interface->canContinue();
 			}
-			else {	
+			else {
 				return _interface->parseHeader(pBeginName, nameLength, pStartHeader, valueLen, pEndHeader);
 			}
 		}
@@ -229,7 +230,7 @@ bool HttpEvent::_readRequest()
 		return false;
 	}
 	if ((_state == EHttpState::ST_WAIT_REQUEST) && (_networkBuffer->size() > threadSpecData->maxRequestSize)) {
-		log::Error::L("Maximum http request size %u has been reached (%u)\n", threadSpecData->maxRequestSize, 
+		log::Error::L("Maximum http request size %u has been reached (%u)\n", threadSpecData->maxRequestSize,
 			_networkBuffer->size());
 		return false;
 	}
@@ -275,8 +276,8 @@ bool HttpEvent::_readRequest()
 					return false;
 				else
 					_state = EHttpState::ST_WAIT_ADDITIONAL_DATA;
-			}			
-		
+			}
+
 		}
 	}
 	return true;
@@ -285,7 +286,7 @@ bool HttpEvent::_readRequest()
 void HttpEvent::_updateTimeout()
 {
 	auto threadSpecData = static_cast<HttpThreadSpecificData*>(_thread->threadSpecificData());
-	_timeOutTime = EPollWorkerGroup::curTime.unix() + threadSpecData->operationTimeout;	
+	_timeOutTime = EPollWorkerGroup::curTime.unix() + threadSpecData->operationTimeout;
 }
 
 
@@ -354,7 +355,7 @@ HttpEvent::ECallResult HttpEvent::_sendAnswer()
 			}
 		}
 	}
-	return FINISHED;	
+	return FINISHED;
 }
 
 HttpEvent::ECallResult HttpEvent::_sendError()
@@ -374,14 +375,14 @@ bool HttpEvent::_readPostData()
 		return false;
 	else if (res == NetworkBuffer::IN_PROGRESS)
 		return true;
-	
+
 	bool parseError = false;
 	if (_interface->parsePOSTData(_headerStartPosition, *_networkBuffer, parseError)) {
 		_state = EHttpState::ST_REQUEST_RECEIVED;
 	}
 	else if (parseError) {// Not enough data for post query or an error has been occurred
 		return false;
-	}			
+	}
 	return true;
 }
 
@@ -390,7 +391,7 @@ bool HttpEvent::attachAndSendAnswer(const HttpEventInterface::EFormResult result
 	fl::threads::WeekAutoMutex autoSync;
 	_updateTimeout();
 	if (!_thread->addEvent(this, autoSync)) {
-		// free buffer to prevent race condition on NetworkBufferPool 
+		// free buffer to prevent race condition on NetworkBufferPool
 		delete _networkBuffer;
 		_networkBuffer = NULL;
 		return false;
@@ -405,7 +406,7 @@ bool HttpEvent::attachAndWaitSend()
 	_updateTimeout();
 	setWaitSend();
 	if (!_thread->addEvent(this, autoSync)) {
-		// free buffer to prevent race condition on NetworkBufferPool 
+		// free buffer to prevent race condition on NetworkBufferPool
 		delete _networkBuffer;
 		_networkBuffer = NULL;
 		return false;
@@ -437,13 +438,13 @@ const HttpEvent::ECallResult HttpEvent::_setWaitExternalEvent()
 		return CHANGE;
 	}
 	else
-		return FINISHED;	
+		return FINISHED;
 }
 
 HttpEvent::ECallResult HttpEvent::sendAnswer(const HttpEventInterface::EFormResult result)
 {
 	_status &= ~(ST_KEEP_ALIVE | ST_CHECK_AFTER_SEND);
-	
+
 	ECallResult sendResult = SKIP;
 	switch (result) {
 		case HttpEventInterface::RESULT_OK_KEEP_ALIVE:
@@ -489,12 +490,12 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 {
 	if (_state == EHttpState::ST_FINISHED)
 		return FINISHED;
-	
+
 	if (((events & E_HUP) == E_HUP) || ((events & E_ERROR) == E_ERROR)) {
 		_endWork();
 		return FINISHED;
 	}
-	
+
 	if (events & E_INPUT) {
 		if (_state == EHttpState::ST_WAIT_REQUEST)	{
 			if (!_readRequest())
@@ -515,7 +516,7 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 			return CHANGE;
 		}
 	}
-	
+
 	if (events & E_OUTPUT) {
 		if (_state == EHttpState::ST_SEND) {
 			return _sendAnswer();
@@ -527,9 +528,9 @@ const HttpEvent::ECallResult HttpEvent::call(const TEvents events)
 	return SKIP;
 }
 
-HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize, const uint8_t maxChunkCount, 
-	const size_t bufferSize, const size_t maxFreeBuffers, 
-	const uint32_t operationTimeout, const uint32_t firstRequstTimeout, const uint32_t keepAlive, 
+HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxRequestSize, const uint8_t maxChunkCount,
+	const size_t bufferSize, const size_t maxFreeBuffers,
+	const uint32_t operationTimeout, const uint32_t firstRequstTimeout, const uint32_t keepAlive,
 	const uint32_t maxSequenceSends)
 	: maxRequestSize(maxRequestSize), maxChunkCount(maxChunkCount), bufferPool(bufferSize, maxFreeBuffers),
 	operationTimeout(operationTimeout), firstRequstTimeout(firstRequstTimeout), keepAlive(keepAlive),
@@ -538,7 +539,7 @@ HttpThreadSpecificData::HttpThreadSpecificData(const NetworkBuffer::TSize maxReq
 }
 
 
-bool HttpEventInterface::_parseIfModifiedSince(const char *name, const size_t nameLength, 
+bool HttpEventInterface::_parseIfModifiedSince(const char *name, const size_t nameLength,
 	const char *value, const size_t valueLen, time_t &ifModifiedSince)
 {
 	static const std::string IF_MODIFIED_SINCE_HEADER("If-Modified-Since");
@@ -563,7 +564,7 @@ bool HttpEventInterface::_parseRange(const char *name, const size_t nameLength, 
 	else {
 		rangeStart = 0;
 		rangeEnd = 0;
-		
+
 		static const std::string BYTES("bytes=");
 		const char *pBytes = fl::utils::strncasestr(value, BYTES.c_str(), valueLen);
 		if (pBytes) {
@@ -580,10 +581,10 @@ bool HttpEventInterface::_parseRange(const char *name, const size_t nameLength, 
 			}
 		}
 		return true;
-	}	
+	}
 }
 
-bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLength, const char *value, 
+bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLength, const char *value,
 	bool &isKeepAlive)
 {
 	static const std::string CONNECTION_HEADER("Connection");
@@ -600,7 +601,7 @@ bool HttpEventInterface::_parseKeepAlive(const char *name, const size_t nameLeng
 		}
 		return true;
 	}
-	
+
 }
 
 
@@ -619,7 +620,7 @@ bool HttpEventInterface::_parseHost(const char *name, const size_t nameLength, c
 
 }
 
-bool HttpEventInterface::_parseContentLength(const char *name, const size_t nameLength, const char *value, 
+bool HttpEventInterface::_parseContentLength(const char *name, const size_t nameLength, const char *value,
 	size_t &contentLength)
 {
 	static const std::string CONTENT_LENGTH_HEADER("Content-length");
@@ -658,12 +659,12 @@ bool HttpEventInterface::_parseXRealIP(const char *name, const size_t nameLength
 	return true;
 }
 
-const char HttpEventInterface::_nextParam(const char *&paramStart, const char *end, const char *&value, 
+const char HttpEventInterface::_nextParam(const char *&paramStart, const char *end, const char *&value,
 	size_t &valueLength)
 {
 	if (paramStart >= end)
 		return 0;
-	
+
 	const char *pNext = strchr(paramStart, '&');
 	if (!pNext)
 		pNext = end;
