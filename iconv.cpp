@@ -27,6 +27,7 @@ namespace fl {
 			{ "windows-1251", ECharset::WINDOWS1251 },
 			{ "windows1251", ECharset::WINDOWS1251 },
 			{ "cp1251", ECharset::WINDOWS1251 },
+			{ "cp1252", ECharset::WINDOWS1252 },
 		};
 		ECharset getCharsetId(const std::string &charset)
 		{

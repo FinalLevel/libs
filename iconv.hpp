@@ -21,6 +21,7 @@ namespace fl {
 			UNKNOWN,
 			UTF8,
 			WINDOWS1251,
+			WINDOWS1252,
 			MAX_CHARSET
 		};
 		struct Charset
@@ -32,7 +33,8 @@ namespace fl {
 		{
 			{ "UNKNOWN", 0 },
 			{ "UTF-8", 2 },
-			{ "WINDOWS-1251", 1 }
+			{ "WINDOWS-1251", 1 },
+			{ "WINDOWS-1252", 1 }
 		};
 		ECharset getCharsetId(const std::string &charset);
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from, 
