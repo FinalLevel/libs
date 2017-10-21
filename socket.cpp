@@ -134,7 +134,7 @@ bool Socket::listenUnixSocket(const char *path, const int maxListenBacklog)
 
 	if (::listen(_descr, maxListenBacklog))
 		return false;
-	
+
 	return true;
 }
 
@@ -156,7 +156,7 @@ bool Socket::listen(const char *listenIP, int port, const int maxListenBacklog)
 
 	if (::listen(_descr, maxListenBacklog))
 		return false;
-	
+
 	return true;
 }
 
@@ -167,7 +167,7 @@ Socket::EConnectResult Socket::connectNonBlock(const TIPv4 ip, const uint32_t po
 	addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = ntohl(ip);
 	addr.sin_port = htons(port);
-	
+
 
 	auto res = ::connect(_descr, (sockaddr *)&addr, sizeof(addr));
 	if (res == 0)
@@ -180,6 +180,15 @@ Socket::EConnectResult Socket::connectNonBlock(const TIPv4 ip, const uint32_t po
 	if (errno == EBADF || errno == EPIPE)
 		return CN_NEED_RESET;
 	return CN_ERORR;
+}
+
+bool Socket::connect(const char *host, const uint32_t port, BString &buf,
+	const size_t timeout) {
+	auto ip = resolve(host, buf);
+	if (ip == 0) {
+		return false;
+	}
+	return connect(ip, port, timeout);
 }
 
 bool Socket::connect(const TIPv4 ip, const uint32_t port, const size_t timeout)
@@ -195,7 +204,7 @@ bool Socket::connect(const TIPv4 ip, const uint32_t port, const size_t timeout)
 	{
 		if (errno == EISCONN)
 			return true;
-		
+
 		if ((errno != EINPROGRESS) && (errno != EAGAIN) && (errno != ENOTCONN))
 			return false;
 
@@ -220,7 +229,7 @@ bool Socket::pollReadHttpAnswer(BString &answer, const size_t timeout)
 	bool headerFound = false;
 	BString::TSize headerStartPosition = 0;
 	ssize_t contentLength = -1;
-	
+
 	struct pollfd socketList[1];
 	while (true) {
 		socketList[0].fd = _descr;
@@ -245,7 +254,7 @@ bool Socket::pollReadHttpAnswer(BString &answer, const size_t timeout)
 			chunkSize = HTTP_ANSWER_SIZE;
 		else
 			chunkSize--;
-		
+
 		auto lastChecked = answer.size();
 		char *data = answer.reserveBuffer(chunkSize);
 		auto res = recv(_descr, data, chunkSize, MSG_NOSIGNAL | MSG_DONTWAIT);
@@ -294,8 +303,8 @@ bool Socket::pollReadHttpAnswer(BString &answer, const size_t timeout)
 					return true;
 				else
 					continue;
-			}	
-		}  else { 
+			}
+		}  else {
 			answer.trim(answer.size() - chunkSize);
 			if (res == 0) {
 				return fullRequestReceived;
@@ -355,7 +364,7 @@ ssize_t Socket::pollAndRecv(void *buf, const size_t size, const size_t timeout)
 		((socketList[0].revents & POLLNVAL) == POLLNVAL)) {
 		return -1;
 	}
-	return recv(_descr, buf, size, MSG_NOSIGNAL | MSG_DONTWAIT);	
+	return recv(_descr, buf, size, MSG_NOSIGNAL | MSG_DONTWAIT);
 }
 
 bool Socket::pollAndSendAll(const void *buf, const size_t size, const size_t timeout)
@@ -387,7 +396,7 @@ bool Socket::pollAndSendAll(const void *buf, const size_t size, const size_t tim
 		sended += res;
 		leftSize -= res;
 	}
-	return true;	
+	return true;
 }
 
 TIPv4 Socket::ip2Long(const char *ipStr)
@@ -399,7 +408,7 @@ BString Socket::ip2String(const TIPv4 ip)
 {
 	static const int MAX_IP_LENGTH = 4 * 4;
 	BString ipStr(MAX_IP_LENGTH + 1);
-	
+
 	static const char DECIMALS[] = "0123456789";
 	char *curBuf = ipStr.reserveBuffer(MAX_IP_LENGTH);
 	char *start = curBuf;
@@ -432,7 +441,7 @@ TIPv4 Socket::resolve(const char *host, BString &buf)
 	struct hostent hbuf;
 	struct hostent *result;
 	buf.clear();
-	
+
 	static const size_t MIN_RESOLV_BUF = 1024;
 	size_t bufSize = buf.size();
 	if (bufSize < MIN_RESOLV_BUF) {
@@ -449,7 +458,7 @@ TIPv4 Socket::resolve(const char *host, BString &buf)
 	}
 	sockaddr_in addr;
 	memset(&addr, 0, sizeof(sockaddr_in));
-	addr.sin_family = AF_INET;	
+	addr.sin_family = AF_INET;
 	memcpy(&addr.sin_addr, result->h_addr, result->h_length);
 	return ntohl(addr.sin_addr.s_addr);
 }

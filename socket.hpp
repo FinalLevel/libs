@@ -17,13 +17,13 @@
 
 namespace fl {
 	namespace network {
-		
+
 		typedef int TDescriptor;
 		typedef uint32_t TIPv4;
 		typedef uint16_t TPort16;
 		const TDescriptor INVALID_SOCKET = -1;
 		using fl::strings::BString;
-		
+
 		class NetworkError : public fl::exceptions::Error
 		{
 		public:
@@ -32,29 +32,29 @@ namespace fl {
 			{
 			}
 		};
-		
-		class Socket 
+
+		class Socket
 		{
 		public:
 			Socket();
 			Socket(const TDescriptor descr);
 			~Socket();
-			
+
 			Socket(const Socket &) = delete;
 			Socket &operator=(const Socket &) = delete;
-			
+
 			Socket(Socket &&sock);
 			Socket &operator=(Socket &&sock);
-			
+
 			static const int MAX_LISTEN_BACKLOG = 512;
 			bool listen(const char *listenIP, int port, const int maxListenBacklog = MAX_LISTEN_BACKLOG);
 			bool listenUnixSocket(const char *path, const int maxListenBacklog = MAX_LISTEN_BACKLOG);
-			
+
 			TDescriptor acceptDescriptor(TIPv4 &ip);
 			bool setDeferAccept(const int timeOut);
 			void reset(const TDescriptor descr);
 			bool reopen();
-			
+
 			static const size_t DEFAULT_CONNECT_TIMEOUT = 15 * 1000;
 			enum EConnectResult
 			{
@@ -65,7 +65,9 @@ namespace fl {
 			};
 			EConnectResult connectNonBlock(const TIPv4 ip, const uint32_t port);
 			bool connect(const TIPv4 ip, const uint32_t port, const size_t timeout = DEFAULT_CONNECT_TIMEOUT);
-			
+			bool connect(const char *host, const uint32_t port, BString &buf,
+				const size_t timeout = DEFAULT_CONNECT_TIMEOUT);
+
 			const TDescriptor descr() const
 			{
 				return _descr;
