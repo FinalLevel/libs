@@ -22,6 +22,7 @@ namespace fl {
 			UTF8,
 			WINDOWS1251,
 			WINDOWS1252,
+			WINDOWS1254,
 			MAX_CHARSET
 		};
 		struct Charset
@@ -29,15 +30,16 @@ namespace fl {
 			const char * const name;
 			const size_t avgSize;
 		};
-		static const Charset CHARSETS[static_cast<uint32_t>(ECharset::MAX_CHARSET)] = 
+		static const Charset CHARSETS[static_cast<uint32_t>(ECharset::MAX_CHARSET)] =
 		{
 			{ "UNKNOWN", 0 },
 			{ "UTF-8", 2 },
 			{ "WINDOWS-1251", 1 },
-			{ "WINDOWS-1252", 1 }
+			{ "WINDOWS-1252", 1 },
+			{ "WINDOWS-1254", 1 },
 		};
 		ECharset getCharsetId(const std::string &charset);
-		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from, 
+		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from,
 			const ECharset to);
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const char *from, const ECharset to);
 	};

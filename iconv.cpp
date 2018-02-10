@@ -28,17 +28,18 @@ namespace fl {
 			{ "windows1251", ECharset::WINDOWS1251 },
 			{ "cp1251", ECharset::WINDOWS1251 },
 			{ "cp1252", ECharset::WINDOWS1252 },
+			{ "cp1254", ECharset::WINDOWS1254 },
 		};
 		ECharset getCharsetId(const std::string &charset)
 		{
 			auto f = CHARSET_MAP.find(charset);
 			if (f == CHARSET_MAP.end()) {
-				return ECharset::UNKNOWN; 
+				return ECharset::UNKNOWN;
 			} else {
 				return f->second;
 			}
 		}
-		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from, 
+		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from,
 			const ECharset to)
 		{
 			return convert(input, size, result, CHARSETS[static_cast<uint32_t>(from)].name, to);
