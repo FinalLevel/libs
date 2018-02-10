@@ -88,6 +88,7 @@ namespace fl {
 				return setNonBlockIO(_descr);
 			}
 			static TIPv4 resolve(const char *host, BString &buf);
+			void close();
 		private:
 			bool _open();
 			TDescriptor _descr;

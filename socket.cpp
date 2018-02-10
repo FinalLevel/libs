@@ -54,10 +54,14 @@ Socket::~Socket()
 	reset(INVALID_SOCKET);
 }
 
+void Socket::close() {
+	reset(INVALID_SOCKET);
+}
+
 void Socket::reset(const TDescriptor descr)
 {
 	if (_descr != INVALID_SOCKET)
-		close(_descr);
+		::close(_descr);
 	_descr = descr;
 }
 
@@ -124,7 +128,7 @@ bool Socket::listenUnixSocket(const char *path, const int maxListenBacklog)
 	strncpy(addr.sun_path, path, sizeof(addr.sun_path)-1);
 
 	unlink(path);
-	close(_descr);
+	::close(_descr);
 	_descr = socket(AF_UNIX, SOCK_STREAM, 0);
 
 	if (bind(_descr, (struct sockaddr *)&addr, sizeof(addr))) {
