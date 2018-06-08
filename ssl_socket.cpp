@@ -62,7 +62,7 @@ SSLSocket::~SSLSocket() {
   close();
 }
 
-bool SSLSocket::_waitFor(const int sslErr, const int timeout) {
+bool SSLSocket::_waitFor(const int sslErr, const int timeoutMs) {
   int events = 0;
 	if (sslErr == SSL_ERROR_WANT_READ) {
 		events |= POLLIN;
@@ -76,7 +76,7 @@ bool SSLSocket::_waitFor(const int sslErr, const int timeout) {
   pollList[0].events = events;
   pollList[0].revents = 0;
 
-  int retval = poll(pollList, 1, timeout * 1000);
+  int retval = poll(pollList, 1, timeoutMs);
   if(retval < 0) {
     return false;
   }

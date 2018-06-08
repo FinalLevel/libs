@@ -36,7 +36,7 @@ namespace fl {
     private:
       Socket _socket;
       SSL *_pSSL;
-      bool _waitFor(const int sslErr, const int timeout);
+      bool _waitFor(const int sslErr, const int timeoutMs);
 
       class OpenSSL {
       public:
