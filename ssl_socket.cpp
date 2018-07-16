@@ -56,6 +56,7 @@ SSLSocket::SSLSocket()
 SSLSocket::SSLSocket(TDescriptor descr)
   : _socket(descr), _pSSL(nullptr)
 {
+  Socket::setNonBlockIO(descr);
 }
 
 SSLSocket::~SSLSocket() {
