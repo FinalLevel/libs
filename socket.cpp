@@ -34,7 +34,7 @@ bool Socket::_open()
 	if ((_descr = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	{
 		return false;
 	} else {
-		return setNonBlockIO(_descr);
+		return true;
 	}
 }
 
@@ -203,6 +203,9 @@ bool Socket::connect(const TIPv4 ip, const uint32_t port, const size_t timeout)
   addr.sin_addr.s_addr = ntohl(ip);
 	addr.sin_port = htons(port);
 	struct pollfd socketList[1];
+	if (!setNonBlockIO(_descr)) {
+		return false;
+	}
 	int res;
 	while ((res = ::connect(_descr, (sockaddr *)&addr, sizeof(addr))) != 0)
 	{
