@@ -32,9 +32,9 @@ Socket::Socket()
 bool Socket::_open()
 {
 	if ((_descr = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	{
-		return setNonBlockIO(_descr);
+		return false;
 	} else {
-		return true;
+		return setNonBlockIO(_descr);
 	}
 }
 
