@@ -23,6 +23,7 @@ namespace fl {
 			WINDOWS1251,
 			WINDOWS1252,
 			WINDOWS1254,
+			ISO8859_1,
 			MAX_CHARSET
 		};
 		struct Charset
@@ -37,6 +38,7 @@ namespace fl {
 			{ "WINDOWS-1251", 1 },
 			{ "WINDOWS-1252", 1 },
 			{ "WINDOWS-1254", 1 },
+			{ "ISO-8859-1", 2 },
 		};
 		ECharset getCharsetId(const std::string &charset);
 		bool convert(const char *input, const size_t size, fl::strings::BString &result, const ECharset from,
