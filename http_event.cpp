@@ -75,7 +75,6 @@ void HttpEvent::freeBuf() {
 	}
 }
 
-static const std::string HTTP_VERSION("HTTP/");
 
 bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 {
@@ -92,7 +91,8 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	auto cmdStart = beginURI;
 	beginURI = cmdEnd + 1;
 
-	const char *endURL =  endURI - HTTP_VERSION.size() - 3; // - major.minor (1.1)
+	static const std::string HTTP_VERSION("HTTP/");
+	const char *endURL =  endURI - (HTTP_VERSION.size() + 3); // - major.minor (1.1)
 	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0;
 	if (!strncasecmp(endURL, HTTP_VERSION.c_str(), HTTP_VERSION.size())) {
 		if (*(endURI - 1) == '1')
@@ -105,11 +105,6 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	} else {
 		log::Error::L("Can't find 'HTTP/' in HTTP request\n");
 		return false;
-	}
-	while (endURL > beginURI)	{
-		if (*endURL == ' ')
-			break;
-		endURL--;
 	}
 	if (endURL == beginURI) {
 		log::Error::L("Size of URL cannot be zero\n");
