@@ -262,11 +262,30 @@ void BString::addJSONEscapedUTF8(const char *str, TSize len)
 		Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16								// 60~FF
 #undef Z16
 	};
-	TSize startSize = _size;
-	char *pBufStart = reserveBuffer(len * 4 + 1);
-	char *pBuf = pBufStart;
 	const char *pstr = str;
 	const char *strEnd = str + len;
+	TSize escapedSize = 0;
+	while (pstr < strEnd) {
+		unsigned char ch = *pstr;
+		unsigned char esc = escape[ch];
+		if (esc)  {
+			if (esc == 'u') {
+				escapedSize += 6;
+			} else {
+				escapedSize += 2;
+			}
+		}
+		pstr++;
+	}
+	if (escapedSize == 0) {
+		add(str, len);
+		return;
+	}
+	TSize startSize = _size;
+	char *pBufStart = reserveBuffer(len + escapedSize + 1);
+	char *pBuf = pBufStart;
+	pstr = str;
+	strEnd = str + len;
 	while (pstr < strEnd) {
 		unsigned char ch = *pstr;
 		unsigned char esc = escape[ch];
