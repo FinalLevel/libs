@@ -76,6 +76,9 @@ void HttpEvent::freeBuf() {
 }
 
 
+static const char *HTTP_VERSION = "HTTP/";
+static const size_t HTTP_VERSION_LENGTH = 5;
+
 bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 {
 	auto cmdEnd = beginURI;
@@ -91,10 +94,9 @@ bool HttpEvent::_parseURI(const char *beginURI, const char *endURI)
 	auto cmdStart = beginURI;
 	beginURI = cmdEnd + 1;
 
-	static const std::string HTTP_VERSION("HTTP/");
-	const char *endURL =  endURI - (HTTP_VERSION.size() + 3); // - major.minor (1.1)
+	const char *endURL =  endURI - (HTTP_VERSION_LENGTH + 3); // - major.minor (1.1)
 	EHttpVersion::EHttpVersion version = EHttpVersion::HTTP_1_0;
-	if (!strncasecmp(endURL, HTTP_VERSION.c_str(), HTTP_VERSION.size())) {
+	if (!strncasecmp(endURL, HTTP_VERSION, HTTP_VERSION_LENGTH)) {
 		if (*(endURI - 1) == '1')
 			version = EHttpVersion::HTTP_1_1;
 		endURL--;
